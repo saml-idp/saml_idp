@@ -58,7 +58,7 @@ module SamlIdp
                   end
               end
             end
-          end
+          end unless config.attributes.nil? || config.attributes.empty?
           assertion.AuthnStatement AuthnInstant: now_iso, SessionIndex: reference_string do |statement|
             statement.AuthnContext do |context|
               context.AuthnContextClassRef Saml::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
