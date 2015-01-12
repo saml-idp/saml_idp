@@ -70,7 +70,6 @@ module SamlIdp
     def authn_request
       xpath("//samlp:AuthnRequest", samlp: samlp).first
     end
-    private :authn_request
 
     def samlp
       Saml::XML::Namespaces::PROTOCOL
