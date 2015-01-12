@@ -66,7 +66,6 @@ module SamlIdp
     def document
       @document ||= Saml::XML::Document.parse(raw_xml)
     end
-    private :document
 
     def authn_request
       xpath("//samlp:AuthnRequest", samlp: samlp).first
