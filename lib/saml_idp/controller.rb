@@ -63,7 +63,7 @@ module SamlIdp
     end
 
     def saml_acs_url
-      saml_request.acs_url
+      @saml_acs_url ||= saml_request.acs_url
     end
 
     def get_saml_response_id
