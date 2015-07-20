@@ -13,6 +13,8 @@ module SamlIdp
           end
         rescue Zlib::DataError # not compressed
           inflated = decoded
+        rescue Zlib::BufError  # invalid
+          inflated = ""
         end
       else
         inflated = ""
