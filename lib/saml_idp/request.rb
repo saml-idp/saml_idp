@@ -13,6 +13,8 @@ module SamlIdp
           end
         rescue Zlib::DataError # not compressed
           inflated = decoded
+        rescue Zlib::BufError  # invalid
+          inflated = ""
         end
       else
         inflated = ""
@@ -37,7 +39,7 @@ module SamlIdp
 
     def acs_url
       service_provider.acs_url ||
-        authn_request["AssertionConsumerServiceURL"].to_s
+        authn_request.try(:[], :AssertionConsumerServiceURL).to_s
     end
 
     def valid?
