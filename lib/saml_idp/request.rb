@@ -5,12 +5,8 @@ module SamlIdp
     def self.from_deflated_request(raw)
       if raw
         decoded = Base64.decode64(raw)
-        zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
         begin
-          inflated = zstream.inflate(decoded).tap do
-            zstream.finish
-            zstream.close
-          end
+          inflated = Zlib.inflate(decoded)
         rescue Zlib::DataError # not compressed
           inflated = decoded
         end
