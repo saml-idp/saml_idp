@@ -72,6 +72,7 @@ module Saml
       def options_have_signature(options)
         options[:get_params] && options[:get_params][:Signature]
       end
+      private :options_have_signature
 
       def valid_signature?(fingerprint, options = {})
         (signed? || options_have_signature(options)) &&
