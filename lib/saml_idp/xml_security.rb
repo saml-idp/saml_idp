@@ -44,23 +44,9 @@ module SamlIdp
       end
 
       def validate(idp_cert_fingerprint, soft = true, options = {})
-        cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
-        if cert_element
-          base64_cert = cert_element.text
-        elsif options[:cert]
-          if options[:cert].is_a?(String)
-            base64_cert = options[:cert]
-          elsif options[:cert].is_a?(OpenSSL::X509::Certificate)
-            base64_cert = Base64.encode64(options[:cert].to_pem)
-          else
-            raise ValidationError.new("options[:cert] must be Base64-encoded String or OpenSSL::X509::Certificate")
-          end
-        else
-          raise ValidationError.new("Certificate element missing in response (ds:X509Certificate) and not provided in options[:cert]")
-        end
-
-        cert_text = Base64.decode64(base64_cert)
-        cert      = OpenSSL::X509::Certificate.new(cert_text)
+        base64_cert = find_base64_cert(options)
+        cert_text   = Base64.decode64(base64_cert)
+        cert        = OpenSSL::X509::Certificate.new(cert_text)
 
         # check cert matches registered idp cert
         fingerprint = fingerprint_cert(cert, options)
@@ -73,6 +59,16 @@ module SamlIdp
 
         validate_doc(base64_cert, soft, options)
       end
+
+      def validate_doc(base64_cert, soft = true, options = {})
+        if options[:get_params]
+          validate_doc_params_signature(base64_cert, soft, options[:get_params])
+        else
+          validate_doc_embedded_signature(base64_cert, soft)
+        end
+      end
+
+      private
 
       def signature_algorithm(options)
         if options[:get_params] && options[:get_params][:SigAlg]
@@ -92,15 +88,22 @@ module SamlIdp
         OpenSSL::Digest::SHA1.hexdigest(cert.to_der)
       end
 
-      def validate_doc(base64_cert, soft = true, options = {})
-        if options[:get_params]
-          validate_doc_params_signature(base64_cert, soft, options[:get_params])
+      def find_base64_cert(options)
+        cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
+        if cert_element
+          base64_cert = cert_element.text
+        elsif options[:cert]
+          if options[:cert].is_a?(String)
+            base64_cert = options[:cert]
+          elsif options[:cert].is_a?(OpenSSL::X509::Certificate)
+            base64_cert = Base64.encode64(options[:cert].to_pem)
+          else
+            raise ValidationError.new("options[:cert] must be Base64-encoded String or OpenSSL::X509::Certificate")
+          end
         else
-          validate_doc_embedded_signature(base64_cert, soft)
+          raise ValidationError.new("Certificate element missing in response (ds:X509Certificate) and not provided in options[:cert]")
         end
       end
-
-      private
 
       def request?
         root.name != 'Response'
