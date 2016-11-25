@@ -42,8 +42,7 @@ match '/saml/logout' => 'saml_idp#logout', via: [:get, :post, :delete]
 Create a controller that looks like this, customize to your own situation:
 
 ``` ruby
-class SamlIdpController
-  include SamlIdp::IdpController
+class SamlIdpController < SamlIdp::IdpController
 
   def idp_authenticate(email, password) # not using params intentionally
     user = User.by_email(email).first
