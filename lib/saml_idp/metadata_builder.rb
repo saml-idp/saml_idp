@@ -92,10 +92,11 @@ module SamlIdp
 
     def build_contact(el)
       el.ContactPerson contactType: "technical" do |contact|
-        %w[company given_name sur_name telephone mail_to_string].each do |section|
-          section_value = technical_contact.public_send(section)
-          contact.Company section_value if section_value.present?
-        end
+        contact.Company         technical_contact.company         if technical_contact.company
+        contact.GivenName       technical_contact.given_name      if technical_contact.given_name
+        contact.SurName         technical_contact.sur_name        if technical_contact.sur_name
+        contact.EmailAddress    technical_contact.mail_to_string  if technical_contact.mail_to_string
+        contact.TelephoneNumber technical_contact.telephone       if technical_contact.telephone
       end
     end
     private :build_contact
