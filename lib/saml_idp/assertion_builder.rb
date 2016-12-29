@@ -88,7 +88,7 @@ module SamlIdp
     def asserted_attributes
       if principal.respond_to?(:asserted_attributes)
         principal.send(:asserted_attributes)
-      elsif !config.attributes.nil? && !config.attributes.empty?
+      elsif config.attributes.present?
         config.attributes
       end
     end
