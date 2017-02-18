@@ -15,5 +15,11 @@ module SamlIdp
         '<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://example.com/saml/logout"/>'
       )
     end
+    it "includes logout element as HTTP Redirect" do
+      subject.configurator.single_logout_service_redirect_location = 'https://example.com/saml/logout'
+      subject.fresh.should match(
+        '<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://example.com/saml/logout"/>'
+      )
+    end
   end
 end
