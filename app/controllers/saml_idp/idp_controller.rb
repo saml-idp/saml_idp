@@ -1,6 +1,6 @@
 # encoding: utf-8
 module SamlIdp
-  class IdpController < ActionController::Base
+  class IdpController < ApplicationController
     include SamlIdp::Controller
 
     unloadable unless Rails::VERSION::MAJOR >= 4
