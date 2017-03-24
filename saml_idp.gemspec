@@ -42,19 +42,19 @@ Encrypted Assertions require the xmlenc gem. See the example in the Controller
 section of the README.
   INST
 
-  s.add_dependency('activesupport')
-  s.add_dependency('uuid')
-  s.add_dependency('builder')
-  s.add_dependency('httparty')
+  s.add_dependency('activesupport', '>= 3.2')
+  s.add_dependency('uuid', '~> 2.3')
+  s.add_dependency('builder', '~> 3.0')
+  s.add_dependency('httparty', '~> 0.14')
   s.add_dependency('nokogiri', '>= 1.6.2')
 
-  s.add_development_dependency "rake"
-  s.add_development_dependency "simplecov"
-  s.add_development_dependency "rspec", "~> 2.5"
-  s.add_development_dependency "ruby-saml", "~> 1.3"
-  s.add_development_dependency("rails", "~> 3.2")
-  s.add_development_dependency("capybara")
-  s.add_development_dependency("timecop")
-  s.add_development_dependency("xmlenc", ">= 0.6.4")
+  s.add_development_dependency('rake', '~> 10.4.2')
+  s.add_development_dependency('simplecov', '~> 0.12')
+  s.add_development_dependency('rspec', '~> 2.5')
+  s.add_development_dependency('ruby-saml', '~> 1.3')
+  s.add_development_dependency('rails', '~> 3.2')
+  s.add_development_dependency('capybara', '~> 2.11.0')
+  s.add_development_dependency('timecop', '~> 0.8')
+  s.add_development_dependency('xmlenc', '>= 0.6.4')
 end
 
