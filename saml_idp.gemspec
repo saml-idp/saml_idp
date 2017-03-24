@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
      "Gemfile",
      "saml_idp.gemspec"
   ]
+  s.required_ruby_version = '>= 2.2'
   s.license = "LICENSE"
   s.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
