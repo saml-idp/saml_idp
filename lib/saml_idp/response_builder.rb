@@ -29,15 +29,17 @@ module SamlIdp
     private :encode
 
     def build
+      resp_options = {}
+      resp_options[:ID] = response_id_string
+      resp_options[:Version] =  "2.0"
+      resp_options[:IssueInstant] = now_iso
+      resp_options[:Destination] = saml_acs_url
+      resp_options[:Consent] = Saml::XML::Namespaces::Consents::UNSPECIFIED
+      resp_options[:InResponseTo] = saml_request_id unless saml_request_id.nil?
+      resp_options["xmlns:samlp"] = Saml::XML::Namespaces::PROTOCOL
+
       builder = Builder::XmlMarkup.new
-      builder.tag! "samlp:Response",
-        ID: response_id_string,
-        Version: "2.0",
-        IssueInstant: now_iso,
-        Destination: saml_acs_url,
-        Consent: Saml::XML::Namespaces::Consents::UNSPECIFIED,
-        InResponseTo: saml_request_id,
-        "xmlns:samlp" => Saml::XML::Namespaces::PROTOCOL do |response|
+      builder.tag! "samlp:Response", resp_options do |response|
           response.Issuer issuer_uri, xmlns: Saml::XML::Namespaces::ASSERTION
           response.tag! "samlp:Status" do |status|
             status.tag! "samlp:StatusCode", Value: Saml::XML::Namespaces::Statuses::SUCCESS

@@ -19,11 +19,6 @@ describe SamlIdp::Controller do
   end
 
   context "SAML Responses" do
-    before(:each) do
-      params[:SAMLRequest] = make_saml_request
-      validate_saml_request
-    end
-
     let(:principal) { double email_address: "foo@example.com" }
     let (:encryption_opts) do
       {
@@ -33,28 +28,24 @@ describe SamlIdp::Controller do
       }
     end
 
-    it "should create a SAML Response" do
-      saml_response = encode_response(principal)
-      response = OneLogin::RubySaml::Response.new(saml_response)
-      response.name_id.should == "foo@example.com"
-      response.issuers.first.should == "http://example.com"
-      response.settings = saml_settings
-      response.is_valid?.should be_truthy
+    context "unsolicited Response" do
+      it "should create a SAML Response" do
+        saml_response = encode_response(principal, { audience_uri: 'http://example.com/issuer', issuer_uri: 'http://example.com', acs_url: 'https://foo.example.com/saml/consume' })
+        response = OneLogin::RubySaml::Response.new(saml_response)
+        response.name_id.should == "foo@example.com"
+        response.issuers.first.should == "http://example.com"
+        response.settings = saml_settings
+        response.is_valid?.should be_truthy
+      end
     end
 
-    it "should create a SAML Logout Response" do
-      params[:SAMLRequest] = make_saml_logout_request
-      validate_saml_request
-      expect(saml_request.logout_request?).to eq true
-      saml_response = encode_response(principal)
-      response = OneLogin::RubySaml::Logoutresponse.new(saml_response, saml_settings)
-      response.validate.should == true
-      response.issuer.should == "http://example.com"
-    end
+    context "solicited Response" do
+      before(:each) do
+        params[:SAMLRequest] = make_saml_request
+        validate_saml_request
+      end
 
-    [:sha1, :sha256, :sha384, :sha512].each do |algorithm_name|
-      it "should create a SAML Response using the #{algorithm_name} algorithm" do
-        self.algorithm = algorithm_name
+      it "should create a SAML Response" do
         saml_response = encode_response(principal)
         response = OneLogin::RubySaml::Response.new(saml_response)
         response.name_id.should == "foo@example.com"
@@ -63,19 +54,41 @@ describe SamlIdp::Controller do
         response.is_valid?.should be_truthy
       end
 
-      it "should encrypt SAML Response assertion" do
-        self.algorithm = algorithm_name
-        saml_response = encode_response(principal, encryption: encryption_opts)
-        resp_settings = saml_settings
-        resp_settings.private_key = SamlIdp::Default::SECRET_KEY
-        response = OneLogin::RubySaml::Response.new(saml_response, settings: resp_settings)
-        response.document.to_s.should_not match("foo@example.com")
-        response.decrypted_document.to_s.should match("foo@example.com")
-        response.name_id.should == "foo@example.com"
-        response.issuers.first.should == "http://example.com"
-        response.is_valid?.should be_truthy
+      it "should create a SAML Logout Response" do
+        params[:SAMLRequest] = make_saml_logout_request
+        validate_saml_request
+        expect(saml_request.logout_request?).to eq true
+        saml_response = encode_response(principal)
+        response = OneLogin::RubySaml::Logoutresponse.new(saml_response, saml_settings)
+        response.validate.should == true
+        response.issuer.should == "http://example.com"
+      end
+
+
+      [:sha1, :sha256, :sha384, :sha512].each do |algorithm_name|
+        it "should create a SAML Response using the #{algorithm_name} algorithm" do
+          self.algorithm = algorithm_name
+          saml_response = encode_response(principal)
+          response = OneLogin::RubySaml::Response.new(saml_response)
+          response.name_id.should == "foo@example.com"
+          response.issuers.first.should == "http://example.com"
+          response.settings = saml_settings
+          response.is_valid?.should be_truthy
+        end
+
+        it "should encrypt SAML Response assertion" do
+          self.algorithm = algorithm_name
+          saml_response = encode_response(principal, encryption: encryption_opts)
+          resp_settings = saml_settings
+          resp_settings.private_key = SamlIdp::Default::SECRET_KEY
+          response = OneLogin::RubySaml::Response.new(saml_response, settings: resp_settings)
+          response.document.to_s.should_not match("foo@example.com")
+          response.decrypted_document.to_s.should match("foo@example.com")
+          response.name_id.should == "foo@example.com"
+          response.issuers.first.should == "http://example.com"
+          response.is_valid?.should be_truthy
+        end
       end
     end
   end
-
 end
