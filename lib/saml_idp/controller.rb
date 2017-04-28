@@ -14,9 +14,24 @@ module SamlIdp
     end
 
     attr_accessor :algorithm
-    attr_accessor :saml_request
 
     protected
+
+    def saml_request
+      @saml_request ||= Struct.new(:request_id) do
+        def authn_request?
+          true
+        end
+
+        def issuer
+          nil
+        end
+
+        def acs_url
+          nil
+        end
+      end.new(nil)
+    end
 
     def validate_saml_request(raw_saml_request = params[:SAMLRequest])
       decode_request(raw_saml_request)
@@ -24,7 +39,7 @@ module SamlIdp
     end
 
     def decode_request(raw_saml_request)
-      self.saml_request = Request.from_deflated_request(raw_saml_request)
+      @saml_request = Request.from_deflated_request(raw_saml_request)
     end
 
     def authn_context_classref
@@ -37,6 +52,7 @@ module SamlIdp
       audience_uri = opts[:audience_uri] || saml_request.issuer || saml_acs_url[/^(.*?\/\/.*?\/)/, 1]
       opt_issuer_uri = opts[:issuer_uri] || issuer_uri
       my_authn_context_classref = opts[:authn_context_classref] || authn_context_classref
+      acs_url = opts[:acs_url] || saml_acs_url
       expiry = opts[:expiry] || 60*60
       encryption_opts = opts[:encryption] || nil
 
@@ -47,7 +63,7 @@ module SamlIdp
         principal,
         audience_uri,
         saml_request_id,
-        saml_acs_url,
+        acs_url,
         (opts[:algorithm] || algorithm || default_algorithm),
         my_authn_context_classref,
         expiry,
