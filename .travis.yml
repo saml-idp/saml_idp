@@ -1,10 +1,11 @@
 rvm:
-  - 1.9.3
-  - 2.0.0
+  - 2.2.6
+  - 2.3.3
+  - 2.4.1
 notifications:
   email:
     recipients:
-       - jon.phenow@sportngin.com
+       - j.phenow@gmai.com
     on_success: change
     on_failure: always
 sudo: false
