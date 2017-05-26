@@ -15,6 +15,10 @@ module SamlIdp
       self.algorithm = algorithm
     end
 
+    def reference_id
+      self.response_id
+    end
+
     def build
       builder = Builder::XmlMarkup.new
       builder.LogoutRequest ID: response_id_string,
