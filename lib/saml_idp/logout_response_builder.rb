@@ -13,7 +13,11 @@ module SamlIdp
       self.saml_slo_url = saml_slo_url
       self.saml_request_id = saml_request_id
       self.algorithm = algorithm
-    end 
+    end
+
+    def reference_id
+      self.response_id
+    end
 
     def build
       builder = Builder::XmlMarkup.new
@@ -26,9 +30,9 @@ module SamlIdp
           response.Issuer issuer_uri, xmlns: Saml::XML::Namespaces::ASSERTION
           sign response
           response.Status xmlns: Saml::XML::Namespaces::PROTOCOL do |status|
-            status.StatusCode Value: Saml::XML::Namespaces::Statuses::SUCCESS 
-          end 
-        end 
+            status.StatusCode Value: Saml::XML::Namespaces::Statuses::SUCCESS
+          end
+        end
     end
     private :build
   end
