@@ -1,11 +1,17 @@
 # encoding: utf-8
+
 module SamlIdp
   class IdpController < ActionController::Base
     include SamlIdp::Controller
 
     unloadable unless Rails::VERSION::MAJOR >= 4
     protect_from_forgery
-    before_filter :validate_saml_request, only: [:new, :create]
+
+    if Rails::VERSION::MAJOR >= 4
+      before_action :validate_saml_request, only: [:new, :create]
+    else
+      before_filter :validate_saml_request, only: [:new, :create]
+    end
 
     def new
       render template: "saml_idp/idp/new"

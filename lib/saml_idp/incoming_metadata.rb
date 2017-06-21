@@ -128,7 +128,7 @@ module SamlIdp
     end
 
     def contact_person_document
-      @contact_person_document ||= xpath("//md:ContactPerson", md: metadata_namespace).first
+      @contact_person_document ||= (xpath("//md:ContactPerson", md: metadata_namespace).first || Saml::XML::Document.new)
     end
 
     def metadata_namespace
