@@ -42,9 +42,12 @@ module SamlIdp
           assertion.Subject do |subject|
             subject.NameID name_id, Format: name_id_format[:name]
             subject.SubjectConfirmation Method: Saml::XML::Namespaces::Methods::BEARER do |confirmation|
-              confirmation.SubjectConfirmationData "", InResponseTo: saml_request_id,
-                NotOnOrAfter: not_on_or_after_subject,
-                Recipient: saml_acs_url
+              confirmation_hash = {}
+              confirmation_hash[:InResponseTo] = saml_request_id unless saml_request_id.nil?
+              confirmation_hash[:NotOnOrAfter] = not_on_or_after_subject
+              confirmation_hash[:Recipient] = saml_acs_url
+
+              confirmation.SubjectConfirmationData "", confirmation_hash
             end
           end
           assertion.Conditions NotBefore: not_before, NotOnOrAfter: not_on_or_after_condition do |conditions|
