@@ -11,6 +11,7 @@ module SamlIdp
     it { should respond_to :attribute_service_location }
     it { should respond_to :single_service_post_location }
     it { should respond_to :single_logout_service_post_location }
+    it { should respond_to :single_logout_service_redirect_location }
     it { should respond_to :name_id }
     it { should respond_to :attributes }
     it { should respond_to :service_provider }

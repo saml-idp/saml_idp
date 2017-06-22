@@ -55,6 +55,11 @@ module SamlIdp
               restriction.Audience audience_uri
             end
           end
+          assertion.AuthnStatement AuthnInstant: now_iso, SessionIndex: reference_string do |statement|
+            statement.AuthnContext do |context|
+              context.AuthnContextClassRef authn_context_classref
+            end
+          end
           if asserted_attributes
             assertion.AttributeStatement do |attr_statement|
               asserted_attributes.each do |friendly_name, attrs|
@@ -68,11 +73,6 @@ module SamlIdp
                     end
                   end
               end
-            end
-          end
-          assertion.AuthnStatement AuthnInstant: now_iso, SessionIndex: reference_string do |statement|
-            statement.AuthnContext do |context|
-              context.AuthnContextClassRef authn_context_classref
             end
           end
         end

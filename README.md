@@ -42,9 +42,7 @@ match '/saml/logout' => 'saml_idp#logout', via: [:get, :post, :delete]
 Create a controller that looks like this, customize to your own situation:
 
 ``` ruby
-class SamlIdpController
-  include SamlIdp::IdpController
-
+class SamlIdpController < SamlIdp::IdpController
   def idp_authenticate(email, password) # not using params intentionally
     user = User.by_email(email).first
     user && user.valid_password?(password) ? user : nil
@@ -209,7 +207,7 @@ end
 To generate the SAML Response it uses a default X.509 certificate and secret key... which isn't so secret.
 You can find them in `SamlIdp::Default`. The X.509 certificate is valid until year 2032.
 Obviously you shouldn't use these if you intend to use this in production environments. In that case,
-within the controller set the properties `x509_certificate` and `secret_key` using a `prepend_before_filter`
+within the controller set the properties `x509_certificate` and `secret_key` using a `prepend_before_action`
 callback within the current request context or set them globally via the `SamlIdp.config.x509_certificate`
 and `SamlIdp.config.secret_key` properties.
 
