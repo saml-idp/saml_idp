@@ -1,4 +1,5 @@
-require 'httparty'
+require 'net/http'
+require 'uri'
 require 'saml_idp/attributeable'
 require 'saml_idp/incoming_metadata'
 require 'saml_idp/persisted_metadata'
@@ -69,7 +70,7 @@ module SamlIdp
     private :fresh_incoming_metadata
 
     def request_metadata
-      metadata_url.present? ? HTTParty.get(metadata_url).body : ""
+      metadata_url.present? ? Net::HTTP.get(URI.parse(metadata_url)) : ""
     end
     private :request_metadata
   end
