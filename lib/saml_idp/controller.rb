@@ -54,6 +54,7 @@ module SamlIdp
       my_authn_context_classref = opts[:authn_context_classref] || authn_context_classref
       acs_url = opts[:acs_url] || saml_acs_url
       expiry = opts[:expiry] || 60*60
+      session_expiry = opts[:session_expiry]
       encryption_opts = opts[:encryption] || nil
 
       SamlResponse.new(
@@ -67,7 +68,8 @@ module SamlIdp
         (opts[:algorithm] || algorithm || default_algorithm),
         my_authn_context_classref,
         expiry,
-        encryption_opts
+        encryption_opts,
+        session_expiry
       ).build
     end
 

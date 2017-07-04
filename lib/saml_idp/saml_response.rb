@@ -16,6 +16,7 @@ module SamlIdp
     attr_accessor :authn_context_classref
     attr_accessor :expiry
     attr_accessor :encryption_opts
+    attr_accessor :session_expiry
 
     def initialize(reference_id,
           response_id,
@@ -27,7 +28,8 @@ module SamlIdp
           algorithm,
           authn_context_classref,
           expiry=60*60,
-          encryption_opts=nil
+          encryption_opts=nil,
+          session_expiry=nil
           )
       self.reference_id = reference_id
       self.response_id = response_id
@@ -42,6 +44,7 @@ module SamlIdp
       self.authn_context_classref = authn_context_classref
       self.expiry = expiry
       self.encryption_opts = encryption_opts
+      self.session_expiry = session_expiry
     end
 
     def build
@@ -72,7 +75,8 @@ module SamlIdp
         algorithm,
         authn_context_classref,
         expiry,
-        encryption_opts
+        encryption_opts,
+        session_expiry
     end
     private :assertion_builder
   end
