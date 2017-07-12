@@ -29,7 +29,7 @@ module SamlIdp
           authn_context_classref,
           expiry=60*60,
           encryption_opts=nil,
-          session_expiry=nil
+          session_expiry=0
           )
       self.reference_id = reference_id
       self.response_id = response_id

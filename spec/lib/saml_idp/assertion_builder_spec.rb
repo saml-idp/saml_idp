@@ -102,5 +102,29 @@ module SamlIdp
       encrypted_xml = builder.encrypt
       encrypted_xml.should_not match(audience_uri)
     end
+
+    describe "with custom session_expiry configuration" do
+      let(:config) { SamlIdp::Configurator.new }
+      before do
+        config.session_expiry = 8
+        SamlIdp.stub(config: config)
+      end
+
+      it "sets default session_expiry from config" do
+        builder = described_class.new(
+          reference_id,
+          issuer_uri,
+          name_id,
+          audience_uri,
+          saml_request_id,
+          saml_acs_url,
+          algorithm,
+          authn_context_classref,
+          expiry,
+          encryption_opts
+        )
+        builder.session_expiry.should == 8
+      end
+    end
   end
 end

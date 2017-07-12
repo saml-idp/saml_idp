@@ -82,8 +82,8 @@ module SamlIdp
       saml_resp.session_expires_at.should == Time.local(1990, "jan", 2).iso8601
     end
 
-    context "session expiration isn't specified" do
-      let(:session_expiry) { nil }
+    context "session expiration is set to 0" do
+      let(:session_expiry) { 0 }
 
       it "builds a valid request" do
         resp_settings = saml_settings(saml_acs_url)

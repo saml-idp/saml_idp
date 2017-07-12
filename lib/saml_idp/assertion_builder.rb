@@ -30,7 +30,7 @@ module SamlIdp
       self.authn_context_classref = authn_context_classref
       self.expiry = expiry
       self.encryption_opts = encryption_opts
-      self.session_expiry = session_expiry
+      self.session_expiry = session_expiry.nil? ? config.session_expiry : session_expiry
     end
 
     def fresh
@@ -61,7 +61,7 @@ module SamlIdp
             AuthnInstant: now_iso,
             SessionIndex: reference_string,
           }
-          unless session_expiry.nil?
+          unless session_expiry.zero?
             authn_statement_props[:SessionNotOnOrAfter] = session_not_on_or_after
           end
           assertion.AuthnStatement authn_statement_props do |statement|
