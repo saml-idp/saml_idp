@@ -15,6 +15,7 @@ module SamlIdp
     it { should respond_to :name_id }
     it { should respond_to :attributes }
     it { should respond_to :service_provider }
+    it { should respond_to :session_expiry }
 
     it "has a valid x509_certificate" do
       subject.x509_certificate.should == Default::X509_CERTIFICATE
@@ -39,6 +40,10 @@ module SamlIdp
 
     it "can call service provider metadata persister" do
       subject.service_provider.metadata_persister.should respond_to :call
+    end
+
+    it 'has a valid session_expiry' do
+      subject.session_expiry.should == 0
     end
   end
 end
