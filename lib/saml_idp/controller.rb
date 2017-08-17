@@ -35,7 +35,13 @@ module SamlIdp
 
     def validate_saml_request(raw_saml_request = params[:SAMLRequest])
       decode_request(raw_saml_request)
-      render nothing: true, status: :forbidden unless valid_saml_request?
+      unless valid_saml_request?
+        if Rails::VERSION::MAJOR >= 4
+          head :forbidden
+        else
+          render nothing: true, status: :forbidden
+        end
+      end
     end
 
     def decode_request(raw_saml_request)
