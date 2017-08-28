@@ -72,7 +72,7 @@ module SamlIdp
               cipher_data.CipherValue
             end
             enc_key.ReferenceList do |ref_list|
-              ref_list.DataReference URI: 'ED'
+              ref_list.DataReference URI: '#ED'
             end
           end
         end
