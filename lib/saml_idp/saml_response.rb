@@ -45,6 +45,9 @@ module SamlIdp
       self.expiry = expiry
       self.encryption_opts = encryption_opts
       self.session_expiry = session_expiry
+      Rails.logger.info("**** self.issuer_uri =  #{self.issuer_uri} ****")
+      Rails.logger.info("**** self.audience_uri =  #{self.audience_uri} ****")
+      Rails.logger.info("**** self.saml_acs_url =  #{self.saml_acs_url} ****")
     end
 
     def build
