@@ -45,4 +45,5 @@ RSpec.configure do |config|
   end
 end
 
+SamlIdp::Default::SERVICE_PROVIDER[:assertion_consumer_logout_service_url] = 'https://foo.example.com/saml/logout'
 Capybara.default_host = "https://app.example.com"

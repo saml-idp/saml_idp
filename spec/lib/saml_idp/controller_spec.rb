@@ -7,6 +7,9 @@ describe SamlIdp::Controller do
   def render(*)
   end
 
+  def head(*)
+  end
+
   def params
     @params ||= {}
   end
@@ -14,7 +17,7 @@ describe SamlIdp::Controller do
   it "should find the SAML ACS URL" do
     requested_saml_acs_url = "https://example.com/saml/consume"
     params[:SAMLRequest] = make_saml_request(requested_saml_acs_url)
-    validate_saml_request
+    expect(validate_saml_request).to eq(true)
     saml_acs_url.should == requested_saml_acs_url
   end
 
@@ -42,7 +45,7 @@ describe SamlIdp::Controller do
     context "solicited Response" do
       before(:each) do
         params[:SAMLRequest] = make_saml_request
-        validate_saml_request
+        expect(validate_saml_request).to eq(true)
       end
 
       it "should create a SAML Response" do
@@ -56,7 +59,7 @@ describe SamlIdp::Controller do
 
       it "should create a SAML Logout Response" do
         params[:SAMLRequest] = make_saml_logout_request
-        validate_saml_request
+        expect(validate_saml_request).to eq(true)
         expect(saml_request.logout_request?).to eq true
         saml_response = encode_response(principal)
         response = OneLogin::RubySaml::Logoutresponse.new(saml_response, saml_settings)
