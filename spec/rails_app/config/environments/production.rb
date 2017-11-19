@@ -2,6 +2,7 @@ RailsApp::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb
 
   # Code is not reloaded between requests
+  config.eager_load = true if config.respond_to?(:eager_load)
   config.cache_classes = true
 
   # Full error reports are disabled and caching is turned on

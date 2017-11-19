@@ -52,9 +52,11 @@ section of the README.
   s.add_development_dependency('simplecov', '~> 0.12')
   s.add_development_dependency('rspec', '~> 2.5')
   s.add_development_dependency('ruby-saml', '~> 1.3')
-  s.add_development_dependency('rails', '~> 3.2')
   s.add_development_dependency('capybara', '~> 2.11.0')
   s.add_development_dependency('timecop', '~> 0.8')
+  s.add_development_dependency('rails', '>= 3.2')
+  s.add_development_dependency('activeresource', '>= 3.2')
   s.add_development_dependency('xmlenc', '>= 0.6.4')
+  s.add_development_dependency('appraisal')
 end
 
