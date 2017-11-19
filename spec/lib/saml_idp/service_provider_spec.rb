@@ -14,11 +14,11 @@ module SamlIdp
       let(:metadata_url) { "http://localhost:3000/metadata" }
 
       it "has a valid fingerprint" do
-        subject.fingerprint.should == fingerprint
+        expect(subject.fingerprint).to eq(fingerprint)
       end
 
       it "has a valid metadata_url" do
-        subject.metadata_url.should == metadata_url
+        expect(subject.metadata_url).to eq(metadata_url)
       end
 
       it { should be_valid }
