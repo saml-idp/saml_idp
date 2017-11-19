@@ -1,11 +1,10 @@
+language: ruby
 rvm:
-  - 2.2.6
-  - 2.3.3
-  - 2.4.1
-notifications:
-  email:
-    recipients:
-       - j.phenow@gmai.com
-    on_success: change
-    on_failure: always
+  - 2.2
+  - 2.3
+  - 2.4
+  - ruby-head
+matrix:
+  allow_failures:
+    - rvm: ruby-head
 sudo: false
