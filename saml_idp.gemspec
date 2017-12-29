@@ -47,6 +47,7 @@ section of the README.
   s.add_dependency('uuid', '>= 2.3')
   s.add_dependency('builder', '>= 3.0')
   s.add_dependency('nokogiri', '>= 1.6.2')
+  s.add_dependency('xmlenc', '>= 0.6.4')
 
   s.add_development_dependency('rake')
   s.add_development_dependency('simplecov')
@@ -56,7 +57,5 @@ section of the README.
   s.add_development_dependency('activeresource', '>= 3.2')
   s.add_development_dependency('capybara', '>= 2.16')
   s.add_development_dependency('timecop', '>= 0.8')
-  s.add_development_dependency('xmlenc', '>= 0.6.4')
   s.add_development_dependency('appraisal')
 end
-
