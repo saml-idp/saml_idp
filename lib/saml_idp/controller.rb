@@ -62,6 +62,8 @@ module SamlIdp
       expiry = opts[:expiry] || 60*60
       session_expiry = opts[:session_expiry]
       encryption_opts = opts[:encryption] || nil
+      name_id_formats_opts = opts[:name_id_formats] || nil
+      asserted_attributes_opts = opts[:attributes] || nil
 
       SamlResponse.new(
         reference_id,
@@ -75,7 +77,9 @@ module SamlIdp
         my_authn_context_classref,
         expiry,
         encryption_opts,
-        session_expiry
+        session_expiry,
+        name_id_formats_opts,
+        asserted_attributes_opts
       ).build
     end
 
