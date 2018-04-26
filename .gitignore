@@ -7,4 +7,5 @@
 /pkg
 /tags
 /Gemfile.lock
-clacks*.gem
+/gemfiles/*.gemfile.lock
+/.byebug_history

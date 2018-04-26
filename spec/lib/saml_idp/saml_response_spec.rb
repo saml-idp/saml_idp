@@ -63,23 +63,23 @@ module SamlIdp
     end
 
     it "has a valid build" do
-      subject.build.should be_present
+      expect(subject.build).to be_present
     end
 
     it "builds encrypted" do
-      subject_encrypted.build.should_not match(audience_uri)
+      expect(subject_encrypted.build).to_not match(audience_uri)
       encoded_xml = subject_encrypted.build
       resp_settings = saml_settings(saml_acs_url)
       resp_settings.private_key = Default::SECRET_KEY
       resp_settings.issuer = audience_uri
       saml_resp = OneLogin::RubySaml::Response.new(encoded_xml, settings: resp_settings)
       saml_resp.soft = false
-      saml_resp.is_valid?.should == true
+      expect(saml_resp.is_valid?).to eq(true)
     end
 
     it "sets session expiration" do
       saml_resp = OneLogin::RubySaml::Response.new(subject.build)
-      saml_resp.session_expires_at.should == Time.local(1990, "jan", 2).iso8601
+      expect(saml_resp.session_expires_at).to eq Time.local(1990, "jan", 2).iso8601
     end
 
     context "session expiration is set to 0" do
@@ -89,14 +89,14 @@ module SamlIdp
         resp_settings = saml_settings(saml_acs_url)
         resp_settings.issuer = audience_uri
         saml_resp = OneLogin::RubySaml::Response.new(subject.build, settings: resp_settings)
-        saml_resp.is_valid?.should == true
+        expect(saml_resp.is_valid?).to eq(true)
       end
 
       it "doesn't set a session expiration" do
         resp_settings = saml_settings(saml_acs_url)
         resp_settings.issuer = audience_uri
         saml_resp = OneLogin::RubySaml::Response.new(subject.build, settings: resp_settings)
-        saml_resp.session_expires_at.should be_nil
+        expect(saml_resp.session_expires_at).to be_nil
       end
     end
   end

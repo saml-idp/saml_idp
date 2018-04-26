@@ -1,8 +1,8 @@
 # Ruby SAML Identity Provider (IdP)
 Forked from https://github.com/lawrencepit/ruby-saml-idp
 
-[![Build Status](https://travis-ci.org/sportngin/saml_idp.png)](https://travis-ci.org/sportngin/saml_idp)
-[![Gem Version](https://badge.fury.io/rb/saml_idp.png)](http://badge.fury.io/rb/saml_idp)
+[![Build Status](https://travis-ci.org/saml-idp/saml_idp.svg)](https://travis-ci.org/saml-idp/saml_idp)
+[![Gem Version](https://badge.fury.io/rb/saml_idp.svg)](http://badge.fury.io/rb/saml_idp)
 
 The ruby SAML Identity Provider library is for implementing the server side of SAML authentication. It allows
 your application to act as an IdP (Identity Provider) using the
@@ -177,7 +177,7 @@ CERT
   # settings is an IncomingMetadata object which has a to_h method that needs to be persisted
   config.service_provider.metadata_persister = ->(identifier, settings) {
     fname = identifier.to_s.gsub(/\/|:/,"_")
-    `mkdir -p #{Rails.root.join("cache/saml/metadata")}`
+    FileUtils.mkdir_p(Rails.root.join('cache', 'saml', 'metadata').to_s)
     File.open Rails.root.join("cache/saml/metadata/#{fname}"), "r+b" do |f|
       Marshal.dump settings.to_h, f
     end
@@ -188,7 +188,7 @@ CERT
   # `service_provider` you should return the settings.to_h from above
   config.service_provider.persisted_metadata_getter = ->(identifier, service_provider){
     fname = identifier.to_s.gsub(/\/|:/,"_")
-    `mkdir -p #{Rails.root.join("cache/saml/metadata")}`
+    FileUtils.mkdir_p(Rails.root.join('cache', 'saml', 'metadata').to_s)
     full_filename = Rails.root.join("cache/saml/metadata/#{fname}")
     if File.file?(full_filename)
       File.open full_filename, "rb" do |f|

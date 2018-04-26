@@ -7,7 +7,7 @@ module SamlIdp
       let(:list) { { email_address: ->() { "foo@example.com" } } }
 
       it "has a valid all" do
-        subject.all.should == ["urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress"]
+        expect(subject.all).to eq ["urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress"]
       end
 
     end
@@ -21,7 +21,7 @@ module SamlIdp
       }
 
       it "has a valid all" do
-        subject.all.should == [
+        expect(subject.all).to eq [
           "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
           "urn:oasis:names:tc:SAML:2.0:nameid-format:undefined",
         ]
@@ -32,7 +32,7 @@ module SamlIdp
       let(:list) { [:email_address, :undefined] }
 
       it "has a valid all" do
-        subject.all.should == [
+        expect(subject.all).to eq [
           "urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress",
           "urn:oasis:names:tc:SAML:2.0:nameid-format:undefined",
         ]

@@ -4,6 +4,7 @@ RailsApp::Application.configure do
   # In the development environment your application's code is reloaded on
   # every request. This slows down response time but is perfect for development
   # since you don't have to restart the web server when you make code changes.
+  config.eager_load = false if config.respond_to?(:eager_load)
   config.cache_classes = false
 
   # Log error messages when you accidentally call methods on nil.
@@ -28,10 +29,4 @@ RailsApp::Application.configure do
   # Log the query plan for queries taking more than this (works
   # with SQLite, MySQL, and PostgreSQL)
   #config.active_record.auto_explain_threshold_in_seconds = 0.5
-
-  # Do not compress assets
-  config.assets.compress = false
-
-  # Expands the lines which load the assets
-  config.assets.debug = true
 end

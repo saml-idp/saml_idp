@@ -7,28 +7,29 @@ Gem::Specification.new do |s|
   s.version = SamlIdp::VERSION
   s.platform = Gem::Platform::RUBY
   s.authors = ["Jon Phenow"]
-  s.email = %q{jon.phenow@sportngin.com}
-  s.homepage = %q{http://github.com/sportngin/saml_idp}
-  s.summary = %q{SAML Indentity Provider in ruby}
-  s.description = %q{SAML IdP (Identity Provider) library in ruby}
+  s.email = 'jon.phenow@sportngin.com'
+  s.homepage = 'https://github.com/saml-idp/saml_idp'
+  s.summary = 'SAML Indentity Provider for Ruby'
+  s.description = 'SAML IdP (Identity Provider) Library for Ruby'
   s.date = Time.now.utc.strftime("%Y-%m-%d")
-  s.files = Dir.glob("app/**/*") + Dir.glob("lib/**/*") + [
-     "LICENSE",
-     "README.md",
-     "Gemfile",
-     "saml_idp.gemspec"
-  ]
+  s.files = Dir['app/**/*', 'lib/**/*', 'LICENSE', 'README.md', 'Gemfile', 'saml_idp.gemspec']
   s.required_ruby_version = '>= 2.2'
-  s.license = "LICENSE"
+  s.license = 'MIT'
   s.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
-  s.rdoc_options = ["--charset=UTF-8"]
+  s.rdoc_options = ['--charset=UTF-8']
+  s.metadata = {
+    'homepage_uri'      => 'https://github.com/saml-idp/saml_idp',
+    'source_code_uri'   => 'https://github.com/saml-idp/saml_idp',
+    'bug_tracker_uri'   => 'https://github.com/saml-idp/saml_idp/issues',
+    'documentation_uri' => "http://rdoc.info/gems/saml_idp/#{SamlIdp::VERSION}"
+  }
 
   s.post_install_message = <<-INST
 If you're just recently updating saml_idp - please be aware we've changed the default
 certificate. See the PR and a description of why we've done this here:
-https://github.com/sportngin/saml_idp/pull/29
+https://github.com/saml-idp/saml_idp/pull/29
 
 If you just need to see the certificate `bundle open saml_idp` and go to
 `lib/saml_idp/default.rb`
@@ -43,17 +44,19 @@ section of the README.
   INST
 
   s.add_dependency('activesupport', '>= 3.2')
-  s.add_dependency('uuid', '~> 2.3')
-  s.add_dependency('builder', '~> 3.0')
+  s.add_dependency('uuid', '>= 2.3')
+  s.add_dependency('builder', '>= 3.0')
   s.add_dependency('nokogiri', '>= 1.6.2')
 
-  s.add_development_dependency('rake', '~> 10.4.2')
-  s.add_development_dependency('simplecov', '~> 0.12')
-  s.add_development_dependency('rspec', '~> 2.5')
-  s.add_development_dependency('ruby-saml', '~> 1.3')
-  s.add_development_dependency('rails', '~> 3.2')
-  s.add_development_dependency('capybara', '~> 2.11.0')
-  s.add_development_dependency('timecop', '~> 0.8')
+  s.add_development_dependency('rake')
+  s.add_development_dependency('simplecov')
+  s.add_development_dependency('rspec', '>= 3.7.0')
+  s.add_development_dependency('ruby-saml', '>= 1.5')
+  s.add_development_dependency('rails', '>= 3.2')
+  s.add_development_dependency('activeresource', '>= 3.2')
+  s.add_development_dependency('capybara', '>= 2.16')
+  s.add_development_dependency('timecop', '>= 0.8')
   s.add_development_dependency('xmlenc', '>= 0.6.4')
+  s.add_development_dependency('appraisal')
 end
 

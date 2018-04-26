@@ -18,32 +18,32 @@ module SamlIdp
     it { should respond_to :session_expiry }
 
     it "has a valid x509_certificate" do
-      subject.x509_certificate.should == Default::X509_CERTIFICATE
+      expect(subject.x509_certificate).to eq(Default::X509_CERTIFICATE)
     end
 
     it "has a valid secret_key" do
-      subject.secret_key.should == Default::SECRET_KEY
+      expect(subject.secret_key).to eq(Default::SECRET_KEY)
     end
 
     it "has a valid algorithm" do
-      subject.algorithm.should == :sha1
+      expect(subject.algorithm).to eq(:sha1)
     end
 
     it "has a valid reference_id_generator" do
-      subject.reference_id_generator.should respond_to :call
+      expect(subject.reference_id_generator).to respond_to :call
     end
 
 
     it "can call service provider finder" do
-      subject.service_provider.finder.should respond_to :call
+      expect(subject.service_provider.finder).to respond_to :call
     end
 
     it "can call service provider metadata persister" do
-      subject.service_provider.metadata_persister.should respond_to :call
+      expect(subject.service_provider.metadata_persister).to respond_to :call
     end
 
     it 'has a valid session_expiry' do
-      subject.session_expiry.should == 0
+      expect(subject.session_expiry).to eq(0)
     end
   end
 end
