@@ -66,8 +66,19 @@ module SamlIdp
     private :clean_algorithm_name
 
     def encoded
-      key = OpenSSL::PKey::RSA.new(@secret_key, password)
-      Base64.strict_encode64(key.sign(algorithm.new, raw))
+      if SamlIdp.config.cloudhsm_enabled
+        SamlIdp.config.pkcs11.active_slots.first.open do |session|
+          session.login(:USER, SamlIdp.config.cloudhsm_pin)
+          key = session.find_objects(LABEL: @secret_key).first
+          raise "cloudhsm key not found for label: #{@secret_key}" unless key
+          result = Base64.strict_encode64(session.sign(:SHA256_RSA_PKCS, key, raw))
+          session.logout
+          result
+        end
+      else
+        key = OpenSSL::PKey::RSA.new(@secret_key, password)
+        Base64.strict_encode64(key.sign(algorithm.new, raw))
+      end
     end
     private :encoded
 

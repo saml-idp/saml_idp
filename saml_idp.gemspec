@@ -57,5 +57,6 @@ section of the README.
   s.add_development_dependency("capybara")
   s.add_development_dependency("timecop")
   s.add_development_dependency("xmlenc", ">= 0.6.4")
+  s.add_development_dependency("pkcs11")
 end
 
