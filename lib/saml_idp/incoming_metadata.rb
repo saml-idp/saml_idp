@@ -22,7 +22,10 @@ module SamlIdp
         ds: signature_namespace,
         md: metadata_namespace
       ).first
-      doc ? !!doc["WantAssertionsSigned"] : false
+      if (doc && !doc['WantAssertionsSigned'].nil?)
+        return doc['WantAssertionsSigned'].strip.downcase == 'true'
+      end
+      return false
     end
     hashable :sign_assertions
 
