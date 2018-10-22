@@ -46,6 +46,12 @@ module SamlIdp
       @current_metadata ||= get_current_or_build
     end
 
+    def metadata_url_host
+      if metadata_url.present?
+        URI(metadata_url).host
+      end
+    end
+
     def get_current_or_build
       persisted = metadata_getter[identifier, self]
       if persisted.is_a? Hash

@@ -105,6 +105,11 @@ module SamlIdp
         return false
       end
 
+      if !acceptable_acs_hosts.include?(acs_host)
+        log "No acceptable AssertionConsumerServiceURL, either configure them via config.assertion_consumer_service_hosts or match to your metadata_url host"
+        return false
+      end
+
       return true
     end
 
@@ -135,6 +140,20 @@ module SamlIdp
     def session_index
       @_session_index ||= xpath("//samlp:SessionIndex", samlp: samlp).first.try(:content)
     end
+
+    def acceptable_acs_hosts
+      (config.assertion_consumer_service_hosts || []) +
+        service_provider.metdata_url_host ? [service_provider.metdata_url_host] : []
+    end
+    private :acceptable_acs_hosts
+
+    def acs_host
+      uri = URI(acs_url)
+      if uri
+        uri.host
+      end
+    end
+    private :acs_host
 
     def document
       @_document ||= Saml::XML::Document.parse(raw_xml)

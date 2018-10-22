@@ -17,6 +17,7 @@ module SamlIdp
     attr_accessor :single_logout_service_redirect_location
     attr_accessor :attributes
     attr_accessor :service_provider
+    attr_accessor :assertion_consumer_service_hosts
     attr_accessor :session_expiry
 
     def initialize
@@ -28,6 +29,7 @@ module SamlIdp
       self.service_provider.finder = ->(_) { Default::SERVICE_PROVIDER }
       self.service_provider.metadata_persister = ->(id, settings) {  }
       self.service_provider.persisted_metadata_getter = ->(id, service_provider) {  }
+      self.assertion_consumer_service_hosts = []
       self.session_expiry = 0
       self.attributes = {}
     end
