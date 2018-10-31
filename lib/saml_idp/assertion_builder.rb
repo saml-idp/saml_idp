@@ -16,10 +16,11 @@ module SamlIdp
     attr_accessor :expiry
     attr_accessor :encryption_opts
     attr_accessor :session_expiry
+    attr_accessor :name_id_policy
 
     delegate :config, to: :SamlIdp
 
-    def initialize(reference_id, issuer_uri, principal, audience_uri, saml_request_id, saml_acs_url, raw_algorithm, authn_context_classref, expiry=60*60, encryption_opts=nil, session_expiry=nil)
+    def initialize(reference_id, issuer_uri, principal, audience_uri, saml_request_id, saml_acs_url, raw_algorithm, authn_context_classref, expiry=60*60, encryption_opts=nil, session_expiry=nil, name_id_policy=nil)
       self.reference_id = reference_id
       self.issuer_uri = issuer_uri
       self.principal = principal
@@ -31,6 +32,7 @@ module SamlIdp
       self.expiry = expiry
       self.encryption_opts = encryption_opts
       self.session_expiry = session_expiry.nil? ? config.session_expiry : session_expiry
+      self.name_id_policy = name_id_policy
     end
 
     def fresh
@@ -139,7 +141,7 @@ module SamlIdp
     private :name_id_getter
 
     def name_id_format
-      @name_id_format ||= NameIdFormatter.new(config.name_id.formats).chosen
+      @name_id_format ||= NameIdFormatter.new(config.name_id.formats).chosen(name_id_policy)
     end
     private :name_id_format
 

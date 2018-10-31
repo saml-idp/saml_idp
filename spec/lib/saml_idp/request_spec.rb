@@ -61,6 +61,10 @@ module SamlIdp
         expect(subject.requested_authn_context).to eq("urn:oasis:names:tc:SAML:2.0:ac:classes:Password")
       end
 
+      it 'has name id policy' do
+        expect(subject.name_id_policy).to eq("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress")
+      end
+
       it "does not permit empty issuer" do
         raw_req = raw_authn_request.gsub('localhost:3000', '')
         authn_request = described_class.new raw_req

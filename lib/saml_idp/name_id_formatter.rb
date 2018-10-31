@@ -14,17 +14,33 @@ module SamlIdp
       end
     end
 
-    def chosen
+    def chosen(prefered_name_id_policy = nil)
       if split?
-        version, choose = "1.1", one_one.first
-        version, choose = "2.0", two_zero.first unless choose
-        version, choose = "2.0", "persistent" unless choose
-        build(version, choose)
+        all_formats = list.flat_map { |version, formats| formats.map { |format| build(version, format) } }
+        choose_preferred_format_or(all_formats, prefered_name_id_policy) do
+          version, choose = "1.1", one_one.first
+          version, choose = "2.0", two_zero.first unless choose
+          version, choose = "2.0", "persistent" unless choose
+          build(version, choose)
+        end
       else
-        choose = list.first || "persistent"
-        build("2.0", choose)
+        all_formats = list.map { |format| build("2.0", format) }
+        choose_preferred_format_or(all_formats, prefered_name_id_policy) do
+          choose = list.first || "persistent"
+          build("2.0", choose)
+        end
       end
     end
+
+    def choose_preferred_format_or(all_formats, prefered_name_id_policy, &block)
+      by_preferred = all_formats.find { |item| item[:name] == prefered_name_id_policy }
+      if by_preferred
+        by_preferred
+      else
+        yield
+      end
+    end
+    private :choose_preferred_format_or
 
     def build(version, key_val)
       key_val = Array(key_val)
