@@ -26,7 +26,6 @@ module SamlIdp
       self.algorithm = :sha1
       self.reference_id_generator = ->() { UUID.generate }
       self.service_provider = OpenStruct.new
-      self.service_provider.response_hosts = []
       self.service_provider.finder = ->(_) { Default::SERVICE_PROVIDER }
       self.service_provider.metadata_persister = ->(id, settings) {  }
       self.service_provider.persisted_metadata_getter = ->(id, service_provider) {  }
