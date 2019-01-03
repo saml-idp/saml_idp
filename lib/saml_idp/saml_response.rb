@@ -14,6 +14,7 @@ module SamlIdp
     attr_accessor :algorithm
     attr_accessor :secret_key
     attr_accessor :x509_certificate
+    attr_accessor :password
     attr_accessor :authn_context_classref
     attr_accessor :expiry
     attr_accessor :encryption_opts
@@ -41,7 +42,10 @@ module SamlIdp
       asserted_attributes_opts = nil,
       signed_message_opts = false,
       signed_assertion_opts = true,
-      compression_opts = false
+      compression_opts = false,
+      x509_certificate_opts = nil,
+      secret_key_opts = nil,
+      password_opts = nil
     )
 
       self.reference_id = reference_id
@@ -65,6 +69,9 @@ module SamlIdp
       self.name_id_formats_opts = name_id_formats_opts
       self.asserted_attributes_opts = asserted_attributes_opts
       self.compression_opts = compression_opts
+      self.x509_certificate = x509_certificate_opts
+      self.secret_key = secret_key_opts
+      self.password = password_opts
     end
 
     def build
@@ -110,7 +117,10 @@ module SamlIdp
                              encryption_opts,
                              session_expiry,
                              name_id_formats_opts,
-                             asserted_attributes_opts
+                             asserted_attributes_opts,
+                             x509_certificate,
+                             secret_key,
+                             password
     end
     private :assertion_builder
   end

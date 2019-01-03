@@ -10,7 +10,7 @@ module SamlIdp
     let(:saml_acs_url) { "localhost/acs" }
     let(:algorithm) { :sha1 }
     let(:secret_key) { Default::SECRET_KEY }
-    let(:x509_certificate) { Default::X509_CERTIFICATE }
+    let(:default_x509_certificate) { Default::X509_CERTIFICATE }
     let(:xauthn) { Default::X509_CERTIFICATE }
     let(:authn_context_classref) {
       Saml::XML::Namespaces::AuthnContext::ClassRef::PASSWORD

@@ -65,12 +65,12 @@ module SamlIdp
     private :sign?
 
     def signature
-      SignatureBuilder.new(signed_info_builder).raw
+      SignatureBuilder.new(signed_info_builder, get_x509_certificate).raw
     end
     private :signature
 
     def signed_info_builder
-      SignedInfoBuilder.new(get_reference_id, get_digest, get_algorithm)
+      SignedInfoBuilder.new(get_reference_id, get_digest, get_algorithm, get_secret_key, get_password)
     end
     private :signed_info_builder
 
@@ -101,6 +101,26 @@ module SamlIdp
     end
     private :noko_raw
 
+    def get_x509_certificate
+      x509_certificate = send(self.class.x509_certificate_method).presence || SamlIdp.config.x509_certificate
+      x509_certificate
+        .to_s
+        .gsub(/-----BEGIN CERTIFICATE-----/,"")
+        .gsub(/-----END CERTIFICATE-----/,"")
+        .gsub(/\n/, "")
+    end
+    private :get_x509_certificate
+
+    def get_secret_key
+      send(self.class.secret_key_method).presence || SamlIdp.config.secret_key
+    end
+    private :get_secret_key
+
+    def get_password
+      send(self.class.password_method).presence || SamlIdp.config.password
+    end
+    private :get_password
+
     def digest
       # Make it check for inclusive at some point (https://github.com/onelogin/ruby-saml/blob/master/lib/xml_security.rb#L159)
       inclusive_namespaces = []
@@ -125,6 +145,9 @@ module SamlIdp
       module_method :digest
       module_method :algorithm
       module_method :reference_id
+      module_method :x509_certificate
+      module_method :secret_key
+      module_method :password
     end
   end
 end
