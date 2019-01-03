@@ -11,8 +11,6 @@ module SamlIdp
     attr_accessor :saml_request_id
     attr_accessor :saml_acs_url
     attr_accessor :algorithm
-    attr_accessor :secret_key
-    attr_accessor :x509_certificate
     attr_accessor :authn_context_classref
     attr_accessor :expiry
     attr_accessor :encryption_opts
@@ -20,6 +18,9 @@ module SamlIdp
     attr_accessor :signed_message_opts
     attr_accessor :name_id_formats_opts
     attr_accessor :asserted_attributes_opts
+    attr_accessor :x509_certificate
+    attr_accessor :secret_key
+    attr_accessor :password
 
     def initialize(
         reference_id,
@@ -36,7 +37,10 @@ module SamlIdp
         session_expiry=0,
         signed_message_opts=false,
         name_id_formats_opts = nil,
-        asserted_attributes_opts = nil
+        asserted_attributes_opts = nil,
+        x509_certificate_opts = nil,
+        secret_key_opts = nil,
+        password_opts = nil
     )
       self.reference_id = reference_id
       self.response_id = response_id
@@ -47,7 +51,6 @@ module SamlIdp
       self.saml_acs_url = saml_acs_url
       self.algorithm = algorithm
       self.secret_key = secret_key
-      self.x509_certificate = x509_certificate
       self.authn_context_classref = authn_context_classref
       self.expiry = expiry
       self.encryption_opts = encryption_opts
@@ -55,6 +58,9 @@ module SamlIdp
       self.signed_message_opts = signed_message_opts
       self.name_id_formats_opts = name_id_formats_opts
       self.asserted_attributes_opts = asserted_attributes_opts
+      self.x509_certificate = x509_certificate_opts
+      self.secret_key = secret_key_opts
+      self.password = password_opts
     end
 
     def build
@@ -97,7 +103,10 @@ module SamlIdp
         encryption_opts,
         session_expiry,
         name_id_formats_opts,
-        asserted_attributes_opts
+        asserted_attributes_opts,
+        x509_certificate,
+        secret_key,
+        password
     end
     private :assertion_builder
   end

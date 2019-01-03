@@ -63,6 +63,9 @@ module SamlIdp
       signed_message_opts = opts[:signed_message] || false
       name_id_formats_opts = opts[:name_id_formats] || nil
       asserted_attributes_opts = opts[:attributes] || nil
+      x509_certificate_opts = opts[:x509_certificate] || nil
+      secret_key_opts = opts[:secret_key] || nil
+      password_opts = opts[:password] || nil
 
       SamlResponse.new(
         reference_id,
@@ -79,7 +82,10 @@ module SamlIdp
         session_expiry,
         signed_message_opts,
         name_id_formats_opts,
-        asserted_attributes_opts
+        asserted_attributes_opts,
+        x509_certificate_opts,
+        secret_key_opts,
+        password_opts
       ).build
     end
 
@@ -89,7 +95,10 @@ module SamlIdp
         (opts[:issuer_uri] || issuer_uri),
         saml_logout_url,
         saml_request_id,
-        (opts[:algorithm] || algorithm || default_algorithm)
+        (opts[:algorithm] || algorithm || default_algorithm),
+        opts[:x509_certificate] || nil,
+        opts[:secret_key] || nil,
+        opts[:password] || nil
       ).signed
     end
 

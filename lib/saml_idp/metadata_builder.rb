@@ -7,9 +7,19 @@ module SamlIdp
     include Algorithmable
     include Signable
     attr_accessor :configurator
+    attr_accessor :x509_certificate
+    attr_accessor :secret_key
+    attr_accessor :password
 
     def initialize(configurator = SamlIdp.config)
       self.configurator = configurator
+    end
+
+    def customized(x509_certificate = nil, secret_key = nil, password = nil)
+      self.x509_certificate = x509_certificate
+      self.secret_key = secret_key
+      self.password = password
+      self
     end
 
     def fresh
@@ -58,7 +68,7 @@ module SamlIdp
       el.KeyDescriptor use: "signing" do |key_descriptor|
         key_descriptor.KeyInfo xmlns: Saml::XML::Namespaces::SIGNATURE do |key_info|
           key_info.X509Data do |x509|
-            x509.X509Certificate x509_certificate
+            x509.X509Certificate get_x509_certificate
           end
         end
       end
@@ -150,14 +160,6 @@ module SamlIdp
       configurator.algorithm
     end
     private :raw_algorithm
-
-    def x509_certificate
-      SamlIdp.config.x509_certificate
-      .to_s
-      .gsub(/-----BEGIN CERTIFICATE-----/,"")
-      .gsub(/-----END CERTIFICATE-----/,"")
-      .gsub(/\n/, "")
-    end
 
     %w[
       support_email
