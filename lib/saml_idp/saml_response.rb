@@ -11,6 +11,7 @@ module SamlIdp
     attr_accessor :saml_request_id
     attr_accessor :saml_acs_url
     attr_accessor :algorithm
+    attr_accessor :signed_message
     attr_accessor :secret_key
     attr_accessor :x509_certificate
     attr_accessor :authn_context_classref
@@ -26,6 +27,7 @@ module SamlIdp
           saml_request_id,
           saml_acs_url,
           algorithm,
+          signed_message,
           authn_context_classref,
           expiry=60*60,
           encryption_opts=nil,
@@ -39,6 +41,7 @@ module SamlIdp
       self.saml_request_id = saml_request_id
       self.saml_acs_url = saml_acs_url
       self.algorithm = algorithm
+      self.signed_message = signed_message
       self.secret_key = secret_key
       self.x509_certificate = x509_certificate
       self.authn_context_classref = authn_context_classref
@@ -48,7 +51,7 @@ module SamlIdp
     end
 
     def build
-      @built ||= response_builder.encoded
+      @built ||= response_builder.encoded(signed_message)
     end
 
     def signed_assertion
@@ -61,7 +64,7 @@ module SamlIdp
     private :signed_assertion
 
     def response_builder
-      ResponseBuilder.new(response_id, issuer_uri, saml_acs_url, saml_request_id, signed_assertion)
+      ResponseBuilder.new(response_id, issuer_uri, saml_acs_url, saml_request_id, signed_assertion, algorithm)
     end
     private :response_builder
 

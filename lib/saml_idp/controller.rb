@@ -62,6 +62,7 @@ module SamlIdp
       expiry = opts[:expiry] || 60*60
       session_expiry = opts[:session_expiry]
       encryption_opts = opts[:encryption] || nil
+      signed_message = opts[:signed_message]
 
       SamlResponse.new(
         reference_id,
@@ -72,6 +73,7 @@ module SamlIdp
         saml_request_id,
         acs_url,
         (opts[:algorithm] || algorithm || default_algorithm),
+        signed_message,
         my_authn_context_classref,
         expiry,
         encryption_opts,

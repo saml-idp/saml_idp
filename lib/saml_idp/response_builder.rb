@@ -1,30 +1,34 @@
 require 'builder'
+require 'saml_idp/signable'
 module SamlIdp
   class ResponseBuilder
+    include Signable
     attr_accessor :response_id
     attr_accessor :issuer_uri
     attr_accessor :saml_acs_url
     attr_accessor :saml_request_id
     attr_accessor :assertion_and_signature
+    attr_accessor :algorithm
 
-    def initialize(response_id, issuer_uri, saml_acs_url, saml_request_id, assertion_and_signature)
+    def initialize(response_id, issuer_uri, saml_acs_url, saml_request_id, assertion_and_signature, algorithm)
       self.response_id = response_id
       self.issuer_uri = issuer_uri
       self.saml_acs_url = saml_acs_url
       self.saml_request_id = saml_request_id
       self.assertion_and_signature = assertion_and_signature
+      self.algorithm = algorithm
     end
 
-    def encoded
-      @encoded ||= encode
+    def encoded(sign_message)
+      @encoded ||= encode(sign_message)
     end
 
     def raw
       build
     end
 
-    def encode
-      Base64.strict_encode64(raw)
+    def encode(sign_message)
+      Base64.strict_encode64(sign_message ? signed : raw)
     end
     private :encode
 
@@ -41,6 +45,7 @@ module SamlIdp
       builder = Builder::XmlMarkup.new
       builder.tag! "samlp:Response", resp_options do |response|
           response.Issuer issuer_uri, xmlns: Saml::XML::Namespaces::ASSERTION
+          sign response
           response.tag! "samlp:Status" do |status|
             status.tag! "samlp:StatusCode", Value: Saml::XML::Namespaces::Statuses::SUCCESS
           end
