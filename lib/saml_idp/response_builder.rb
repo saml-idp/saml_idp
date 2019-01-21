@@ -66,6 +66,7 @@ module SamlIdp
     def response_id_string
       "_#{response_id}"
     end
+    alias_method :reference_id, :response_id
     private :response_id_string
 
     def now_iso
