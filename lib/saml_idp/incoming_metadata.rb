@@ -16,6 +16,11 @@ module SamlIdp
       @document ||= Saml::XML::Document.parse raw
     end
 
+    def entity_id
+      xpath('//md:EntityDescriptor/@entityID', md: metadata_namespace).first.try(:content).to_s
+    end
+    hashable :entity_id
+
     def sign_assertions
       doc = xpath(
         "//md:SPSSODescriptor",
