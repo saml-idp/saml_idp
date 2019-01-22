@@ -17,7 +17,7 @@ module SamlIdp
     end
 
     def entity_id
-      xpath('//md:EntityDescriptor/@entityID').first.try(:content).to_s
+      xpath('//md:EntityDescriptor/@entityID', md: metadata_namespace).first.try(:content).to_s
     end
     hashable :entity_id
 
