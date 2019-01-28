@@ -16,14 +16,6 @@ gemfile:
   - gemfiles/rails_dev.gemfile
 matrix:
   exclude:
-    - rvm: 2.3
-      gemfile: gemfiles/rails_3.2.gemfile
-    - rvm: 2.3
-      gemfile: gemfiles/rails_4.0.gemfile
-    - rvm: 2.3
-      gemfile: gemfiles/rails_4.1.gemfile
-    - rvm: 2.3
-      gemfile: gemfiles/rails_4.2.gemfile
     - rvm: 2.4
       gemfile: gemfiles/rails_4.0.gemfile
     - rvm: 2.4
@@ -35,3 +27,11 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - gemfile: gemfiles/rails_dev.gemfile
+    - rvm: 2.3
+      gemfile: gemfiles/rails_3.2.gemfile
+    - rvm: 2.3
+      gemfile: gemfiles/rails_4.0.gemfile
+    - rvm: 2.3
+      gemfile: gemfiles/rails_4.1.gemfile
+    - rvm: 2.3
+      gemfile: gemfiles/rails_4.2.gemfile
