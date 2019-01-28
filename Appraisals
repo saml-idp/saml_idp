@@ -29,6 +29,10 @@ appraise 'rails-5.1' do
   gem 'activeresource', '>= 5.0', '< 5.2' # No 5.1 releases (yet)
 end
 
+appraise 'rails-5.2' do
+  gem 'rails', '5.2.0'
+end
+
 appraise 'rails-dev' do
   gem 'rails', :github => 'rails/rails', :branch => 'master'
   gem 'activeresource', :github => 'rails/activeresource', :branch => 'master'
