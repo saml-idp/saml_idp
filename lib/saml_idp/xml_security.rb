@@ -43,7 +43,11 @@ module SamlIdp
         extract_signed_element_id
       end
 
-      def validate(idp_cert_fingerprint, soft = true)
+      def validate(idp_cert_fingerprint, soft = true, sign_info = {})
+        if sign_info.keys.any?
+          return validate_redirect_binding(idp_cert_fingerprint, soft, sign_info)
+        end
+
         # get cert from response
         cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
         raise ValidationError.new("Certificate element missing in response (ds:X509Certificate)") unless cert_element
@@ -61,6 +65,25 @@ module SamlIdp
         end
 
         validate_doc(base64_cert, soft)
+      end
+
+      def validate_redirect_binding(idp_cert_fingerprint, soft, sign_info)
+        base64_cert = sign_info[:cert]
+        cert_text    = Base64.decode64(base64_cert)
+        cert         = OpenSSL::X509::Certificate.new(cert_text)
+
+        signature_algorithm = algorithm(sign_info[:sig_alg])
+        signature = Base64.decode64(sign_info[:signature])
+
+        verifiable = "SAMLRequest=#{CGI.escape(sign_info[:saml_request])}" +
+          "&RelayState=#{CGI.escape(sign_info[:relay_state])}" +
+          "&SigAlg=#{CGI.escape(sign_info[:sig_alg])}"
+
+        unless cert.public_key.verify(signature_algorithm.new, signature, verifiable)
+          return soft ? false : (raise ValidationError.new("Key validation error"))
+        end
+
+        return true
       end
 
       def fingerprint_cert(cert)
@@ -157,8 +180,13 @@ module SamlIdp
       end
 
       def algorithm(element)
-        algorithm = element.attribute("Algorithm").value if element
-        algorithm = algorithm && algorithm =~ /sha(.*?)$/i && $1.to_i
+        if element.respond_to?(:attribute)
+          algorithm = element.attribute("Algorithm").value if element
+          algorithm = algorithm && algorithm =~ /sha(.*?)$/i && $1.to_i
+        else
+          algorithm = element =~ /sha(.*?)$/i && $1.to_i
+        end
+
         case algorithm
         when 256 then OpenSSL::Digest::SHA256
         when 384 then OpenSSL::Digest::SHA384
