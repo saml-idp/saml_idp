@@ -33,9 +33,9 @@ module SamlIdp
       end.new(nil)
     end
 
-    def validate_saml_request(raw_saml_request = params[:SAMLRequest])
+    def validate_saml_request(raw_saml_request = params[:SAMLRequest], sign_info = {})
       decode_request(raw_saml_request)
-      return true if valid_saml_request?
+      return true if valid_saml_request?(sign_info)
       if defined?(::Rails)
         head :forbidden
       end
@@ -109,8 +109,8 @@ module SamlIdp
         "http://example.com"
     end
 
-    def valid_saml_request?
-      saml_request.valid?
+    def valid_saml_request?(sign_info = {})
+      saml_request.valid?(sign_info)
     end
 
     def saml_request_id

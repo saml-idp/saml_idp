@@ -70,9 +70,17 @@ module Saml
         !!xpath("//ds:Signature", ds: signature_namespace).first
       end
 
-      def valid_signature?(fingerprint)
-        signed? &&
-          signed_document.validate(fingerprint, :soft)
+      def valid_signed_info?(sign_info = {})
+        return false unless sign_info.kind_of?(Hash)
+
+        Set.new([:signature, :cert, :sig_alg, :saml_request, :relay_state]).subset?(
+          Set.new(sign_info.keys)
+        )
+      end
+
+      def valid_signature?(fingerprint, sign_info = {})
+        (signed? || valid_signed_info?(sign_info)) &&
+          signed_document.validate(fingerprint, :soft, sign_info)
       end
 
       def signed_document

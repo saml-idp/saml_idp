@@ -21,9 +21,11 @@ module SamlIdp
       attributes.present?
     end
 
-    def valid_signature?(doc, require_signature = false)
+    def valid_signature?(doc, require_signature = false, sign_info = {})
+      #For Redirect binding, cert is not provided to save space in the url
+      sign_info[:cert] = cert if sign_info.keys.any?
       if require_signature || attributes[:validate_signature]
-        doc.valid_signature?(fingerprint)
+        doc.valid_signature?(fingerprint, sign_info)
       else
         true
       end

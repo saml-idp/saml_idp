@@ -84,7 +84,7 @@ module SamlIdp
       end
     end
 
-    def valid?
+    def valid?(sign_info = {})
       unless service_provider?
         log "Unable to find service provider for issuer #{issuer}"
         return false
@@ -95,7 +95,7 @@ module SamlIdp
         return false
       end
 
-      unless valid_signature?
+      unless valid_signature?(sign_info)
         log "Signature is invalid in #{raw_xml}"
         return false
       end
@@ -114,12 +114,13 @@ module SamlIdp
       return true
     end
 
-    def valid_signature?
+    def valid_signature?(sign_info = {})
       # Force signatures for logout requests because there is no other protection against a cross-site DoS.
       # Validate signature when metadata specify AuthnRequest should be signed
       metadata = service_provider.current_metadata
-      if logout_request? || authn_request? && metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
-        document.valid_signature?(service_provider.fingerprint)
+      if logout_request? || authn_request? &&
+          metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
+        service_provider.valid_signature?(document, true, sign_info)
       else
         true
       end
