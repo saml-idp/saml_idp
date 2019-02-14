@@ -82,7 +82,7 @@ module SamlIdp
         response_builder.encoded(signed_message: false)
       end
     end
-    private :encoded_message
+    private :signed_assertion
 
     def response_builder
       ResponseBuilder.new(response_id, issuer_uri, saml_acs_url, saml_request_id, signed_assertion, algorithm)
