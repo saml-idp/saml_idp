@@ -58,5 +58,5 @@ section of the README.
   s.add_development_dependency('timecop', '>= 0.8')
   s.add_development_dependency('xmlenc', '>= 0.6.4')
   s.add_development_dependency('appraisal')
+  s.add_development_dependency('byebug')
 end
-
