@@ -108,8 +108,7 @@ module SamlIdp
       canon_algorithm = Nokogiri::XML::XML_C14N_EXCLUSIVE_1_0
       canon_hashed_element = noko_raw.canonicalize(canon_algorithm, inclusive_namespaces)
       digest_algorithm = get_algorithm
-
-      hash                          = digest_algorithm.digest(canon_hashed_element)
+      hash = digest_algorithm.digest(canon_hashed_element)
       Base64.strict_encode64(hash).gsub(/\n/, '')
     end
     private :digest
