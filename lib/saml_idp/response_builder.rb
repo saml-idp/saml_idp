@@ -1,24 +1,22 @@
 require 'builder'
-require 'saml_idp/algorithmable'
 require 'saml_idp/signable'
 module SamlIdp
   class ResponseBuilder
-    include Algorithmable
     include Signable
     attr_accessor :response_id
     attr_accessor :issuer_uri
     attr_accessor :saml_acs_url
     attr_accessor :saml_request_id
     attr_accessor :assertion_and_signature
-    attr_accessor :raw_algorithm
+    attr_accessor :algorithm
 
-    def initialize(response_id, issuer_uri, saml_acs_url, saml_request_id, assertion_and_signature, raw_algorithm)
+    def initialize(response_id, issuer_uri, saml_acs_url, saml_request_id, assertion_and_signature, algorithm)
       self.response_id = response_id
       self.issuer_uri = issuer_uri
       self.saml_acs_url = saml_acs_url
       self.saml_request_id = saml_request_id
       self.assertion_and_signature = assertion_and_signature
-      self.raw_algorithm = raw_algorithm
+      self.algorithm = algorithm
     end
 
     def encoded(signed_message: false)

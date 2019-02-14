@@ -26,7 +26,6 @@ module SamlIdp
     it 'should properly set sign_assertions to false' do
       metadata = SamlIdp::IncomingMetadata.new(metadata_1)
       expect(metadata.sign_assertions).to eq(false)
-      expect(metadata.entity_id).to be_a(String)
     end
 
     it 'should properly set sign_assertions to true' do

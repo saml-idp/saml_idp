@@ -24,8 +24,6 @@ module SamlIdp
         key_transport: 'rsa-oaep-mgf1p',
       }
     end
-    let(:signed_response_opts) { true }
-    let(:unsigned_response_opts) { false }
     let(:subject_encrypted) { described_class.new(reference_id,
                                   response_id,
                                   issuer_uri,
@@ -37,8 +35,7 @@ module SamlIdp
                                   authn_context_classref,
                                   expiry,
                                   encryption_opts,
-                                  session_expiry,
-                                  unsigned_response_opts
+                                  session_expiry
                                  )
     }
 
@@ -53,8 +50,7 @@ module SamlIdp
                                   authn_context_classref,
                                   expiry,
                                   nil,
-                                  session_expiry,
-                                  signed_response_opts
+                                  session_expiry
                                  )
     }
 
