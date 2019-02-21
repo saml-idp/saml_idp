@@ -5,7 +5,6 @@ rvm:
   - 2.4
   - 2.5
   - ruby-head
-
 gemfile:
   - gemfiles/rails_3.2.gemfile
   - gemfiles/rails_4.0.gemfile
@@ -15,21 +14,6 @@ gemfile:
   - gemfiles/rails_5.1.gemfile
   - gemfiles/rails_5.2.gemfile
   - gemfiles/rails_dev.gemfile
-
-before_install:
-  - gem install rubygems-update && update_rubygems
-  # Rails 4.2 doesn't support bundler 2.0, so we have multiple workarounds.
-  # This is just for Rails 2.5 which ships with bundler 2.x on Travis CI while
-  # Ruby 2.6 does not. Taken from:
-  # https://github.com/travis-ci/travis-ci/issues/8717#issuecomment-366500378
-  - "find /home/travis/.rvm/rubies -wholename '*default/bundler-*.gemspec' -delete"
-  # This should help with the other Ruby versions.
-  # Taken from https://docs.travis-ci.com/user/languages/ruby/
-  - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
-  # Another try, above doesn't seem to work for Ruby 2.5
-  - gem uninstall bundler -v '>= 2' || true
-  - gem install bundler -v '< 2'
-
 matrix:
   exclude:
     - rvm: 2.4
@@ -47,3 +31,11 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - gemfile: gemfiles/rails_dev.gemfile
+    - rvm: 2.3
+      gemfile: gemfiles/rails_3.2.gemfile
+    - rvm: 2.3
+      gemfile: gemfiles/rails_4.0.gemfile
+    - rvm: 2.3
+      gemfile: gemfiles/rails_4.1.gemfile
+    - rvm: 2.3
+      gemfile: gemfiles/rails_4.2.gemfile
