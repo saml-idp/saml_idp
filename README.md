@@ -93,11 +93,17 @@ CERT
   # config.organization_url = "http://example.com"
   # config.base_saml_location = "#{base}/saml"
   # config.reference_id_generator                                 # Default: -> { UUID.generate }
+  # config.session_expiry = 86400                                 # Default: 0 which means never
+
+
+  # Uncomment each protocol/binding that should be returned by the metadata endpoint
+  # For example, if SLO is not implemented, but both redirect & post bindings for SSO is,
+  # then `config.single_service_post_location` and `config.single_service_redirect_location`
+  # should be set
   # config.single_logout_service_post_location = "#{base}/saml/logout"
   # config.single_logout_service_redirect_location = "#{base}/saml/logout"
-  # config.attribute_service_location = "#{base}/saml/attributes"
   # config.single_service_post_location = "#{base}/saml/auth"
-  # config.session_expiry = 86400                                 # Default: 0 which means never
+  # config.single_service_redirect_location = "#{base}/saml/auth"
 
   # Principal (e.g. User) is passed in when you `encode_response`
   #

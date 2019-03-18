@@ -24,24 +24,29 @@ module SamlIdp
 
             entity.IDPSSODescriptor protocolSupportEnumeration: protocol_enumeration do |descriptor|
               build_key_descriptor descriptor
-              descriptor.SingleLogoutService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
-                Location: single_logout_service_post_location
-              descriptor.SingleLogoutService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-                Location: single_logout_service_redirect_location
-              build_name_id_formats descriptor
-              descriptor.SingleSignOnService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-                Location: single_service_post_location
-              build_attribute descriptor
-            end
+              if single_logout_service_post_location
+                descriptor.SingleLogoutService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+                  Location: single_logout_service_post_location
+              end
 
-            entity.AttributeAuthorityDescriptor protocolSupportEnumeration: protocol_enumeration do |authority_descriptor|
-              build_key_descriptor authority_descriptor
-              build_organization authority_descriptor
-              build_contact authority_descriptor
-              authority_descriptor.AttributeService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-                Location: attribute_service_location
-              build_name_id_formats authority_descriptor
-              build_attribute authority_descriptor
+              if single_logout_service_redirect_location
+                descriptor.SingleLogoutService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                  Location: single_logout_service_redirect_location
+              end
+
+              build_name_id_formats descriptor
+
+              if single_service_post_location
+                descriptor.SingleSignOnService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+                  Location: single_service_post_location
+              end
+
+              if single_service_redirect_location
+                descriptor.SingleSignOnService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                  Location: single_service_redirect_location
+              end
+
+              build_attribute descriptor
             end
 
             build_organization entity
@@ -149,8 +154,8 @@ module SamlIdp
       support_email
       organization_name
       organization_url
-      attribute_service_location
       single_service_post_location
+      single_service_redirect_location
       single_logout_service_post_location
       single_logout_service_redirect_location
       technical_contact

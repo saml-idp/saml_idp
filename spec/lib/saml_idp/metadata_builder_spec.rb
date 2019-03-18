@@ -9,11 +9,6 @@ module SamlIdp
       expect(Saml::XML::Document.parse(subject.signed).valid_signature?(Default::FINGERPRINT)).to be_truthy
     end
 
-    it "includes logout element" do
-      subject.configurator.single_logout_service_post_location = 'https://example.com/saml/logout'
-      expect(subject.fresh).to match('<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://example.com/saml/logout"/>')
-    end
-
     context "technical contact" do
       before do
         subject.configurator.technical_contact.company       = nil
@@ -44,9 +39,41 @@ module SamlIdp
 
     end
 
-    it "includes logout element as HTTP Redirect" do
-      subject.configurator.single_logout_service_redirect_location = 'https://example.com/saml/logout'
-      expect(subject.fresh).to match('<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://example.com/saml/logout"/>')
+    context "SLO bindings" do
+      it "post binding" do
+        subject.configurator.single_logout_service_post_location = 'https://example.com/saml/logout'
+        expect(subject.fresh).to match('<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://example.com/saml/logout"/>')
+      end
+
+      it "redirect binding" do
+        subject.configurator.single_logout_service_redirect_location = 'https://example.com/saml/logout'
+        expect(subject.fresh).to match('<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://example.com/saml/logout"/>')
+      end
+
+      it "no bindings" do
+        subject.configurator.single_logout_service_post_location     = nil
+        subject.configurator.single_logout_service_redirect_location = nil
+        expect(subject.fresh).not_to match('<SingleLogoutService')
+      end
     end
+
+    context "SSO bindings" do
+      it "post binding" do
+        subject.configurator.single_service_post_location = 'https://example.com/saml/auth'
+        expect(subject.fresh).to match('<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://example.com/saml/auth"/>')
+      end
+
+      it "redirect binding" do
+        subject.configurator.single_service_redirect_location = 'https://example.com/saml/auth'
+        expect(subject.fresh).to match('<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://example.com/saml/auth"/>')
+      end
+
+      it "no bindings" do
+        subject.configurator.single_service_post_location     = nil
+        subject.configurator.single_service_redirect_location = nil
+        expect(subject.fresh).not_to match('<SingleSignOnService')
+      end
+    end
+
   end
 end

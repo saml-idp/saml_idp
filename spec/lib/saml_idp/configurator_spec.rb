@@ -8,8 +8,8 @@ module SamlIdp
     it { should respond_to :organization_url }
     it { should respond_to :base_saml_location }
     it { should respond_to :reference_id_generator }
-    it { should respond_to :attribute_service_location }
     it { should respond_to :single_service_post_location }
+    it { should respond_to :single_service_redirect_location }
     it { should respond_to :single_logout_service_post_location }
     it { should respond_to :single_logout_service_redirect_location }
     it { should respond_to :name_id }
