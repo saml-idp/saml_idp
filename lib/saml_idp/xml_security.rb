@@ -46,6 +46,7 @@ module SamlIdp
       def validate(idp_cert_fingerprint, soft = true)
         # get cert from response
         cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
+        cert_element ||= REXML::XPath.first(self, "//X509Certificate")
         raise ValidationError.new("Certificate element missing in response (ds:X509Certificate)") unless cert_element
         base64_cert  = cert_element.text
         cert_text    = Base64.decode64(base64_cert)
@@ -66,7 +67,7 @@ module SamlIdp
       def fingerprint_cert(cert)
         # pick algorithm based on the doc's digest algorithm
         ref_elem = REXML::XPath.first(self, "//ds:Reference", {"ds"=>DSIG})
-        digest_algorithm = algorithm(REXML::XPath.first(ref_elem, "//ds:DigestMethod"))
+        digest_algorithm = algorithm(REXML::XPath.first(ref_elem, "//ds:DigestMethod", {"ds"=>DSIG}))
         digest_algorithm.hexdigest(cert.to_der)
       end
 
@@ -108,7 +109,7 @@ module SamlIdp
           canon_algorithm               = canon_algorithm REXML::XPath.first(ref, '//ds:CanonicalizationMethod', 'ds' => DSIG)
           canon_hashed_element          = hashed_element.canonicalize(canon_algorithm, inclusive_namespaces)
 
-          digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod"))
+          digest_algorithm              = algorithm(REXML::XPath.first(ref, "//ds:DigestMethod", {"ds"=>DSIG}))
 
           hash                          = digest_algorithm.digest(canon_hashed_element)
           digest_value                  = Base64.decode64(REXML::XPath.first(ref, "//ds:DigestValue", {"ds"=>DSIG}).text)
