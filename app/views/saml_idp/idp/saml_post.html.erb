@@ -3,11 +3,6 @@
   <head>
     <meta charset="utf-8">
     <%= csp_meta_tag %>
-    <%= javascript_tag nonce: true do %>
-      document.getElementsByTagName("body")[0].addEventListener("load", function() {
-      document.forms[0].submit();
-      });
-    <% end %>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   </head>
   <body style="visibility:hidden;">
@@ -18,3 +13,12 @@
     <% end %>
   </body>
 </html>
+
+<%= javascript_tag nonce: true do %>
+  (function() {
+  document.getElementsByTagName("body")[0].addEventListener("load", function() {
+  document.forms[0].submit();
+  });
+  })();
+<% end %>
+
