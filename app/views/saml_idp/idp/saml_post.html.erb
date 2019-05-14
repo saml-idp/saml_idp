@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <%= csp_meta_tag %>
     <%= javascript_tag nonce: true do %>
-      document.getElementByTagName("body").addEventListener("load", function() {
+      document.getElementsByTagName("body").addEventListener("load", function() {
       document.forms[0].submit();
       });
     <% end %>
