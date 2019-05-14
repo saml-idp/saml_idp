@@ -4,8 +4,14 @@
     <meta charset="utf-8">
     <%= csp_meta_tag %>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <style>
+body {
+  visibility: hidden;
+}
+    </style>
+
   </head>
-  <body style="visibility:hidden;">
+  <body>
     <%= form_tag(saml_acs_url) do %>
       <%= hidden_field_tag("SAMLResponse", @saml_response) %>
       <%= hidden_field_tag("RelayState", params[:RelayState]) %>
@@ -16,9 +22,7 @@
 
 <%= javascript_tag nonce: true do %>
   (function() {
-  document.getElementsByTagName("body")[0].addEventListener("load", function() {
   document.forms[0].submit();
-  });
   })();
 <% end %>
 
