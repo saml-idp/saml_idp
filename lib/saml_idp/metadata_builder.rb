@@ -29,8 +29,10 @@ module SamlIdp
               descriptor.SingleLogoutService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
                 Location: single_logout_service_redirect_location
               build_name_id_formats descriptor
-              descriptor.SingleSignOnService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+              descriptor.SingleSignOnService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
                 Location: single_service_post_location
+              descriptor.SingleSignOnService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                Location: single_service_redirect_location
               build_attribute descriptor
             end
 
@@ -151,6 +153,7 @@ module SamlIdp
       organization_url
       attribute_service_location
       single_service_post_location
+      single_service_redirect_location
       single_logout_service_post_location
       single_logout_service_redirect_location
       technical_contact
