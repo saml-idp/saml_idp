@@ -210,6 +210,51 @@ CERT
 end
 ```
 
+## Rotation
+
+This gem supports certificates rotation. In case is necessary to change your certificate and don't wanna lose services for a short time.
+
+You just need set the variables ```new_x509_certificate``` and ```new_secret_key```
+
+```ruby
+SamlIdp.configure do |config|
+  base = "http://example.com"
+
+  config.x509_certificate = <<-CERT
+-----BEGIN CERTIFICATE-----
+CERTIFICATE DATA
+-----END CERTIFICATE-----
+CERT
+
+  config.secret_key = <<-CERT
+-----BEGIN RSA PRIVATE KEY-----
+KEY DATA
+-----END RSA PRIVATE KEY-----
+CERT
+
+  config.new_x509_certificate = <<-CERT
+-----BEGIN CERTIFICATE-----
+CERTIFICATE DATA
+-----END CERTIFICATE-----
+CERT
+  config.new_secret_key = <<-CERT
+-----BEGIN RSA PRIVATE KEY-----
+KEY DATA
+-----END RSA PRIVATE KEY-----
+CERT
+```
+And for providers you pass the attriutes ```new_cert?: true```.
+
+Ex
+``` ruby
+ "https://provider" => {
+    cert: NEW_CERT,
+    new_cert?: true
+  }
+```
+
+After you change all services, you can removes the old one.
+
 # Keys and Secrets
 To generate the SAML Response it uses a default X.509 certificate and secret key... which isn't so secret.
 You can find them in `SamlIdp::Default`. The X.509 certificate is valid until year 2032.

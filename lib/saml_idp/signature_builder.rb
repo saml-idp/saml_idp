@@ -1,10 +1,13 @@
 require 'builder'
+require 'saml_idp/service_provider'
+
 module SamlIdp
   class SignatureBuilder
-    attr_accessor :signed_info_builder
+    attr_accessor :signed_info_builder, :audience_service_provider
 
-    def initialize(signed_info_builder)
+    def initialize(signed_info_builder, audience_service_provider)
       self.signed_info_builder = signed_info_builder
+      self.audience_service_provider = audience_service_provider
     end
 
     def raw
@@ -20,14 +23,35 @@ module SamlIdp
       end
     end
 
+    def service_provider
+      @_service_provider ||=
+        ServiceProvider.new(
+          (service_provider_finder[audience_service_provider] || {})
+        )
+    end
+
     def x509_certificate
-      SamlIdp.config.x509_certificate
+      extract_x509_certificate(certificate_by_provider)
+    end
+    private :x509_certificate
+
+    def certificate_by_provider
+      if service_provider.new_cert?
+        SamlIdp.config.new_x509_certificate
+      else
+        SamlIdp.config.x509_certificate
+      end
+    end
+
+    private def extract_x509_certificate(cert)
+      return if cert.blank?
+
+      cert
       .to_s
       .gsub(/-----BEGIN CERTIFICATE-----/,"")
       .gsub(/-----END CERTIFICATE-----/,"")
       .gsub(/\n/, "")
     end
-    private :x509_certificate
 
     def signed_info
       signed_info_builder.raw
@@ -38,5 +62,10 @@ module SamlIdp
       signed_info_builder.signed
     end
     private :signature_value
+
+    def service_provider_finder
+      SamlIdp.config.service_provider.finder
+    end
+    private :service_provider_finder
   end
 end

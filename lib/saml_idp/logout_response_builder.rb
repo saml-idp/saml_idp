@@ -17,7 +17,7 @@ module SamlIdp
         InResponseTo: saml_request_id,
         xmlns: Saml::XML::Namespaces::PROTOCOL do |response|
           response.Issuer issuer_uri, xmlns: Saml::XML::Namespaces::ASSERTION
-          sign response
+          sign response, issuer_uri
           response.Status xmlns: Saml::XML::Namespaces::PROTOCOL do |status|
             status.StatusCode Value: Saml::XML::Namespaces::Statuses::SUCCESS
           end

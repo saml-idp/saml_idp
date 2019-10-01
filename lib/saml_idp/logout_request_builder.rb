@@ -16,7 +16,7 @@ module SamlIdp
         Destination: saml_slo_url,
         "xmlns" => Saml::XML::Namespaces::PROTOCOL do |request|
           request.Issuer issuer_uri, xmlns: Saml::XML::Namespaces::ASSERTION
-          sign request
+          sign request, issuer_uri
           request.NameID name_id, xmlns: Saml::XML::Namespaces::ASSERTION,
             Format: Saml::XML::Namespaces::Formats::NameId::PERSISTENT
           request.SessionIndex response_id_string

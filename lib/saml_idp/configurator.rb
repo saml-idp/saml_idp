@@ -3,7 +3,9 @@ require 'ostruct'
 module SamlIdp
   class Configurator
     attr_accessor :x509_certificate
+    attr_accessor :new_x509_certificate
     attr_accessor :secret_key
+    attr_accessor :new_secret_key
     attr_accessor :password
     attr_accessor :algorithm
     attr_accessor :organization_name
@@ -23,6 +25,8 @@ module SamlIdp
     def initialize
       self.x509_certificate = Default::X509_CERTIFICATE
       self.secret_key = Default::SECRET_KEY
+      self.new_x509_certificate = Default::NEW_X509_CERTIFICATE
+      self.new_secret_key = Default::NEW_SECRET_KEY
       self.algorithm = :sha1
       self.reference_id_generator = ->() { UUID.generate }
       self.service_provider = OpenStruct.new

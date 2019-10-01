@@ -20,8 +20,8 @@ module SamlIdp
       end
     end
 
-    def sign(el)
-      el << signature if sign?
+    def sign(el, audience_uri)
+      el << signature(audience_uri) if sign?
     end
 
     def generated_reference_id
@@ -64,13 +64,15 @@ module SamlIdp
     end
     private :sign?
 
-    def signature
-      SignatureBuilder.new(signed_info_builder).raw
+    def signature(audience_uri)
+      SignatureBuilder.new(signed_info_builder(audience_uri), audience_uri).raw
     end
     private :signature
 
-    def signed_info_builder
-      SignedInfoBuilder.new(get_reference_id, get_digest, get_algorithm)
+    def signed_info_builder(audience_uri)
+      SignedInfoBuilder.new(
+        get_reference_id, get_digest, get_algorithm, audience_uri
+      )
     end
     private :signed_info_builder
 
@@ -90,6 +92,11 @@ module SamlIdp
       send(self.class.algorithm_method)
     end
     private :get_algorithm
+
+    def assertion
+      Saml::XML::Namespaces::ASSERTION
+    end
+    private :assertion
 
     def get_raw
       send(self.class.raw_method)
