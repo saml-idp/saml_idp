@@ -18,10 +18,16 @@ gemfile:
   - gemfiles/rails_dev.gemfile
 matrix:
   exclude:
+    - rvm: 2.2
+      gemfile: gemfiles/rails_6.0.gemfile
+    - rvm: 2.3
+      gemfile: gemfiles/rails_6.0.gemfile
     - rvm: 2.4
       gemfile: gemfiles/rails_4.0.gemfile
     - rvm: 2.4
       gemfile: gemfiles/rails_4.1.gemfile
+    - rvm: 2.4
+      gemfile: gemfiles/rails_6.0.gemfile
     - rvm: 2.5
       gemfile: gemfiles/rails_4.0.gemfile
     - rvm: 2.5
