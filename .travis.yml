@@ -20,6 +20,8 @@ gemfile:
 matrix:
   exclude:
     - rvm: 2.2
+      gemfile: gemfiles/rails_5.2.gemfile
+    - rvm: 2.2
       gemfile: gemfiles/rails_6.0.gemfile
     - rvm: 2.3
       gemfile: gemfiles/rails_6.0.gemfile
@@ -38,9 +40,13 @@ matrix:
     - rvm: 2.6
       gemfile: gemfiles/rails_4.1.gemfile
     - rvm: 2.7
+      gemfile: gemfiles/rails_3.2.gemfile
+    - rvm: 2.7
       gemfile: gemfiles/rails_4.0.gemfile
     - rvm: 2.7
       gemfile: gemfiles/rails_4.1.gemfile
+    - rvm: 2.7
+      gemfile: gemfiles/rails_4.2.gemfile
     - rvm: ruby-head
       gemfile: gemfiles/rails_4.0.gemfile
     - rvm: ruby-head
