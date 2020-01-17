@@ -26,7 +26,17 @@ end
 
 appraise 'rails-5.1' do
   gem 'rails', '>= 5.1', '< 5.2'
-  gem 'activeresource', '>= 5.0', '< 5.2' # No 5.1 releases (yet)
+  gem 'activeresource', '~> 5.1.0'
+end
+
+appraise 'rails-5.2' do
+  gem 'rails', '~> 5.2.0'
+  gem 'activeresource', '~> 5.1.0'
+end
+
+appraise 'rails-6.0' do
+  gem 'rails', '~> 6.0.0'
+  gem 'activeresource', '~> 5.1.0'
 end
 
 appraise 'rails-dev' do
