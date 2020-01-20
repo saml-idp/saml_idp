@@ -1,4 +1,5 @@
 # Ruby SAML Identity Provider (IdP)
+
 Forked from https://github.com/lawrencepit/ruby-saml-idp
 
 [![Build Status](https://travis-ci.org/saml-idp/saml_idp.svg)](https://travis-ci.org/saml-idp/saml_idp)
@@ -19,6 +20,7 @@ Add this to your Gemfile:
     gem 'saml_idp'
 
 ## Not using rails?
+
 Include `SamlIdp::Controller` and see the examples that use rails. It should be straightforward for you.
 
 Basically you call `decode_request(params[:SAMLRequest])` on an incoming request and then use the value
@@ -30,9 +32,10 @@ posting to `saml_acs_url` the parameter `SAMLResponse` with the return value fro
 `encode_response(user_email)`.
 
 ## Using rails?
+
 Add to your `routes.rb` file, for example:
 
-``` ruby
+```ruby
 get '/saml/auth' => 'saml_idp#new'
 get '/saml/metadata' => 'saml_idp#show'
 post '/saml/auth' => 'saml_idp#create'
@@ -41,7 +44,7 @@ match '/saml/logout' => 'saml_idp#logout', via: [:get, :post, :delete]
 
 Create a controller that looks like this, customize to your own situation:
 
-``` ruby
+```ruby
 class SamlIdpController < SamlIdp::IdpController
   def idp_authenticate(email, password) # not using params intentionally
     user = User.by_email(email).first
@@ -101,7 +104,7 @@ CERT
 
   # Principal (e.g. User) is passed in when you `encode_response`
   #
-  # config.name_id.formats # =>
+  # config.name_id.formats =
   #   {                         # All 2.0
   #     email_address: -> (principal) { principal.email_address },
   #     transient: -> (principal) { principal.id },
@@ -211,6 +214,7 @@ end
 ```
 
 # Keys and Secrets
+
 To generate the SAML Response it uses a default X.509 certificate and secret key... which isn't so secret.
 You can find them in `SamlIdp::Default`. The X.509 certificate is valid until year 2032.
 Obviously you shouldn't use these if you intend to use this in production environments. In that case,
@@ -224,18 +228,19 @@ The fingerprint to use, if you use the default X.509 certificate of this gem, is
 9E:65:2E:03:06:8D:80:F2:86:C7:6C:77:A1:D9:14:97:0A:4D:F4:4D
 ```
 
-
 # Service Providers
+
 To act as a Service Provider which generates SAML Requests and can react to SAML Responses use the
 excellent [ruby-saml](https://github.com/onelogin/ruby-saml) gem.
 
-
 # Author
-Jon Phenow, me@jphenow.com
+
+Jon Phenow, jon@jphenow.com, jphenow.com, @jphenow
 
 Lawrence Pit, lawrence.pit@gmail.com, lawrencepit.com, @lawrencepit
 
 # Copyright
+
 Copyright (c) 2012 Sport Ngin.
 Portions Copyright (c) 2010 OneLogin, LLC
 Portions Copyright (c) 2012 Lawrence Pit (http://lawrencepit.com)
