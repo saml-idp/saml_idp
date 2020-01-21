@@ -17,6 +17,7 @@ module SamlIdp
     attr_accessor :single_logout_service_redirect_location
     attr_accessor :attributes
     attr_accessor :service_provider
+    attr_accessor :assertion_consumer_service_hosts
     attr_accessor :session_expiry
 
     def initialize

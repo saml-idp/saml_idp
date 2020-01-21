@@ -105,6 +105,11 @@ module SamlIdp
         return false
       end
 
+      if !service_provider.acceptable_response_hosts.include?(response_host)
+        log "No acceptable AssertionConsumerServiceURL, either configure them via config.service_provider.response_hosts or match to your metadata_url host"
+        return false
+      end
+
       return true
     end
 
@@ -135,6 +140,14 @@ module SamlIdp
     def session_index
       @_session_index ||= xpath("//samlp:SessionIndex", samlp: samlp).first.try(:content)
     end
+
+    def response_host
+      uri = URI(response_url)
+      if uri
+        uri.host
+      end
+    end
+    private :response_host
 
     def document
       @_document ||= Saml::XML::Document.parse(raw_xml)

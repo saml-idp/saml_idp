@@ -13,6 +13,7 @@ module SamlIdp
     attribute :validate_signature
     attribute :acs_url
     attribute :assertion_consumer_logout_service_url
+    attribute :response_hosts
 
     delegate :config, to: :SamlIdp
 
@@ -44,6 +45,19 @@ module SamlIdp
 
     def current_metadata
       @current_metadata ||= get_current_or_build
+    end
+
+    def acceptable_response_hosts
+      hosts = Array(self.response_hosts)
+      hosts.push(metadata_url_host) if metadata_url_host
+
+      hosts
+    end
+
+    def metadata_url_host
+      if metadata_url.present?
+        URI(metadata_url).host
+      end
     end
 
     def get_current_or_build
