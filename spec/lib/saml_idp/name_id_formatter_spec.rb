@@ -10,6 +10,13 @@ module SamlIdp
         expect(subject.all).to eq ["urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress"]
       end
 
+      it 'choses first' do
+        expect(subject.chosen[:name]).to eq "urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress"
+      end
+
+      it 'choses by given format' do
+        expect(subject.chosen("urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress")[:name]).to eq "urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress"
+      end
     end
 
     describe "with hash describing versions" do
@@ -26,6 +33,12 @@ module SamlIdp
           "urn:oasis:names:tc:SAML:2.0:nameid-format:undefined",
         ]
       end
+
+      it "chooses preferred name id policy" do
+        expect(
+          subject.chosen("urn:oasis:names:tc:SAML:2.0:nameid-format:undefined")[:name]
+        ).to eq "urn:oasis:names:tc:SAML:2.0:nameid-format:undefined"
+      end
     end
 
     describe "with actual list" do
@@ -36,6 +49,12 @@ module SamlIdp
           "urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress",
           "urn:oasis:names:tc:SAML:2.0:nameid-format:undefined",
         ]
+      end
+
+      it "chooses preferred name id policy" do
+        expect(
+          subject.chosen("urn:oasis:names:tc:SAML:2.0:nameid-format:undefined")[:name]
+        ).to eq "urn:oasis:names:tc:SAML:2.0:nameid-format:undefined"
       end
     end
   end
