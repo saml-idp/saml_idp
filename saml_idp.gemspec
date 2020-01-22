@@ -52,7 +52,7 @@ section of the README.
   s.add_development_dependency('rake')
   s.add_development_dependency('simplecov')
   s.add_development_dependency('rspec', '>= 3.7.0')
-  s.add_development_dependency('ruby-saml', '>= 1.5')
+  s.add_development_dependency('ruby-saml', '>= 1.7.2')
   s.add_development_dependency('rails', '>= 3.2')
   s.add_development_dependency('activeresource', '>= 3.2')
   s.add_development_dependency('capybara', '>= 2.16')

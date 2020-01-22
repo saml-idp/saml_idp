@@ -33,7 +33,11 @@ module SamlIdp
     it 'should properly set sign_assertions to false' do
       metadata = SamlIdp::IncomingMetadata.new(metadata_1)
       expect(metadata.sign_assertions).to eq(false)
-      expect(metadata.entity_id).to be_a(String)
+    end
+
+    it 'should properly set entity_id as https://test-saml.com/saml' do
+      metadata = SamlIdp::IncomingMetadata.new(metadata_1)
+      expect(metadata.entity_id).to eq('https://test-saml.com/saml')
     end
 
     it 'should properly set sign_assertions to true' do
