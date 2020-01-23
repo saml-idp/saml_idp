@@ -12,6 +12,8 @@ module SamlIdp
     attr_accessor :assertion_and_signature
     attr_accessor :raw_algorithm
 
+    alias_method :reference_id, :response_id
+
     def initialize(response_id, issuer_uri, saml_acs_url, saml_request_id, assertion_and_signature, raw_algorithm)
       self.response_id = response_id
       self.issuer_uri = issuer_uri
@@ -64,7 +66,6 @@ module SamlIdp
     def response_id_string
       "_#{response_id}"
     end
-    alias_method :reference_id, :response_id
     private :response_id_string
 
     def now_iso
