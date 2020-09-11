@@ -1,4 +1,3 @@
-# encoding: utf-8
 require 'openssl'
 require 'base64'
 require 'time'
@@ -36,9 +35,8 @@ module SamlIdp
     def validate_saml_request(raw_saml_request = params[:SAMLRequest])
       decode_request(raw_saml_request)
       return true if valid_saml_request?
-      if defined?(::Rails)
-        head :forbidden
-      end
+
+      head :forbidden if defined?(::Rails)
       false
     end
 
@@ -63,6 +61,7 @@ module SamlIdp
       signed_message_opts = opts[:signed_message] || false
       name_id_formats_opts = opts[:name_id_formats] || nil
       asserted_attributes_opts = opts[:attributes] || nil
+      signed_assertion_opts = opts[:signed_assertion] || true
 
       SamlResponse.new(
         reference_id,
@@ -79,11 +78,12 @@ module SamlIdp
         session_expiry,
         signed_message_opts,
         name_id_formats_opts,
-        asserted_attributes_opts
+        asserted_attributes_opts,
+        signed_assertion_opts
       ).build
     end
 
-    def encode_logout_response(principal, opts = {})
+    def encode_logout_response(_principal, opts = {})
       SamlIdp::LogoutResponseBuilder.new(
         get_saml_response_id,
         (opts[:issuer_uri] || issuer_uri),
