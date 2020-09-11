@@ -26,6 +26,7 @@ module SamlIdp
     end
     let(:signed_response_opts) { true }
     let(:unsigned_response_opts) { false }
+    let(:signed_assertion_opts) { true }
     let(:subject_encrypted) { described_class.new(reference_id,
                                   response_id,
                                   issuer_uri,
@@ -38,7 +39,8 @@ module SamlIdp
                                   expiry,
                                   encryption_opts,
                                   session_expiry,
-                                  unsigned_response_opts
+                                  unsigned_response_opts,
+                                  signed_assertion_opts
                                  )
     }
 
@@ -54,7 +56,8 @@ module SamlIdp
                                   expiry,
                                   nil,
                                   session_expiry,
-                                  signed_response_opts
+                                  signed_response_opts,
+                                  signed_assertion_opts
                                  )
     }
 
@@ -70,34 +73,86 @@ module SamlIdp
       expect(subject.build).to be_present
     end
 
-    it "builds encrypted" do
-      expect(subject_encrypted.build).to_not match(audience_uri)
-      encoded_xml = subject_encrypted.build
-      resp_settings = saml_settings(saml_acs_url)
-      resp_settings.private_key = Default::SECRET_KEY
-      resp_settings.issuer = audience_uri
-      saml_resp = OneLogin::RubySaml::Response.new(encoded_xml, settings: resp_settings)
-      saml_resp.soft = false
-      expect(saml_resp.is_valid?).to eq(true)
+    context "encrypted" do
+      it "builds encrypted" do
+        expect(subject_encrypted.build).to_not match(audience_uri)
+        encoded_xml = subject_encrypted.build
+        resp_settings = saml_settings(saml_acs_url)
+        resp_settings.private_key = Default::SECRET_KEY
+        resp_settings.issuer = audience_uri
+        saml_resp = OneLogin::RubySaml::Response.new(encoded_xml, settings: resp_settings)
+        saml_resp.soft = false
+        expect(saml_resp.is_valid?).to eq(true)
+      end
     end
 
-    it "will build signed valid response" do
-      expect { subject.build }.not_to raise_error
-      signed_encoded_xml = subject.build
-      resp_settings = saml_settings(saml_acs_url)
-      resp_settings.private_key = Default::SECRET_KEY
-      resp_settings.issuer = audience_uri
-      saml_resp = OneLogin::RubySaml::Response.new(signed_encoded_xml, settings: resp_settings)
-      expect(
-        Nokogiri::XML(saml_resp.response).at_xpath(
-        "//p:Response//ds:Signature",
-        {
-          "p" => "urn:oasis:names:tc:SAML:2.0:protocol",
-          "ds" => "http://www.w3.org/2000/09/xmldsig#"
-        }
-      )).to be_present
-      expect(saml_resp.send(:validate_signature)).to eq(true)
-      expect(saml_resp.is_valid?).to eq(true)
+    context "signed response" do
+      let(:resp_settings) do
+        resp_settings = saml_settings(saml_acs_url)
+        resp_settings.private_key = Default::SECRET_KEY
+        resp_settings.issuer = audience_uri
+        resp_settings
+      end
+
+      it "will build signed valid response" do
+        expect { subject.build }.not_to raise_error
+        signed_encoded_xml = subject.build
+        saml_resp = OneLogin::RubySaml::Response.new(signed_encoded_xml, settings: resp_settings)
+        expect(
+          Nokogiri::XML(saml_resp.response).at_xpath(
+          "//p:Response//ds:Signature",
+          {
+            "p" => "urn:oasis:names:tc:SAML:2.0:protocol",
+            "ds" => "http://www.w3.org/2000/09/xmldsig#"
+          }
+        )).to be_present
+        expect(saml_resp.send(:validate_signature)).to eq(true)
+        expect(saml_resp.is_valid?).to eq(true)
+      end
+
+      context "when signed_assertion_opts is true" do
+        it "builds a signed assertion" do
+          expect { subject.build }.not_to raise_error
+          signed_encoded_xml = subject.build
+          saml_resp = OneLogin::RubySaml::Response.new(signed_encoded_xml, settings: resp_settings)
+          expect(
+            Nokogiri::XML(saml_resp.response).at_xpath(
+            "//p:Response//a:Assertion//ds:Signature",
+            {
+              "p" => "urn:oasis:names:tc:SAML:2.0:protocol",
+              "a" => "urn:oasis:names:tc:SAML:2.0:assertion",
+              "ds" => "http://www.w3.org/2000/09/xmldsig#"
+            }
+          )).to be_present
+        end
+      end
+
+      context "when signed_assertion_opts is false" do
+        let(:signed_assertion_opts) { false }
+
+        it "builds a raw assertion" do
+          expect { subject.build }.not_to raise_error
+          signed_encoded_xml = subject.build
+          saml_resp = OneLogin::RubySaml::Response.new(signed_encoded_xml, settings: resp_settings)
+          expect(
+            Nokogiri::XML(saml_resp.response).at_xpath(
+            "//p:Response//a:Assertion",
+            {
+              "p" => "urn:oasis:names:tc:SAML:2.0:protocol",
+              "a" => "urn:oasis:names:tc:SAML:2.0:assertion"
+            }
+          )).to be_present
+
+          expect(
+            Nokogiri::XML(saml_resp.response).at_xpath(
+            "//p:Response//Assertion//ds:Signature",
+            {
+              "p" => "urn:oasis:names:tc:SAML:2.0:protocol",
+              "ds" => "http://www.w3.org/2000/09/xmldsig#"
+            }
+          )).to_not be_present
+        end
+      end
     end
 
     it "sets session expiration" do
