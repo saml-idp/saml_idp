@@ -9,9 +9,14 @@ module SamlIdp
   require 'saml_idp/metadata_builder'
   require 'saml_idp/version'
   require 'saml_idp/engine' if defined?(::Rails) && Rails::VERSION::MAJOR > 2
+  require 'request_store'
 
   def self.config
-    @config ||= SamlIdp::Configurator.new
+    if RequestStore.store[:request_config]
+      RequestStore.store[:request_config]
+    else
+      raise "Config must be set before processing the request"
+    end
   end
 
   def self.configure
@@ -20,6 +25,10 @@ module SamlIdp
 
   def self.metadata
     @metadata ||= MetadataBuilder.new(config)
+  end
+
+  def self.request_config=(config)
+    RequestStore.store[:request_config] = config
   end
 end
 
