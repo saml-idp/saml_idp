@@ -20,7 +20,6 @@ module SamlIdp
     # delegate :config, to: :SamlIdp
 
     def initialize(reference_id, issuer_uri, principal, audience_uri, saml_request_id, saml_acs_url, raw_algorithm, authn_context_classref, expiry=60*60, encryption_opts=nil, session_expiry=nil, service_provider_config=nil)
-      @service_provider_config = service_provider_config
       @config ||= SamlIdp::Configurator.new(service_provider_config)
       self.reference_id = reference_id
       self.issuer_uri = issuer_uri

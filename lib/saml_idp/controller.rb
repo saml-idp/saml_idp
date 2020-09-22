@@ -46,6 +46,11 @@ module SamlIdp
       false
     end
 
+    def metadata(service_provider_config)
+      config ||= SamlIdp::Configurator.new(service_provider_config)
+      MetadataBuilder.new(config)
+    end
+
     def decode_request(raw_saml_request, service_provider)
       @saml_request = Request.from_deflated_request(raw_saml_request, service_provider)
     end
@@ -103,11 +108,7 @@ module SamlIdp
     end
 
     def issuer_uri
-      # (SamlIdp.config.base_saml_location.present? && SamlIdp.config.base_saml_location) ||
-      #   (defined?(request) && request.url.to_s.split("?").first) ||
-      #   "http://example.com"
-        (defined?(request) && request.url.to_s.split("?").first) ||
-        "http://example.com"
+      (defined?(request) && request.url.to_s.split("?").first) || "http://example.com"
     end
 
     def valid_saml_request?
