@@ -3,7 +3,7 @@ module SamlIdp
   class Configurator
     attr_accessor :x509_certificate, :secret_key, :password, :algorithm, :organization_name, :organization_url, :base_saml_location, :entity_id, :reference_id_generator, :attribute_service_location, :single_service_post_location, :single_logout_service_post_location, :single_logout_service_redirect_location, :attributes, :service_provider, :assertion_consumer_service_hosts, :session_expiry
 
-    def initialize(service_provider_config)
+    def initialize(service_provider_config = nil)
       if service_provider_config.present?
         service_providers = generate_service_provider_config(service_provider_config)
         self.x509_certificate = service_provider_config.certificate.x509
@@ -34,10 +34,10 @@ module SamlIdp
       end
     end
 
-    def generate_service_provider_config(service_provider)
-      { service_provider.uuid.to_s => {
-        "response_hosts" => [service_provider.callback_url],
-        "metadata_url"   => service_provider.callback_url
+    def generate_service_provider_config(service_provider_config)
+      { service_provider_config.uuid.to_s => {
+        "response_hosts" => [service_provider_config.callback_url],
+        "metadata_url"   => service_provider_config.callback_url
       } }
     end
 

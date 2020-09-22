@@ -37,7 +37,7 @@ module SamlIdp
     private :generated_reference_id
 
     def reference_id_generator
-      SamlIdp.config.reference_id_generator
+      @config.reference_id_generator
     end
     private :reference_id_generator
 
@@ -65,12 +65,12 @@ module SamlIdp
     private :sign?
 
     def signature
-      SignatureBuilder.new(signed_info_builder).raw
+      SignatureBuilder.new(signed_info_builder, @config).raw
     end
     private :signature
 
     def signed_info_builder
-      SignedInfoBuilder.new(get_reference_id, get_digest, get_algorithm)
+      SignedInfoBuilder.new(get_reference_id, get_digest, get_algorithm, @config)
     end
     private :signed_info_builder
 

@@ -54,7 +54,7 @@ module SamlIdp
       Saml::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
     end
 
-    def encode_authn_response(principal, opts = {})
+    def encode_authn_response(principal, opts = {}, service_provider_config = nil)
       response_id = get_saml_response_id
       reference_id = opts[:reference_id] || get_saml_reference_id
       audience_uri = opts[:audience_uri] || saml_request.issuer || saml_acs_url[/^(.*?\/\/.*?\/)/, 1]
@@ -77,7 +77,8 @@ module SamlIdp
         my_authn_context_classref,
         expiry,
         encryption_opts,
-        session_expiry
+        session_expiry,
+        service_provider_config
       ).build
     end
 
@@ -91,9 +92,9 @@ module SamlIdp
       ).signed
     end
 
-    def encode_response(principal, opts = {})
+    def encode_response(principal, opts = {}, service_provider_config = nil)
       if saml_request.authn_request?
-        encode_authn_response(principal, opts)
+        encode_authn_response(principal, opts, service_provider_config)
       elsif saml_request.logout_request?
         encode_logout_response(principal, opts)
       else
@@ -102,7 +103,9 @@ module SamlIdp
     end
 
     def issuer_uri
-      (SamlIdp.config.base_saml_location.present? && SamlIdp.config.base_saml_location) ||
+      # (SamlIdp.config.base_saml_location.present? && SamlIdp.config.base_saml_location) ||
+      #   (defined?(request) && request.url.to_s.split("?").first) ||
+      #   "http://example.com"
         (defined?(request) && request.url.to_s.split("?").first) ||
         "http://example.com"
     end

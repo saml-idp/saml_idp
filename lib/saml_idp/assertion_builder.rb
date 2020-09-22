@@ -17,9 +17,11 @@ module SamlIdp
     attr_accessor :encryption_opts
     attr_accessor :session_expiry
 
-    delegate :config, to: :SamlIdp
+    # delegate :config, to: :SamlIdp
 
-    def initialize(reference_id, issuer_uri, principal, audience_uri, saml_request_id, saml_acs_url, raw_algorithm, authn_context_classref, expiry=60*60, encryption_opts=nil, session_expiry=nil)
+    def initialize(reference_id, issuer_uri, principal, audience_uri, saml_request_id, saml_acs_url, raw_algorithm, authn_context_classref, expiry=60*60, encryption_opts=nil, session_expiry=nil, service_provider_config=nil)
+      @service_provider_config = service_provider_config
+      @config ||= SamlIdp::Configurator.new(service_provider_config)
       self.reference_id = reference_id
       self.issuer_uri = issuer_uri
       self.principal = principal
@@ -30,7 +32,7 @@ module SamlIdp
       self.authn_context_classref = authn_context_classref
       self.expiry = expiry
       self.encryption_opts = encryption_opts
-      self.session_expiry = session_expiry.nil? ? config.session_expiry : session_expiry
+      self.session_expiry = session_expiry.nil? ? @config.session_expiry : session_expiry
     end
 
     def fresh
@@ -100,8 +102,8 @@ module SamlIdp
     def asserted_attributes
       if principal.respond_to?(:asserted_attributes)
         principal.send(:asserted_attributes)
-      elsif !config.attributes.nil? && !config.attributes.empty?
-        config.attributes
+      elsif !@config.attributes.nil? && !@config.attributes.empty?
+        @config.attributes
       end
     end
     private :asserted_attributes
@@ -139,7 +141,7 @@ module SamlIdp
     private :name_id_getter
 
     def name_id_format
-      @name_id_format ||= NameIdFormatter.new(config.name_id.formats).chosen
+      @name_id_format ||= NameIdFormatter.new(@config.name_id.formats).chosen
     end
     private :name_id_format
 

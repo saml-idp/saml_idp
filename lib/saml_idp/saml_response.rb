@@ -29,7 +29,8 @@ module SamlIdp
           authn_context_classref,
           expiry=60*60,
           encryption_opts=nil,
-          session_expiry=0
+          session_expiry=0,
+          service_provider_config
           )
       self.reference_id = reference_id
       self.response_id = response_id
@@ -45,6 +46,7 @@ module SamlIdp
       self.expiry = expiry
       self.encryption_opts = encryption_opts
       self.session_expiry = session_expiry
+      @service_provider_config = service_provider_config
     end
 
     def build
@@ -76,7 +78,8 @@ module SamlIdp
         authn_context_classref,
         expiry,
         encryption_opts,
-        session_expiry
+        session_expiry,
+        @service_provider_config
     end
     private :assertion_builder
   end

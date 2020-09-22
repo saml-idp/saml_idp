@@ -17,7 +17,7 @@ module SamlIdp
       else
         inflated = ""
       end
-      new(inflated,  service_provider_config)
+      new(inflated, service_provider_config)
     end
 
     attr_accessor :raw_xml, :service_provider_config
