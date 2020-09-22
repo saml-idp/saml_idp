@@ -28,7 +28,7 @@ module SamlIdp
     def initialize(raw_xml = "", service_provider_config = nil)
       self.raw_xml = raw_xml
       self.service_provider_config = service_provider_config
-      @config ||= SamlIdp::Configurator.new(service_provider_config)
+      @saml_idp_config ||= SamlIdp::Configurator.new(service_provider_config)
     end
 
     def logout_request?
@@ -187,7 +187,7 @@ module SamlIdp
     private :signature_namespace
 
     def service_provider_finder
-      @config.service_provider.finder
+      @saml_idp_config.service_provider.finder
     end
     private :service_provider_finder
   end

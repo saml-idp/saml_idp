@@ -68,12 +68,12 @@ module SamlIdp
     private :get_current_or_build
 
     def metadata_getter
-      @config.service_provider.persisted_metadata_getter
+      @saml_idp_config.service_provider.persisted_metadata_getter
     end
     private :metadata_getter
 
     def metadata_persister
-      @config.service_provider.metadata_persister
+      @saml_idp_config.service_provider.metadata_persister
     end
     private :metadata_persister
 

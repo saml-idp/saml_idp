@@ -1,7 +1,7 @@
 module SamlIdp
   module Algorithmable
     def algorithm
-      algorithm_check = raw_algorithm || @config.algorithm
+      algorithm_check = raw_algorithm || @saml_idp_config.algorithm
       return algorithm_check if algorithm_check.respond_to?(:digest)
       begin
         OpenSSL::Digest.const_get(algorithm_check.to_s.upcase)

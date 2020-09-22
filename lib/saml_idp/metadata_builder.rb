@@ -10,7 +10,7 @@ module SamlIdp
 
     def initialize(configurator)
       self.configurator = configurator
-      @config = configurator
+      @saml_idp_config = configurator
     end
 
     def fresh
@@ -139,7 +139,7 @@ module SamlIdp
     private :raw_algorithm
 
     def x509_certificate
-      @config.x509_certificate
+      @saml_idp_config.x509_certificate
       .to_s
       .gsub(/-----BEGIN CERTIFICATE-----/,"")
       .gsub(/-----END CERTIFICATE-----/,"")

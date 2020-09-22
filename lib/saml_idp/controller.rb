@@ -47,8 +47,8 @@ module SamlIdp
     end
 
     def metadata(service_provider_config)
-      config ||= SamlIdp::Configurator.new(service_provider_config)
-      MetadataBuilder.new(config)
+      saml_idp_config = SamlIdp::Configurator.new(service_provider_config)
+      MetadataBuilder.new(saml_idp_config)
     end
 
     def decode_request(raw_saml_request, service_provider)
