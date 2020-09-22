@@ -1,0 +1,92 @@
+require:
+  - rubocop-rspec
+  - rubocop-performance
+  - rubocop-rails
+
+AllCops:
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  NewCops: enable
+  TargetRubyVersion: <%= RUBY_VERSION[/\d+\.\d+/] %>
+  Exclude:
+    - "bin/*"
+    - Capfile
+    - "config/**/*"
+    - config/boot.rb
+    - config/environment.rb
+    - config/initializers/version.rb
+    - db/schema.rb
+    - "node_modules/**/*"
+    - "bower_components/**/*"
+    - "tmp/**/*"
+    - "vendor/**/*"
+    - "frontend/**/*"
+    - Gemfile
+    - Guardfile
+    - Rakefile
+
+Style/Documentation:
+  Enabled: false
+
+Layout/HashAlignment:
+  EnforcedColonStyle:
+    - table
+    - key
+  EnforcedHashRocketStyle:
+    - table
+    - key
+
+Layout/SpaceAroundEqualsInParameterDefault:
+  EnforcedStyle: space
+
+Metrics/AbcSize:
+  Max: 20
+  Exclude:
+    - "spec/**/*"
+
+Metrics/BlockLength:
+  Exclude:
+    - "config/**/*"
+    - "spec/**/*"
+
+Metrics/ClassLength:
+  Exclude:
+    - "spec/**/*"
+
+Metrics/MethodLength:
+  Max: 18
+  Exclude:
+    - "db/migrate/*"
+    - "spec/**/*"
+
+Naming/MemoizedInstanceVariableName:
+  EnforcedStyleForLeadingUnderscores: optional
+
+Naming/VariableNumber:
+  Enabled: false
+
+Performance/Casecmp:
+  Enabled: false
+
+Rails/ApplicationRecord:
+  Exclude:
+    - "db/migrate/**"
+
+Rails/RakeEnvironment:
+  Enabled: false
+
+Rails/RefuteMethods:
+  Enabled: false
+
+Rails/Validation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# Single quotes being faster is hardly measurable and only affects parse time.
+# Enforcing double quotes reduces the times where you need to change them
+# when introducing an interpolation. Use single quotes only if their semantics
+# are needed.
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
