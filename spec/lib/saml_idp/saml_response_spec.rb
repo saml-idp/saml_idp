@@ -39,6 +39,8 @@ module SamlIdp
                                   expiry,
                                   encryption_opts,
                                   session_expiry,
+                                  nil,
+                                  nil,
                                   unsigned_response_opts,
                                   signed_assertion_opts
                                  )
@@ -56,6 +58,8 @@ module SamlIdp
                                   expiry,
                                   nil,
                                   session_expiry,
+                                  nil,
+                                  nil,
                                   signed_response_opts,
                                   signed_assertion_opts
                                  )

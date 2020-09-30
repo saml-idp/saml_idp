@@ -16,6 +16,8 @@ module SamlIdp
     attr_accessor :expiry
     attr_accessor :encryption_opts
     attr_accessor :session_expiry
+    attr_accessor :name_id_formats_opts
+    attr_accessor :asserted_attributes_opts
     attr_accessor :signed_message_opts
     attr_accessor :signed_assertion_opts
     attr_accessor :name_id_formats_opts
@@ -58,6 +60,8 @@ module SamlIdp
       self.name_id_formats_opts = name_id_formats_opts
       self.asserted_attributes_opts = asserted_attributes_opts
       self.signed_assertion_opts = signed_assertion_opts
+      self.name_id_formats_opts = name_id_formats_opts
+      self.asserted_attributes_opts = asserted_attributes_opts
     end
 
     def build

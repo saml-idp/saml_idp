@@ -58,6 +58,8 @@ module SamlIdp
       expiry = opts[:expiry] || 60*60
       session_expiry = opts[:session_expiry]
       encryption_opts = opts[:encryption] || nil
+      name_id_formats_opts = opts[:name_id_formats] || nil
+      asserted_attributes_opts = opts[:attributes] || nil
       signed_message_opts = opts[:signed_message] || false
       name_id_formats_opts = opts[:name_id_formats] || nil
       asserted_attributes_opts = opts[:attributes] || nil
@@ -76,6 +78,8 @@ module SamlIdp
         expiry,
         encryption_opts,
         session_expiry,
+        name_id_formats_opts,
+        asserted_attributes_opts,
         signed_message_opts,
         name_id_formats_opts,
         asserted_attributes_opts,
