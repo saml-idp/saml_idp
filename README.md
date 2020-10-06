@@ -2,8 +2,7 @@
 
 Forked from <https://github.com/lawrencepit/ruby-saml-idp>
 
-[![Build Status](https://travis-ci.org/saml-idp/saml_idp.svg)](https://travis-ci.org/saml-idp/saml_idp)
-[![Gem Version](https://badge.fury.io/rb/saml_idp.svg)](http://badge.fury.io/rb/saml_idp)
+# Ruby SAML Identity Provider (IdP)
 
 The ruby SAML Identity Provider library is for implementing the server side of SAML authentication. It allows
 your application to act as an IdP (Identity Provider) using the
@@ -87,7 +86,8 @@ CERT
   # config.single_service_post_location = "#{base}/saml/auth"
   # config.session_expiry = 86400                                 # Default: 0 which means never
   # config.signed_message = true                                  # Default: false which means unsigned SAML Response
-  # config.signed_assertion = false                               # Default: true which means signed  assertions on the SAML Response
+  # config.signed_assertion = false                               # Default: true which means signed assertions on the SAML Response
+  # config.compress = true                                        # Default: false which means the SAML Response is not being compressed
 
   # Principal (e.g. User) is passed in when you `encode_response`
   #
@@ -228,17 +228,3 @@ The second parameter is optional and default to your configuration `SamlIdp.conf
 
 To act as a Service Provider which generates SAML Requests and can react to SAML Responses use the
 excellent [ruby-saml](https://github.com/onelogin/ruby-saml) gem.
-
-## Author
-
-Jon Phenow, jon@jphenow.com, jphenow.com, @jphenow
-
-Lawrence Pit, lawrence.pit@gmail.com, lawrencepit.com, @lawrencepit
-
-## Copyright
-
-Copyright (c) 2012 Sport Ngin.
-Portions Copyright (c) 2010 OneLogin, LLC
-Portions Copyright (c) 2012 Lawrence Pit (http://lawrencepit.com)
-
-See LICENSE for details.

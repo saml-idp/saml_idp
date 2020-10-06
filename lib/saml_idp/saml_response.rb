@@ -20,8 +20,6 @@ module SamlIdp
     attr_accessor :asserted_attributes_opts
     attr_accessor :signed_message_opts
     attr_accessor :signed_assertion_opts
-    attr_accessor :name_id_formats_opts
-    attr_accessor :asserted_attributes_opts
 
     def initialize(
       reference_id,
@@ -62,6 +60,7 @@ module SamlIdp
       self.signed_assertion_opts = signed_assertion_opts
       self.name_id_formats_opts = name_id_formats_opts
       self.asserted_attributes_opts = asserted_attributes_opts
+      self.compression_opts = compression_opts
     end
 
     def build
@@ -81,9 +80,9 @@ module SamlIdp
 
     def encoded_message
       if signed_message_opts
-        response_builder.encoded(signed_message: true)
+        response_builder.encoded(signed_message: true, compress: compression_opts)
       else
-        response_builder.encoded(signed_message: false)
+        response_builder.encoded(signed_message: false, compress: compression_opts)
       end
     end
     private :encoded_message

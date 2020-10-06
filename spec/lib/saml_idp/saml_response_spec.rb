@@ -27,6 +27,7 @@ module SamlIdp
     let(:signed_response_opts) { true }
     let(:unsigned_response_opts) { false }
     let(:signed_assertion_opts) { true }
+    let(:compress_opts) { false }
     let(:subject_encrypted) { described_class.new(reference_id,
                                   response_id,
                                   issuer_uri,
@@ -42,7 +43,8 @@ module SamlIdp
                                   nil,
                                   nil,
                                   unsigned_response_opts,
-                                  signed_assertion_opts
+                                  signed_assertion_opts,
+                                  compress_opts
                                  )
     }
 
@@ -61,7 +63,8 @@ module SamlIdp
                                   nil,
                                   nil,
                                   signed_response_opts,
-                                  signed_assertion_opts
+                                  signed_assertion_opts,
+                                  compress_opts
                                  )
     }
 
@@ -155,6 +158,17 @@ module SamlIdp
               "ds" => "http://www.w3.org/2000/09/xmldsig#"
             }
           )).to_not be_present
+        end
+      end
+
+      context "when compress opts is true" do
+        let(:compress_opts) { true }
+        it "will build a compressed valid response" do
+          expect { subject.build }.not_to raise_error
+          compressed_signed_encoded_xml = subject.build
+          saml_resp = OneLogin::RubySaml::Response.new(compressed_signed_encoded_xml, settings: resp_settings)
+          expect(saml_resp.send(:validate_signature)).to eq(true)
+          expect(saml_resp.is_valid?).to eq(true)
         end
       end
     end
