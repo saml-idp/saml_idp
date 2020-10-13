@@ -72,7 +72,7 @@ end
 
 ## Configuration
 
-#### Singed assertions and Signed Response
+#### Signed assertions and Signed Response
 
 By default SAML Assertion will be signed with an algorithm which defined to `config.algorithm`. Because SAML assertions contain secure information used for authentication such as NameID.
 
