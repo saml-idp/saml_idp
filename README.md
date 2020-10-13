@@ -95,7 +95,7 @@ CERT
   # config.organization_name = "Your Organization"
   # config.organization_url = "http://example.com"
   # config.base_saml_location = "#{base}/saml"
-  # config.reference_id_generator                                 # Default: -> { UUID.generate }
+  # config.reference_id_generator                                 # Default: -> { SecureRandom.uuid }
   # config.single_logout_service_post_location = "#{base}/saml/logout"
   # config.single_logout_service_redirect_location = "#{base}/saml/logout"
   # config.attribute_service_location = "#{base}/saml/attributes"
