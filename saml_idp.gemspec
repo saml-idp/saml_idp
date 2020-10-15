@@ -51,12 +51,12 @@ section of the README.
   s.add_development_dependency('rake')
   s.add_development_dependency('simplecov')
   s.add_development_dependency('rspec', '>= 3.7.0')
-  s.add_development_dependency('ruby-saml', '>= 1.5')
+  s.add_development_dependency('ruby-saml', '>= 1.7.2')
   s.add_development_dependency('rails', '>= 3.2')
   s.add_development_dependency('activeresource', '>= 3.2')
   s.add_development_dependency('capybara', '>= 2.16')
   s.add_development_dependency('timecop', '>= 0.8')
   s.add_development_dependency('xmlenc', '>= 0.6.4')
   s.add_development_dependency('appraisal')
+  s.add_development_dependency('byebug')
 end
-
