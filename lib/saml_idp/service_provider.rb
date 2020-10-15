@@ -22,16 +22,11 @@ module SamlIdp
     end
 
     def valid_signature?(doc, require_signature = false)
-      if require_signature || should_validate_signature?
+      if require_signature || attributes[:validate_signature]
         doc.valid_signature?(fingerprint)
       else
         true
       end
-    end
-
-    def should_validate_signature?
-      attributes[:validate_signature] ||
-        current_metadata.respond_to?(:sign_assertions?) && current_metadata.sign_assertions?
     end
 
     def refresh_metadata

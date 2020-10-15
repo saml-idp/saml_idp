@@ -34,6 +34,19 @@ module SamlIdp
     end
     hashable :sign_assertions
 
+    def sign_authn_request
+      doc = xpath(
+        "//md:SPSSODescriptor",
+        ds: signature_namespace,
+        md: metadata_namespace
+      ).first
+      if (doc && !doc['AuthnRequestsSigned'].nil?)
+        return doc['AuthnRequestsSigned'].strip.downcase == 'true'
+      end
+      return false
+    end
+    hashable :sign_authn_request
+
     def display_name
       role_descriptor_document.present? ? role_descriptor_document["ServiceDisplayName"] : ""
     end

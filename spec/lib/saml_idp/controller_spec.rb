@@ -21,6 +21,30 @@ describe SamlIdp::Controller do
     expect(saml_acs_url).to eq(requested_saml_acs_url)
   end
 
+  context "When SP metadata required to validate auth request signature" do
+    before do
+      idp_configure("https://foo.example.com/saml/consume", true)
+      params[:SAMLRequest] = make_saml_request("https://foo.example.com/saml/consume", true)
+    end
+
+    it 'SP metadata sign_authn_request attribute should be true' do
+      # Signed auth request will be true in the metadata
+      expect(SamlIdp.config.service_provider.persisted_metadata_getter.call(nil,nil)[:sign_authn_request]).to eq(true)
+    end
+
+    it 'should call xml signature validation method' do
+      signed_doc = SamlIdp::XMLSecurity::SignedDocument.new(params[:SAMLRequest])
+      allow(signed_doc).to receive(:validate).and_return(true)
+      allow(SamlIdp::XMLSecurity::SignedDocument).to receive(:new).and_return(signed_doc)
+      validate_saml_request
+      expect(signed_doc).to have_received(:validate).once
+    end
+
+    it 'should successfully validate signature' do
+      expect(validate_saml_request).to eq(true)
+    end
+  end
+
   context "SAML Responses" do
     let(:principal) { double email_address: "foo@example.com" }
     let (:encryption_opts) do
