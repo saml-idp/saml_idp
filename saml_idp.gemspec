@@ -44,7 +44,6 @@ section of the README.
   INST
 
   s.add_dependency('activesupport', '>= 3.2')
-  s.add_dependency('uuid', '>= 2.3')
   s.add_dependency('builder', '>= 3.0')
   s.add_dependency('nokogiri', '>= 1.6.2')
 
