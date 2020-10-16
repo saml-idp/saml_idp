@@ -8,9 +8,9 @@ module SamlIdp
     protect_from_forgery
 
     if Rails::VERSION::MAJOR >= 4
-      before_action :validate_saml_request, only: [:new, :create]
+      before_action :validate_saml_request, only: [:new, :create, :logout]
     else
-      before_filter :validate_saml_request, only: [:new, :create]
+      before_filter :validate_saml_request, only: [:new, :create, :logout]
     end
 
     def new
