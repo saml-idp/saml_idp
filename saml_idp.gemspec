@@ -26,6 +26,10 @@ Gem::Specification.new do |s|
     'documentation_uri' => "http://rdoc.info/gems/saml_idp/#{SamlIdp::VERSION}"
   }
 
+  DEPRECATED_RAILS = if defined?(Rails) && Rails.version.split('.').map(&:to_i)[0..1].join.to_i < 52
+    "You are running a deprecated version of Rails, saml_idp might remove support for older rails in upcoming release."
+  end
+
   s.post_install_message = <<-INST
 If you're just recently updating saml_idp - please be aware we've changed the default
 certificate. See the PR and a description of why we've done this here:
@@ -36,8 +40,6 @@ If you just need to see the certificate `bundle open saml_idp` and go to
 
 Similarly, please see the README about certificates - you should avoid using the
 defaults in a Production environment. Post any issues you to github.
-
-** New in Version 0.3.0 **
 
 Encrypted Assertions require the xmlenc gem. See the example in the Controller
 section of the README.
