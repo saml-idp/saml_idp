@@ -24,6 +24,8 @@ module SamlIdp
         key_transport: 'rsa-oaep-mgf1p',
       }
     end
+    let(:signed_response_opts) { true }
+    let(:unsigned_response_opts) { false }
     let(:subject_encrypted) { described_class.new(reference_id,
                                   response_id,
                                   issuer_uri,
@@ -35,7 +37,8 @@ module SamlIdp
                                   authn_context_classref,
                                   expiry,
                                   encryption_opts,
-                                  session_expiry
+                                  session_expiry,
+                                  unsigned_response_opts
                                  )
     }
 
@@ -50,7 +53,8 @@ module SamlIdp
                                   authn_context_classref,
                                   expiry,
                                   nil,
-                                  session_expiry
+                                  session_expiry,
+                                  signed_response_opts
                                  )
     }
 
@@ -74,6 +78,25 @@ module SamlIdp
       resp_settings.issuer = audience_uri
       saml_resp = OneLogin::RubySaml::Response.new(encoded_xml, settings: resp_settings)
       saml_resp.soft = false
+      expect(saml_resp.is_valid?).to eq(true)
+    end
+
+    it "will build signed valid response" do
+      expect { subject.build }.not_to raise_error
+      signed_encoded_xml = subject.build
+      resp_settings = saml_settings(saml_acs_url)
+      resp_settings.private_key = Default::SECRET_KEY
+      resp_settings.issuer = audience_uri
+      saml_resp = OneLogin::RubySaml::Response.new(signed_encoded_xml, settings: resp_settings)
+      expect(
+        Nokogiri::XML(saml_resp.response).at_xpath(
+        "//p:Response//ds:Signature",
+        {
+          "p" => "urn:oasis:names:tc:SAML:2.0:protocol",
+          "ds" => "http://www.w3.org/2000/09/xmldsig#"
+        }
+      )).to be_present
+      expect(saml_resp.send(:validate_signature)).to eq(true)
       expect(saml_resp.is_valid?).to eq(true)
     end
 

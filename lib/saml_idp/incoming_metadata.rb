@@ -16,6 +16,11 @@ module SamlIdp
       @document ||= Saml::XML::Document.parse raw
     end
 
+    def entity_id
+      xpath('//md:EntityDescriptor/@entityID', md: metadata_namespace).first.try(:content).to_s
+    end
+    hashable :entity_id
+
     def sign_assertions
       doc = xpath(
         "//md:SPSSODescriptor",
@@ -28,6 +33,19 @@ module SamlIdp
       return false
     end
     hashable :sign_assertions
+
+    def sign_authn_request
+      doc = xpath(
+        "//md:SPSSODescriptor",
+        ds: signature_namespace,
+        md: metadata_namespace
+      ).first
+      if (doc && !doc['AuthnRequestsSigned'].nil?)
+        return doc['AuthnRequestsSigned'].strip.downcase == 'true'
+      end
+      return false
+    end
+    hashable :sign_authn_request
 
     def display_name
       role_descriptor_document.present? ? role_descriptor_document["ServiceDisplayName"] : ""
