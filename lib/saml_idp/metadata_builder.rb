@@ -24,13 +24,15 @@ module SamlIdp
 
             entity.IDPSSODescriptor protocolSupportEnumeration: protocol_enumeration do |descriptor|
               build_key_descriptor descriptor
-              descriptor.SingleLogoutService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
-                Location: single_logout_service_post_location
-              descriptor.SingleLogoutService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-                Location: single_logout_service_redirect_location
+              build_endpoint descriptor, [
+                { tag: 'SingleLogoutService', url: single_logout_service_post_location, bind: 'HTTP-POST' }, 
+                { tag: 'SingleLogoutService', url: single_logout_service_redirect_location, bind: 'HTTP-Redirect'}
+              ]
               build_name_id_formats descriptor
-              descriptor.SingleSignOnService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-                Location: single_service_post_location
+              build_endpoint descriptor, [
+                { tag: 'SingleSignOnService', url: single_service_post_location, bind: 'HTTP-POST' }, 
+                { tag: 'SingleSignOnService', url: single_service_redirect_location, bind: 'HTTP-Redirect'}
+              ]
               build_attribute descriptor
             end
 
@@ -38,8 +40,9 @@ module SamlIdp
               build_key_descriptor authority_descriptor
               build_organization authority_descriptor
               build_contact authority_descriptor
-              authority_descriptor.AttributeService Binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-                Location: attribute_service_location
+              build_endpoint authority_descriptor, [
+                { tag: 'AttributeService', url: attribute_service_location, bind: 'HTTP-Redirect' }
+              ]
               build_name_id_formats authority_descriptor
               build_attribute authority_descriptor
             end
@@ -68,6 +71,17 @@ module SamlIdp
       end
     end
     private :build_name_id_formats
+
+    def build_endpoint(el, end_points)
+      end_points.each do |ep|
+        next unless ep[:url].present?
+
+        el.tag! ep[:tag],
+          Binding: "urn:oasis:names:tc:SAML:2.0:bindings:#{ep[:bind]}",
+          Location: ep[:url]
+      end
+    end
+    private :build_endpoint
 
     def build_attribute(el)
       attributes.each do |attribute|
@@ -151,6 +165,7 @@ module SamlIdp
       organization_url
       attribute_service_location
       single_service_post_location
+      single_service_redirect_location
       single_logout_service_post_location
       single_logout_service_redirect_location
       technical_contact

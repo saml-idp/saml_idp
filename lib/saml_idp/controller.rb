@@ -2,7 +2,7 @@
 require 'openssl'
 require 'base64'
 require 'time'
-require 'uuid'
+require 'securerandom'
 require 'saml_idp/request'
 require 'saml_idp/logout_response_builder'
 module SamlIdp
@@ -64,6 +64,7 @@ module SamlIdp
       expiry = opts[:expiry] || 60*60
       session_expiry = opts[:session_expiry]
       encryption_opts = opts[:encryption] || nil
+      signed_message_opts = opts[:signed_message] || false
 
       SamlResponse.new(
         reference_id,
@@ -77,7 +78,8 @@ module SamlIdp
         my_authn_context_classref,
         expiry,
         encryption_opts,
-        session_expiry
+        session_expiry,
+        signed_message_opts
       ).build
     end
 
@@ -124,11 +126,11 @@ module SamlIdp
     end
 
     def get_saml_response_id
-      UUID.generate
+      SecureRandom.uuid
     end
 
     def get_saml_reference_id
-      UUID.generate
+      SecureRandom.uuid
     end
 
     def default_algorithm

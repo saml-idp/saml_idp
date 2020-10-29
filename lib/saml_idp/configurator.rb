@@ -1,5 +1,7 @@
 # encoding: utf-8
 require 'ostruct'
+require 'securerandom'
+
 module SamlIdp
   class Configurator
     attr_accessor :x509_certificate
@@ -13,6 +15,7 @@ module SamlIdp
     attr_accessor :reference_id_generator
     attr_accessor :attribute_service_location
     attr_accessor :single_service_post_location
+    attr_accessor :single_service_redirect_location
     attr_accessor :single_logout_service_post_location
     attr_accessor :single_logout_service_redirect_location
     attr_accessor :attributes
@@ -24,7 +27,7 @@ module SamlIdp
       self.x509_certificate = Default::X509_CERTIFICATE
       self.secret_key = Default::SECRET_KEY
       self.algorithm = :sha1
-      self.reference_id_generator = ->() { UUID.generate }
+      self.reference_id_generator = ->() { SecureRandom.uuid }
       self.service_provider = OpenStruct.new
       self.service_provider.finder = ->(_) { Default::SERVICE_PROVIDER }
       self.service_provider.metadata_persister = ->(id, settings) {  }
