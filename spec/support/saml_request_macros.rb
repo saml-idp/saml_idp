@@ -82,7 +82,7 @@ module SamlRequestMacros
           response_hosts: [URI(saml_acs_url).host],
           acs_url: saml_acs_url,
           cert: sp_x509_cert,
-          fingerprint: Digest::SHA256.hexdigest(OpenSSL::X509::Certificate.new(sp_x509_cert).to_der).scan(/../).join(':')
+          fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert)
         }
       }
     end

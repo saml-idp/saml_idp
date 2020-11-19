@@ -8,6 +8,7 @@ module SamlIdp
   require 'saml_idp/default'
   require 'saml_idp/metadata_builder'
   require 'saml_idp/version'
+  require 'saml_idp/fingerprint'
   require 'saml_idp/engine' if defined?(::Rails) && Rails::VERSION::MAJOR > 2
 
   def self.config
