@@ -245,6 +245,15 @@ The fingerprint to use, if you use the default X.509 certificate of this gem, is
 9E:65:2E:03:06:8D:80:F2:86:C7:6C:77:A1:D9:14:97:0A:4D:F4:4D
 ```
 
+# Fingerprint
+
+The gem provides an helper to generate a fingerprint for a X.509 certificate.
+The second parameter is optional and default to your configuration `SamlIdp.config.algorithm`
+
+```ruby
+Fingerprint.certificate_digest(x509_cert, :sha512)
+```
+
 # Service Providers
 
 To act as a Service Provider which generates SAML Requests and can react to SAML Responses use the
