@@ -8,9 +8,9 @@ module SamlIdp
     protect_from_forgery
 
     if Rails::VERSION::MAJOR >= 4
-      before_action :validate_saml_request, only: [:new, :create, :logout]
+      before_action :validate_saml_request, only: [:new, :create, :destroy]
     else
-      before_filter :validate_saml_request, only: [:new, :create, :logout]
+      before_filter :validate_saml_request, only: [:new, :create, :destroy]
     end
 
     def new
@@ -35,7 +35,7 @@ module SamlIdp
       render :template => "saml_idp/idp/new"
     end
 
-    def logout
+    def destroy
       idp_logout
       @saml_response = idp_make_saml_response(nil)
       render :template => "saml_idp/idp/saml_post", :layout => false

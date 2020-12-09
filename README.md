@@ -39,7 +39,7 @@ Add to your `routes.rb` file, for example:
 get '/saml/auth' => 'saml_idp#new'
 get '/saml/metadata' => 'saml_idp#show'
 post '/saml/auth' => 'saml_idp#create'
-match '/saml/logout' => 'saml_idp#logout', via: [:get, :post, :delete]
+match '/saml/logout' => 'saml_idp#destroy', via: [:get, :post, :delete]
 ```
 
 Create a controller that looks like this, customize to your own situation:
