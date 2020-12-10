@@ -18,7 +18,7 @@ SamlIdp.configure do |config|
 -----BEGIN CERTIFICATE-----
 CERT_CONTENT
 -----END CERTIFICATE-----
-  CERT
+CERT
 
   config.secret_key = <<-CERT
 -----BEGIN RSA PRIVATE KEY-----
