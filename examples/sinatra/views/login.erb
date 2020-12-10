@@ -1,33 +1,10 @@
-<div class="container">
- <div class="main-content idp-info">
-    <div class="row"> 
-      <img src="https://assets.ossoapp.io/icons/LogoWhite.svg" />
-      <h2>Osso IDP</h2>
-    </div>
-    <p>
-      You can use this app to test your Osso integration.
-    </p>
-    <p>
-      The login form accepts any information, and will return a SAML Response for 
-      the SAML Request you provide.
-    </p>
-  </div> 
-  <div class="main-content hosted-login">
-    <h2>Please log in</h2>
-    <% form_tag('/saml-login', { id: "hosted-login-form", class: "hosted-login-form"}) do %>
-      <%= label_tag :email %>
-      <%= text_field_tag( :email, :autocapitalize => "off", :autocorrect => "off", :autofocus => "autofocus", :spellcheck => "false", :size => 30, :class => "email_pwd txt" )%>
+<% form_tag('/saml-login') do %>
+  <%= label_tag :email %>
+  <%= text_field_tag( :email, :autocapitalize => "off", :autocorrect => "off", :autofocus => "autofocus", :spellcheck => "false", :size => 30, :class => "email_pwd txt" )%>
 
-      <%= label_tag :password %>
-      <%= password_field_tag :password, :autocapitalize => "off", :autocorrect => "off", :spellcheck => "false", :size => 30, :class => "email_pwd txt" %>
+  <%= label_tag :password %>
+  <%= password_field_tag :password, :autocapitalize => "off", :autocorrect => "off", :spellcheck => "false", :size => 30, :class => "email_pwd txt" %>
 
-      <%= hidden_field_tag("SAMLRequest", { value: params[:SAMLRequest] }) %>
+  <%= hidden_field_tag("SAMLRequest", { value: params[:SAMLRequest] }) %>
 
-    <% end %>
-
-    <div class="button-row">
-      <button onclick="window.history.go(-1)">Go back</button>
-      <input id="hosted-login-button" type="submit" value="Sign in" form="hosted-login-form"/>
-    </div>  
-  </div>   
-</div>  
+<% end %>
