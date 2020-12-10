@@ -17,12 +17,6 @@ class App < Sinatra::Base
     erb :saml_post
   end
 
-  get '/saml-login-authed' do
-    @saml_response = encode_response(fake_user)
-
-    erb :saml_post
-  end
-
   private
 
   def fake_user
