@@ -37,11 +37,7 @@ module SamlIdp
       decode_request(raw_saml_request)
       return true if valid_saml_request?
       if defined?(::Rails)
-        if Rails::VERSION::MAJOR >= 4
-          head :forbidden
-        else
-          render nothing: true, status: :forbidden
-        end
+        head :forbidden
       end
       false
     end
