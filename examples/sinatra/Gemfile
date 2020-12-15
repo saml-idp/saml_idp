@@ -5,3 +5,9 @@ gem 'saml_idp'
 gem 'sinatra'
 gem 'sinatra_more', require: 'sinatra_more/markup_plugin'
 gem 'xmlenc'
+
+group :test do
+  gem 'rack-test'
+  gem 'rspec', '~> 3.10'
+  gem 'pry'
+end

@@ -1,5 +1,7 @@
 require 'securerandom'
 require 'sinatra/base'
+require 'sinatra_more/markup_plugin'
+require 'saml_idp'
 
 class App < Sinatra::Base
   register SinatraMore::MarkupPlugin
