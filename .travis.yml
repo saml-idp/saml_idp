@@ -16,5 +16,6 @@ gemfile:
   - gemfiles/rails_dev.gemfile
 matrix:
   allow_failures:
+    - rvm: 3.0
     - rvm: ruby-head
     - gemfile: gemfiles/rails_dev.gemfile
