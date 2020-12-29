@@ -48,6 +48,7 @@ section of the README.
   s.add_dependency('nokogiri', '>= 1.6.2')
   s.add_dependency('rexml')
 
+  s.add_development_dependency 'bundler', '~> 2'
   s.add_development_dependency('rake')
   s.add_development_dependency('simplecov')
   s.add_development_dependency('rspec', '>= 3.7.0')
