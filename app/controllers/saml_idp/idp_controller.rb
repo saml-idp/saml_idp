@@ -4,14 +4,9 @@ module SamlIdp
   class IdpController < ActionController::Base
     include SamlIdp::Controller
 
-    unloadable unless Rails::VERSION::MAJOR >= 4
     protect_from_forgery
 
-    if Rails::VERSION::MAJOR >= 4
-      before_action :validate_saml_request, only: [:new, :create, :logout]
-    else
-      before_filter :validate_saml_request, only: [:new, :create, :logout]
-    end
+    before_action :validate_saml_request, only: [:new, :create, :logout]
 
     def new
       render template: "saml_idp/idp/new"
