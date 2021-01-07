@@ -42,7 +42,7 @@ class SamlIdpController < ApplicationController
     protected :idp_authenticate
 
     def idp_make_saml_response(person)
-      encode_response(user[:email])
+      encode_response(person[:email])
     end
     protected :idp_make_saml_response
 end
