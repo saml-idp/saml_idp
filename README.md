@@ -1,6 +1,6 @@
 # Ruby SAML Identity Provider (IdP)
 
-Forked from https://github.com/lawrencepit/ruby-saml-idp
+Forked from <https://github.com/lawrencepit/ruby-saml-idp>
 
 [![Build Status](https://travis-ci.org/saml-idp/saml_idp.svg)](https://travis-ci.org/saml-idp/saml_idp)
 [![Gem Version](https://badge.fury.io/rb/saml_idp.svg)](http://badge.fury.io/rb/saml_idp)
@@ -13,13 +13,15 @@ protocol. It provides a means for managing authentication requests and confirmat
 This was originally setup by @lawrencepit to test SAML Clients. I took it closer to a real
 SAML IDP implementation.
 
-# Installation and Usage
+## Installation and Usage
 
 Add this to your Gemfile:
 
+```ruby
     gem 'saml_idp'
+```
 
-## Not using rails?
+### Not using rails?
 
 Include `SamlIdp::Controller` and see the examples that use rails. It should be straightforward for you.
 
@@ -27,50 +29,16 @@ Basically you call `decode_request(params[:SAMLRequest])` on an incoming request
 `saml_acs_url` to determine the source for which you need to authenticate a user. How you authenticate
 a user is entirely up to you.
 
-Once a user has successfully authenticated on your system send the Service Provider a SAMLReponse by
+Once a user has successfully authenticated on your system send the Service Provider a SAMLResponse by
 posting to `saml_acs_url` the parameter `SAMLResponse` with the return value from a call to
 `encode_response(user_email)`.
 
-## Using rails?
+### Using rails?
 
-Add to your `routes.rb` file, for example:
+Check out our Wiki page for Rails integration
+[Rails Integration guide](https://github.com/saml-idp/saml_idp/wiki/Rails_Integration)
 
-```ruby
-get '/saml/auth' => 'saml_idp#new'
-get '/saml/metadata' => 'saml_idp#show'
-post '/saml/auth' => 'saml_idp#create'
-match '/saml/logout' => 'saml_idp#logout', via: [:get, :post, :delete]
-```
-
-Create a controller that looks like this, customize to your own situation:
-
-```ruby
-class SamlIdpController < SamlIdp::IdpController
-  def idp_authenticate(email, password) # not using params intentionally
-    user = User.by_email(email).first
-    user && user.valid_password?(password) ? user : nil
-  end
-  private :idp_authenticate
-
-  def idp_make_saml_response(found_user) # not using params intentionally
-    # NOTE encryption is optional
-    encode_response found_user, encryption: {
-      cert: saml_request.service_provider.cert,
-      block_encryption: 'aes256-cbc',
-      key_transport: 'rsa-oaep-mgf1p'
-    }
-  end
-  private :idp_make_saml_response
-
-  def idp_logout
-    user = User.by_email(saml_request.name_id)
-    user.logout
-  end
-  private :idp_logout
-end
-```
-
-## Configuration
+### Configuration
 
 #### Signed assertions and Signed Response
 
@@ -230,7 +198,7 @@ CERT
 end
 ```
 
-# Keys and Secrets
+## Keys and Secrets
 
 To generate the SAML Response it uses a default X.509 certificate and secret key... which isn't so secret.
 You can find them in `SamlIdp::Default`. The X.509 certificate is valid until year 2032.
@@ -241,31 +209,31 @@ and `SamlIdp.config.secret_key` properties.
 
 The fingerprint to use, if you use the default X.509 certificate of this gem, is:
 
-```
-9E:65:2E:03:06:8D:80:F2:86:C7:6C:77:A1:D9:14:97:0A:4D:F4:4D
+```bash
+  9E:65:2E:03:06:8D:80:F2:86:C7:6C:77:A1:D9:14:97:0A:4D:F4:4D
 ```
 
-# Fingerprint
+## Fingerprint
 
 The gem provides an helper to generate a fingerprint for a X.509 certificate.
 The second parameter is optional and default to your configuration `SamlIdp.config.algorithm`
 
 ```ruby
-Fingerprint.certificate_digest(x509_cert, :sha512)
+  Fingerprint.certificate_digest(x509_cert, :sha512)
 ```
 
-# Service Providers
+## Service Providers
 
 To act as a Service Provider which generates SAML Requests and can react to SAML Responses use the
 excellent [ruby-saml](https://github.com/onelogin/ruby-saml) gem.
 
-# Author
+## Author
 
 Jon Phenow, jon@jphenow.com, jphenow.com, @jphenow
 
 Lawrence Pit, lawrence.pit@gmail.com, lawrencepit.com, @lawrencepit
 
-# Copyright
+## Copyright
 
 Copyright (c) 2012 Sport Ngin.
 Portions Copyright (c) 2010 OneLogin, LLC
