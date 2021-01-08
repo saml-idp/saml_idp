@@ -7,7 +7,7 @@ jobs:
       fail-fast: false
       matrix:
         ruby: ['2.5', '2.6', '2.7', '3.0.0']
-        gemfile: [rails_5.2.gemfile, rails_6.0.gemfile, rails_6.1.gemfile]
+        gemfile: [rails_5.2.gemfile, rails_6.1.gemfile]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
