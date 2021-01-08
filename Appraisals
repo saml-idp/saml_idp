@@ -1,4 +1,3 @@
-# Why are we still supporting this?!?!
 appraise 'rails-5.2' do
   gem 'rails', '~> 5.2.0'
   gem 'activeresource', '~> 5.1.0'
