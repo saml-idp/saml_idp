@@ -15,5 +15,8 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
       - run: gem install bundler
+      - name: Configure bundler (alternative)
+        run: |
+          echo "BUNDLE_GEMFILE=gemfiles/${{ matrix.gemfile }}" >> $GITHUB_ENV
       - run: bundle install --gemfile=gemfiles/${{ matrix.gemfile }}
       - run: bundle exec rake
