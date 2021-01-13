@@ -1,11 +1,10 @@
-# Why are we still supporting this?!?!
 appraise 'rails-5.2' do
   gem 'rails', '~> 5.2.0'
   gem 'activeresource', '~> 5.1.0'
 end
 
-appraise 'rails-6.0' do
-  gem 'rails', '~> 6.0.0'
+appraise 'rails-6.1' do
+  gem 'rails', '~> 6.1.0'
   gem 'activeresource', '~> 5.1.0'
 end
 
