@@ -11,7 +11,30 @@ module SamlIdp
 
     it "includes logout element" do
       subject.configurator.single_logout_service_post_location = 'https://example.com/saml/logout'
+      subject.configurator.single_logout_service_redirect_location = 'https://example.com/saml/logout'
       expect(subject.fresh).to match('<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://example.com/saml/logout"/>')
+      expect(subject.fresh).to match('<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://example.com/saml/logout"/>')
+    end
+
+    it 'will not includes empty logout endpoint' do
+      subject.configurator.single_logout_service_post_location = ''
+      subject.configurator.single_logout_service_redirect_location = nil
+      expect(subject.fresh).not_to match('<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"')
+      expect(subject.fresh).not_to match('<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"')
+    end
+
+    it 'will includes sso element' do
+      subject.configurator.single_service_post_location = 'https://example.com/saml/sso'
+      subject.configurator.single_service_redirect_location = 'https://example.com/saml/sso'
+      expect(subject.fresh).to match('<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://example.com/saml/sso"/>')
+      expect(subject.fresh).to match('<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://example.com/saml/sso"/>')
+    end
+
+    it 'will not includes empty sso element' do
+      subject.configurator.single_service_post_location = ''
+      subject.configurator.single_service_redirect_location = nil
+      expect(subject.fresh).not_to match('<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"')
+      expect(subject.fresh).not_to match('<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"')
     end
 
     context "technical contact" do

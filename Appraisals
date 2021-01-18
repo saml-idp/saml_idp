@@ -1,32 +1,11 @@
-# Why are we still supporting this?!?!
-appraise 'rails-3.2' do
-  gem 'rails', '>= 3.2', '< 3.3'
-  gem 'activeresource', '>= 3.2', '< 3.3'
+appraise 'rails-5.2' do
+  gem 'rails', '~> 5.2.0'
+  gem 'activeresource', '~> 5.1.0'
 end
 
-appraise 'rails-4.0' do
-  gem 'rails', '>= 4.0', '< 4.1'
-  gem 'activeresource', '>= 4.0', '< 4.1'
-end
-
-appraise 'rails-4.1' do
-  gem 'rails', '>= 4.1', '< 4.2'
-  gem 'activeresource', '>= 4.1', '< 4.2'
-end
-
-appraise 'rails-4.2' do
-  gem 'rails', '>= 4.2', '< 4.3'
-  gem 'activeresource', '>= 4.1', '< 4.3' # No 4.2.x releases
-end
-
-appraise 'rails-5.0' do
-  gem 'rails', '>= 5.0', '< 5.1'
-  gem 'activeresource', '>= 5.0', '< 5.1'
-end
-
-appraise 'rails-5.1' do
-  gem 'rails', '>= 5.1', '< 5.2'
-  gem 'activeresource', '>= 5.0', '< 5.2' # No 5.1 releases (yet)
+appraise 'rails-6.1' do
+  gem 'rails', '~> 6.1.0'
+  gem 'activeresource', '~> 5.1.0'
 end
 
 appraise 'rails-dev' do

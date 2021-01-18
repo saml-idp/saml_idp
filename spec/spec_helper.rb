@@ -43,7 +43,28 @@ RSpec.configure do |config|
       }
     end
   end
+
+  # To reset to default config
+  config.after do
+    SamlIdp.instance_variable_set(:@config, nil)
+    SamlIdp.configure do |c|
+      c.attributes = {
+        emailAddress: {
+          name: "email-address",
+          getter: ->(p) { "foo@example.com" }
+        }
+      }
+
+      c.name_id.formats = {
+        "1.1" => {
+          email_address: ->(p) { "foo@example.com" }
+        }
+      }
+    end
+  end
 end
 
+SamlIdp::Default::SERVICE_PROVIDER[:metadata_url] = 'https://example.com/meta'
+SamlIdp::Default::SERVICE_PROVIDER[:response_hosts] = ['foo.example.com']
 SamlIdp::Default::SERVICE_PROVIDER[:assertion_consumer_logout_service_url] = 'https://foo.example.com/saml/logout'
-Capybara.default_host = "https://app.example.com"
+Capybara.default_host = "https://foo.example.com"

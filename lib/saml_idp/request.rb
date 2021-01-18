@@ -105,13 +105,24 @@ module SamlIdp
         return false
       end
 
+      if !service_provider.acceptable_response_hosts.include?(response_host)
+        log "#{service_provider.acceptable_response_hosts} compare to #{response_host}"
+        log "No acceptable AssertionConsumerServiceURL, either configure them via config.service_provider.response_hosts or match to your metadata_url host"
+        return false
+      end
+
       return true
     end
 
     def valid_signature?
-      # Force signatures for logout requests because there is no other
-      # protection against a cross-site DoS.
-      service_provider.valid_signature?(document, logout_request?)
+      # Force signatures for logout requests because there is no other protection against a cross-site DoS.
+      # Validate signature when metadata specify AuthnRequest should be signed
+      metadata = service_provider.current_metadata
+      if logout_request? || authn_request? && metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
+        document.valid_signature?(service_provider.fingerprint)
+      else
+        true
+      end
     end
 
     def service_provider?
@@ -135,6 +146,14 @@ module SamlIdp
     def session_index
       @_session_index ||= xpath("//samlp:SessionIndex", samlp: samlp).first.try(:content)
     end
+
+    def response_host
+      uri = URI(response_url)
+      if uri
+        uri.host
+      end
+    end
+    private :response_host
 
     def document
       @_document ||= Saml::XML::Document.parse(raw_xml)

@@ -13,6 +13,7 @@ module SamlIdp
     attribute :validate_signature
     attribute :acs_url
     attribute :assertion_consumer_logout_service_url
+    attribute :response_hosts
 
     delegate :config, to: :SamlIdp
 
@@ -21,16 +22,11 @@ module SamlIdp
     end
 
     def valid_signature?(doc, require_signature = false)
-      if require_signature || should_validate_signature?
+      if require_signature || attributes[:validate_signature]
         doc.valid_signature?(fingerprint)
       else
         true
       end
-    end
-
-    def should_validate_signature?
-      attributes[:validate_signature] ||
-        current_metadata.respond_to?(:sign_assertions?) && current_metadata.sign_assertions?
     end
 
     def refresh_metadata
@@ -44,6 +40,19 @@ module SamlIdp
 
     def current_metadata
       @current_metadata ||= get_current_or_build
+    end
+
+    def acceptable_response_hosts
+      hosts = Array(self.response_hosts)
+      hosts.push(metadata_url_host) if metadata_url_host
+
+      hosts
+    end
+
+    def metadata_url_host
+      if metadata_url.present?
+        URI(metadata_url).host
+      end
     end
 
     def get_current_or_build

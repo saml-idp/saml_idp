@@ -2,7 +2,7 @@
 require 'openssl'
 require 'base64'
 require 'time'
-require 'uuid'
+require 'securerandom'
 require 'saml_idp/request'
 require 'saml_idp/logout_response_builder'
 module SamlIdp
@@ -36,10 +36,8 @@ module SamlIdp
     def validate_saml_request(raw_saml_request = params[:SAMLRequest])
       decode_request(raw_saml_request)
       return true if valid_saml_request?
-      if Rails::VERSION::MAJOR >= 4
+      if defined?(::Rails)
         head :forbidden
-      else
-        render nothing: true, status: :forbidden
       end
       false
     end
@@ -62,6 +60,7 @@ module SamlIdp
       expiry = opts[:expiry] || 60*60
       session_expiry = opts[:session_expiry]
       encryption_opts = opts[:encryption] || nil
+      signed_message_opts = opts[:signed_message] || false
       name_id_formats_opts = opts[:name_id_formats] || nil
       asserted_attributes_opts = opts[:attributes] || nil
 
@@ -78,6 +77,7 @@ module SamlIdp
         expiry,
         encryption_opts,
         session_expiry,
+        signed_message_opts,
         name_id_formats_opts,
         asserted_attributes_opts
       ).build
@@ -126,11 +126,11 @@ module SamlIdp
     end
 
     def get_saml_response_id
-      UUID.generate
+      SecureRandom.uuid
     end
 
     def get_saml_reference_id
-      UUID.generate
+      SecureRandom.uuid
     end
 
     def default_algorithm
