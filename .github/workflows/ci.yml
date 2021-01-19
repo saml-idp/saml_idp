@@ -1,5 +1,9 @@
 name: ci
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 jobs:
   build:
     if: "!contains(github.event.commits[0].message, '[ci skip]')"
