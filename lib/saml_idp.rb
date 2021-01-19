@@ -12,7 +12,7 @@ module SamlIdp
   require 'saml_idp/engine' if defined?(::Rails)
 
   def self.config
-    @config ||= SamlIdp::Configurator.ne
+    @config ||= SamlIdp::Configurator.new
   end
 
   def self.configure
