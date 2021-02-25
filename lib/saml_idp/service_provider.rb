@@ -68,12 +68,7 @@ module SamlIdp
     end
     private :metadata_getter
 
-    def metadata_persister
-      config.service_provider.metadata_persister
-    end
-    private :metadata_persister
-
-    def refresh_from_remote
+    def fresh_incoming_metadata
       IncomingMetadata.new request_metadata
     end
     private :refresh_from_remote

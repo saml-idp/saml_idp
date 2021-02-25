@@ -1,114 +1,128 @@
 require 'saml_idp/xml_security'
 require 'saml_idp/service_provider'
+require 'saml_idp/authn_request'
+require 'saml_idp/single_logout_request'
 module SamlIdp
   class Request
-    def self.from_deflated_request(raw)
-      if raw
-        decoded = Base64.decode64(raw)
-        zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
-        begin
-          inflated = zstream.inflate(decoded).tap do
-            zstream.finish
-            zstream.close
-          end
-        rescue Zlib::BufError, Zlib::DataError # not compressed
-          inflated = decoded
-        end
-      else
-        inflated = ""
-      end
-      new(inflated)
-    end
-
-    attr_accessor :raw_xml
+    attr_accessor :raw_xml, :service_provider
 
     delegate :config, to: :SamlIdp
     private :config
     delegate :xpath, to: :document
     private :xpath
 
-    def initialize(raw_xml = "")
-      self.raw_xml = raw_xml
+    def initialize(saml_request = "", service_provider)
+      self.raw_xml = from_deflated_request(saml_request)
+      self.service_provider = service_provider
     end
 
     def logout_request?
-      logout_request.nil? ? false : true
+      @logout_request_doc ||= xpath("//samlp:LogoutRequest", samlp: samlp).first
+      @logout_request_doc.nil? ? false : true
     end
 
     def authn_request?
-      authn_request.nil? ? false : true
+      @authn_request_doc ||= xpath("//samlp:AuthnRequest", samlp: samlp).first
+      @authn_request_doc.nil? ? false : true
+    end
+
+    def request
+      if authn_request?
+        @authn_request_doc
+      elsif logout_request?
+        @logout_request_doc
+      end
+    end
+
+    def requested_authn_context
+      if authn_request? && authn_request.authn_context_node
+        authn_request.authn_context_node.content
+      else
+        nil
+      end
     end
 
     def request_id
       request["ID"]
     end
 
-    def request
-      if authn_request?
-        authn_request
-      elsif logout_request?
-        logout_request
-      end
+    def version
+      request["Version"]
     end
 
-    def requested_authn_context
-      if authn_request? && authn_context_node
-        authn_context_node.content
-      else
-        nil
-      end
+    def issue_instant
+      request["IssueInstant"]
     end
 
-    def acs_url
-      service_provider.acs_url ||
-        authn_request["AssertionConsumerServiceURL"].to_s
+    def destination
+      request["Destination"]
     end
 
-    def logout_url
-      service_provider.single_logout_url
+    def issuer
+      @_issuer ||= xpath("//saml:Issuer", saml: assertion).first.try(:content)
+      @_issuer if @_issuer.present?
     end
 
     def response_url
       if authn_request?
-        acs_url
+        authn_request.acs_url
       elsif logout_request?
-        logout_url
+        true # SLO doesn't have specification override SLO url
       end
     end
 
-    def log(msg)
-      if defined?(::Rails) && Rails.logger
-        Rails.logger.info msg
-      else
-        puts msg
-      end
+    def errors
+      @errors ||= []
     end
 
     def valid?
-      unless service_provider?
-        log "Unable to find service provider for issuer #{issuer}"
+      # Unable to find service provider from request
+      unless service_provider_info.present?
+        errors.push(:no_sp_id)
         return false
       end
 
-      unless (authn_request? ^ logout_request?)
-        log "One and only one of authnrequest and logout request is required. authnrequest: #{authn_request?} logout_request: #{logout_request?} "
+      # ID must be used for SAML response
+      unless request_id.present?
+        errors.push(:no_request_id)
         return false
       end
 
+      unless version.present?
+        errors.push(:no_version)
+        return false
+      end
+
+      unless issue_instant.present?
+        errors.push(:no_issue_instant)
+        return false
+      end
+
+      # One and only one of authnrequest and logout request is required. authnrequest or logout_request
+      if !(authn_request? || logout_request?)
+        errors.push(:unknown_request)
+        return false
+      end
+
+      # Signature is invalid in SAML Request
       unless valid_signature?
-        log "Signature is invalid in #{raw_xml}"
+        errors.push(:invalid_signature)
         return false
       end
 
+      # Unable to find response url for #{issuer}: #{raw_xml}
       if response_url.nil?
-        log "Unable to find response url for #{issuer}: #{raw_xml}"
         return false
       end
 
-      if !service_provider.acceptable_response_hosts.include?(response_host)
-        log "#{service_provider.acceptable_response_hosts} compare to #{response_host}"
-        log "No acceptable AssertionConsumerServiceURL, either configure them via config.service_provider.response_hosts or match to your metadata_url host"
-        return false
+      # Authn Request specific validation
+      if authn_request? && !authn_request.valid?
+        errors.concat(authn_request.errors)
+      end
+
+      # SLO Request specific validation
+      if logout_request? && !logout_request.valid?
+        errors.concat(logout_request.errors)
       end
 
       return true
@@ -125,55 +139,25 @@ module SamlIdp
       end
     end
 
-    def service_provider?
-      service_provider && service_provider.valid?
+    def service_provider_info
+      issuer || 
+      authn_request? && authn_request.provider_name || 
+      logout_request? && logout_request.sp_name_qualifier ||
+      destination.present? && destination
     end
-
-    def service_provider
-      return unless issuer.present?
-      @_service_provider ||= ServiceProvider.new((service_provider_finder[issuer] || {}).merge(identifier: issuer))
-    end
-
-    def issuer
-      @_issuer ||= xpath("//saml:Issuer", saml: assertion).first.try(:content)
-      @_issuer if @_issuer.present?
-    end
-
-    def name_id
-      @_name_id ||= xpath("//saml:NameID", saml: assertion).first.try(:content)
-    end
-
-    def session_index
-      @_session_index ||= xpath("//samlp:SessionIndex", samlp: samlp).first.try(:content)
-    end
-
-    def response_host
-      uri = URI(response_url)
-      if uri
-        uri.host
-      end
-    end
-    private :response_host
 
     def document
       @_document ||= Saml::XML::Document.parse(raw_xml)
     end
     private :document
 
-    def authn_context_node
-      @_authn_context_node ||= xpath("//samlp:AuthnRequest/samlp:RequestedAuthnContext/saml:AuthnContextClassRef",
-        samlp: samlp,
-        saml: assertion).first
-    end
-    private :authn_context_node
-
     def authn_request
-      @_authn_request ||= xpath("//samlp:AuthnRequest", samlp: samlp).first
+      @_authn_request ||= AuthnRequest.new(raw_xml, sp_config)
     end
     private :authn_request
 
     def logout_request
-      @_logout_request ||= xpath("//samlp:LogoutRequest", samlp: samlp).first
+      @_logout_request ||= SingleLogoutRequest.new(raw_xml, sp_config)
     end
     private :logout_request
 
@@ -192,9 +176,23 @@ module SamlIdp
     end
     private :signature_namespace
 
-    def service_provider_finder
-      config.service_provider.finder
+    def from_deflated_request(raw)
+      if raw
+        decoded = Base64.decode64(raw)
+        zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+        begin
+          inflated = zstream.inflate(decoded).tap do
+            zstream.finish
+            zstream.close
+          end
+        rescue Zlib::BufError, Zlib::DataError # not compressed
+          inflated = decoded
+        end
+      else
+        inflated = ""
+      end
+      inflated
     end
-    private :service_provider_finder
+    private :from_deflated_request
   end
 end
