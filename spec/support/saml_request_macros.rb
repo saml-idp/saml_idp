@@ -28,7 +28,7 @@ module SamlRequestMacros
     settings.assertion_consumer_service_url = saml_acs_url
     settings.issuer = "http://example.com/issuer"
     settings.idp_sso_target_url = "http://idp.com/saml/idp"
-    settings.assertion_consumer_logout_service_url = 'https://foo.example.com/saml/logout'
+    settings.single_logout_url = 'https://foo.example.com/saml/logout'
     settings.idp_cert_fingerprint = SamlIdp::Default::FINGERPRINT
     settings.name_identifier_format = SamlIdp::Default::NAME_ID_FORMAT
     add_securty_options(settings) if enable_secure_options

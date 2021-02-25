@@ -12,7 +12,7 @@ module SamlIdp
     attribute :metadata_url
     attribute :validate_signature
     attribute :acs_url
-    attribute :assertion_consumer_logout_service_url
+    attribute :single_logout_url
     attribute :response_hosts
 
     delegate :config, to: :SamlIdp
@@ -30,7 +30,7 @@ module SamlIdp
     end
 
     def refresh_metadata
-      fresh = fresh_incoming_metadata
+      fresh = refresh_by_remote
       if valid_signature?(fresh.document)
         metadata_persister[identifier, fresh]
         @current_metadata = nil
@@ -73,10 +73,10 @@ module SamlIdp
     end
     private :metadata_persister
 
-    def fresh_incoming_metadata
+    def refresh_from_remote
       IncomingMetadata.new request_metadata
     end
-    private :fresh_incoming_metadata
+    private :refresh_from_remote
 
     def request_metadata
       metadata_url.present? ? Net::HTTP.get(URI.parse(metadata_url)) : ""

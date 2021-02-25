@@ -65,7 +65,7 @@ module SamlIdp
     end
 
     def logout_url
-      service_provider.assertion_consumer_logout_service_url
+      service_provider.single_logout_url
     end
 
     def response_url
