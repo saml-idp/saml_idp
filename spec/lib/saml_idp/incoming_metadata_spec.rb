@@ -56,5 +56,10 @@ module SamlIdp
       metadata = SamlIdp::IncomingMetadata.new(metadata_4)
       expect(metadata.sign_authn_request).to eq(false)
     end
+
+    it 'should convert xml to hash' do
+      metadata = SamlIdp::IncomingMetadata.new(metadata_4)
+      expect(metadata.to_h).to be_a(Hash)
+    end
   end
 end
