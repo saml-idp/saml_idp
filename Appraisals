@@ -9,6 +9,6 @@ appraise 'rails-6.1' do
 end
 
 appraise 'rails-dev' do
-  gem 'rails', :github => 'rails/rails', :branch => 'master'
+  gem 'rails', :github => 'rails/rails', :branch => 'main'
   gem 'activeresource', :github => 'rails/activeresource', :branch => 'master'
 end
