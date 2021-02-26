@@ -12,11 +12,7 @@ module SamlIdp
   require 'request_store'
 
   def self.config
-    if RequestStore.store[:request_config]
-      RequestStore.store[:request_config]
-    else
-      raise "Config must be set before processing the request"
-    end
+    request_config
   end
 
   def self.configure
@@ -25,6 +21,14 @@ module SamlIdp
 
   def self.metadata
     MetadataBuilder.new(config)
+  end
+
+  def self.request_config
+    if RequestStore.store[:request_config]
+      RequestStore.store[:request_config]
+    else
+      raise "Config must be set before processing the request"
+    end
   end
 
   def self.request_config=(config)
