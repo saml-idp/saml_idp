@@ -24,7 +24,7 @@ module SamlIdp
   end
 
   def self.metadata
-    @metadata ||= MetadataBuilder.new(config)
+    MetadataBuilder.new(config)
   end
 
   def self.request_config=(config)
