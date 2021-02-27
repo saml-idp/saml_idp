@@ -12,6 +12,7 @@ module SamlIdp
   require 'request_store'
 
   def self.config
+    raise "Config must be set before processing the request" unless request_config
     request_config
   end
 
@@ -24,11 +25,7 @@ module SamlIdp
   end
 
   def self.request_config
-    if RequestStore.store[:request_config]
-      RequestStore.store[:request_config]
-    else
-      raise "Config must be set before processing the request"
-    end
+    RequestStore.store[:request_config]
   end
 
   def self.request_config=(config)
