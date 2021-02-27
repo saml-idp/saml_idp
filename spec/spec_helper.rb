@@ -27,6 +27,8 @@ RSpec.configure do |config|
   config.include SamlRequestMacros
   config.include SecurityHelpers
 
+  SamlIdp.request_config = SamlIdp::Configurator.new
+
   config.before do
     SamlIdp.configure do |c|
       c.attributes = {
