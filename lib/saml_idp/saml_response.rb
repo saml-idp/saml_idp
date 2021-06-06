@@ -34,7 +34,7 @@ module SamlIdp
         expiry=60*60,
         encryption_opts=nil,
         session_expiry=0,
-        signed_message_opts,
+        signed_message_opts=false,
         name_id_formats_opts = nil,
         asserted_attributes_opts = nil
     )
