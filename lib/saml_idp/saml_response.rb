@@ -18,21 +18,26 @@ module SamlIdp
     attr_accessor :encryption_opts
     attr_accessor :session_expiry
     attr_accessor :signed_message_opts
+    attr_accessor :name_id_formats_opts
+    attr_accessor :asserted_attributes_opts
 
-    def initialize(reference_id,
-          response_id,
-          issuer_uri,
-          principal,
-          audience_uri,
-          saml_request_id,
-          saml_acs_url,
-          algorithm,
-          authn_context_classref,
-          expiry=60*60,
-          encryption_opts=nil,
-          session_expiry=0,
-          signed_message_opts
-          )
+    def initialize(
+        reference_id,
+        response_id,
+        issuer_uri,
+        principal,
+        audience_uri,
+        saml_request_id,
+        saml_acs_url,
+        algorithm,
+        authn_context_classref,
+        expiry=60*60,
+        encryption_opts=nil,
+        session_expiry=0,
+        signed_message_opts=false,
+        name_id_formats_opts = nil,
+        asserted_attributes_opts = nil
+    )
       self.reference_id = reference_id
       self.response_id = response_id
       self.issuer_uri = issuer_uri
@@ -48,6 +53,8 @@ module SamlIdp
       self.encryption_opts = encryption_opts
       self.session_expiry = session_expiry
       self.signed_message_opts = signed_message_opts
+      self.name_id_formats_opts = name_id_formats_opts
+      self.asserted_attributes_opts = asserted_attributes_opts
     end
 
     def build
@@ -88,7 +95,9 @@ module SamlIdp
         authn_context_classref,
         expiry,
         encryption_opts,
-        session_expiry
+        session_expiry,
+        name_id_formats_opts,
+        asserted_attributes_opts
     end
     private :assertion_builder
   end
