@@ -120,6 +120,7 @@ module SamlIdp
       metadata = service_provider.current_metadata
       if logout_request? || authn_request? &&
           metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
+        # service provider adds its certificate to the sign_info if needed
         service_provider.valid_signature?(document, true, sign_info)
       else
         true
