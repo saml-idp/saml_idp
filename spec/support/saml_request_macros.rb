@@ -7,6 +7,22 @@ module SamlRequestMacros
     CGI.unescape(auth_url.split("=").last)
   end
 
+  def with_saml_request(security_options = {})
+    settings = saml_settings("https://foo.example.com/saml/consume", false)
+    add_securty_options(settings, **security_options)
+
+    request = OneLogin::RubySaml::Authrequest.new
+    # relay state is required for non-embedded signature verification
+    request_data = request.create(settings, RelayState: "none")
+    payload = URI.parse(request_data)
+      .query
+      .split('&')
+      .map{|q| q.split('=', 2)}
+      .map{|k,v| [k.underscore.to_sym, CGI.unescape(v)]}
+      .to_h
+    yield SamlIdp::Request.from_deflated_request(payload[:saml_request]), payload
+  end
+
   def make_saml_logout_request(requested_saml_logout_url = 'https://foo.example.com/saml/logout')
     request_builder = SamlIdp::LogoutRequestBuilder.new(
       'some_response_id',
@@ -35,9 +51,10 @@ module SamlRequestMacros
     settings
   end
 
-  def add_securty_options(settings, authn_requests_signed: true, 
-                                    embed_sign: true, 
-                                    logout_requests_signed: true, 
+  def add_securty_options(settings, authn_requests_signed: true,
+                                    sign_authn_request: true,
+                                    embed_sign: true,
+                                    logout_requests_signed: true,
                                     logout_responses_signed: true,
                                     digest_method: XMLSecurity::Document::SHA256,
                                     signature_method: XMLSecurity::Document::RSA_SHA256)

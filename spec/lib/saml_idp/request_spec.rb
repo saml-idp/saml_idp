@@ -70,6 +70,38 @@ module SamlIdp
       end
     end
 
+    describe "authn request from OneLogin with secure options" do
+      before do
+        idp_configure("https://foo.example.com/saml/consume", true)
+      end
+
+      it "unsigned invalid" do
+        with_saml_request(authn_requests_signed: false) do |req|
+          expect(req.valid?).to eq(false)
+          expect(req.valid_signature?).to eq(false)
+        end
+      end
+
+      it "signed valid" do
+        with_saml_request do |req|
+          expect(req.valid_signature?).to be_truthy
+          expect(req.valid?).to be_truthy
+        end
+      end
+
+      it "detached signature" do
+        with_saml_request(embed_sign: false) do |req, payload|
+          expect(req.valid?(payload)).to be_truthy
+        end
+      end
+
+      it "detached signature missing" do
+        with_saml_request(embed_sign: false) do |req|
+          expect(req.valid?).to eq(false)
+        end
+      end
+    end
+
     describe "logout request" do
       let(:raw_logout_request) { "<LogoutRequest ID='_some_response_id' Version='2.0' IssueInstant='2010-06-01T13:00:00Z' Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'><Issuer xmlns='urn:oasis:names:tc:SAML:2.0:assertion'>http://example.com</Issuer><NameID xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:persistent'>some_name_id</NameID><SessionIndex>abc123index</SessionIndex></LogoutRequest>" }
 
