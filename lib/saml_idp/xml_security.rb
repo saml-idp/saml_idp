@@ -68,9 +68,8 @@ module SamlIdp
       end
 
       def validate_redirect_binding(idp_cert_fingerprint, soft, sign_info)
-        base64_cert = sign_info[:cert]
-        cert_text    = Base64.decode64(base64_cert)
-        cert         = OpenSSL::X509::Certificate.new(cert_text)
+        cert_text = sign_info[:cert]
+        cert      = OpenSSL::X509::Certificate.new(cert_text)
 
         signature_algorithm = algorithm(sign_info[:sig_alg])
         signature = Base64.decode64(sign_info[:signature])
