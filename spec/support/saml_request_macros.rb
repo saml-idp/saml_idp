@@ -58,6 +58,7 @@ module SamlRequestMacros
                                     sign_authn_request: true,
                                     embed_sign: true,
                                     logout_requests_signed: true,
+                                    sign_logout_requests: true,
                                     logout_responses_signed: true,
                                     digest_method: XMLSecurity::Document::SHA256,
                                     signature_method: XMLSecurity::Document::RSA_SHA256)
@@ -88,7 +89,6 @@ module SamlRequestMacros
       config.single_logout_service_redirect_location = 'https://idp.com/saml/idp/logout'
       config.attribute_service_location = 'https://idp.com/saml/idp/attribute'
       config.single_service_post_location = 'https://idp.com/saml/idp/sso'
-      config.name_id.formats = SamlIdp::Default::NAME_ID_FORMAT
       config.service_provider.metadata_persister = lambda { |_identifier, _service_provider|
         raw_metadata = generate_sp_metadata(saml_acs_url, enable_secure_options)
         SamlIdp::IncomingMetadata.new(raw_metadata).to_h
