@@ -20,7 +20,7 @@ module SamlRequestMacros
       .map{|q| q.split('=', 2)}
       .map{|k,v| [k.underscore.to_sym, CGI.unescape(v)]}
       .to_h
-    yield SamlIdp::Request.from_deflated_request(payload[:saml_request]), payload
+    yield SamlIdp::Request.from_deflated_request(payload[:saml_request]), payload, request_data
   end
 
   def make_saml_logout_request(requested_saml_logout_url = 'https://foo.example.com/saml/logout')
