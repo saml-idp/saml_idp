@@ -34,20 +34,23 @@ module SamlRequestMacros
     Base64.strict_encode64(request_builder.signed)
   end
 
-  def generate_sp_metadata(saml_acs_url = "https://foo.example.com/saml/consume", enable_secure_options = false)
+  def generate_sp_metadata(saml_acs_url = "https://foo.example.com/saml/consume",
+                           enable_secure_options = false)
     sp_metadata = OneLogin::RubySaml::Metadata.new
     sp_metadata.generate(saml_settings(saml_acs_url, enable_secure_options), true)
   end
 
-  def saml_settings(saml_acs_url = "https://foo.example.com/saml/consume", enable_secure_options = false)
+  def saml_settings(saml_acs_url = "https://foo.example.com/saml/consume",
+                    enable_secure_options = false,
+                    additional_secure_options = {})
     settings = OneLogin::RubySaml::Settings.new
     settings.assertion_consumer_service_url = saml_acs_url
-    settings.issuer = "http://example.com/issuer"
+    settings.issuer = "https://example.com/issuer"
     settings.idp_sso_target_url = "http://idp.com/saml/idp"
     settings.assertion_consumer_logout_service_url = 'https://foo.example.com/saml/logout'
     settings.idp_cert_fingerprint = SamlIdp::Default::FINGERPRINT
     settings.name_identifier_format = SamlIdp::Default::NAME_ID_FORMAT
-    add_securty_options(settings) if enable_secure_options
+    add_securty_options(settings, **additional_secure_options) if enable_secure_options
     settings
   end
 
@@ -79,12 +82,12 @@ module SamlRequestMacros
       config.password = nil
       config.algorithm = :sha256
       config.organization_name = 'idp.com'
-      config.organization_url = 'http://idp.com'
-      config.base_saml_location = 'http://idp.com/saml/idp'
-      config.single_logout_service_post_location = 'http://idp.com/saml/idp/logout'
-      config.single_logout_service_redirect_location = 'http://idp.com/saml/idp/logout'
-      config.attribute_service_location = 'http://idp.com/saml/idp/attribute'
-      config.single_service_post_location = 'http://idp.com/saml/idp/sso'
+      config.organization_url = 'https://idp.com'
+      config.base_saml_location = 'https://idp.com/saml/idp'
+      config.single_logout_service_post_location = 'https://idp.com/saml/idp/logout'
+      config.single_logout_service_redirect_location = 'https://idp.com/saml/idp/logout'
+      config.attribute_service_location = 'https://idp.com/saml/idp/attribute'
+      config.single_service_post_location = 'https://idp.com/saml/idp/sso'
       config.name_id.formats = SamlIdp::Default::NAME_ID_FORMAT
       config.service_provider.metadata_persister = lambda { |_identifier, _service_provider|
         raw_metadata = generate_sp_metadata(saml_acs_url, enable_secure_options)

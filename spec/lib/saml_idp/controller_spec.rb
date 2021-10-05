@@ -57,10 +57,10 @@ describe SamlIdp::Controller do
 
     context "unsolicited Response" do
       it "should create a SAML Response" do
-        saml_response = encode_response(principal, { audience_uri: 'http://example.com/issuer', issuer_uri: 'http://example.com', acs_url: 'https://foo.example.com/saml/consume' })
+        saml_response = encode_response(principal, { audience_uri: 'https://example.com/issuer', issuer_uri: 'https://example.com', acs_url: 'https://foo.example.com/saml/consume' })
         response = OneLogin::RubySaml::Response.new(saml_response)
         expect(response.name_id).to eq("foo@example.com")
-        expect(response.issuers.first).to eq("http://example.com")
+        expect(response.issuers.first).to eq("https://example.com")
         response.settings = saml_settings
         expect(response.is_valid?).to be_truthy
       end
