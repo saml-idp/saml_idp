@@ -33,7 +33,16 @@ module SamlIdp
       end.new(nil)
     end
 
-    def validate_saml_request(raw_saml_request = params[:SAMLRequest], sign_info = {})
+    def validate_saml_request(raw_saml_request = params[:SAMLRequest],
+                              sign_info = {})
+      if sign_info == {} && params[:Signature].present?
+        sign_info = {
+          sig_alg:      params[:SigAlg],
+          relay_state:  params[:RelayState],
+          signature:    params[:Signature],
+          saml_request: params[:SAMLRequest],
+        }
+      end
       decode_request(raw_saml_request)
       return true if valid_saml_request?(sign_info)
       if defined?(::Rails)
