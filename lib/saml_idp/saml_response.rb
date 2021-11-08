@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'saml_idp/assertion_builder'
 require 'saml_idp/response_builder'
 module SamlIdp
@@ -20,6 +22,7 @@ module SamlIdp
     attr_accessor :asserted_attributes_opts
     attr_accessor :signed_message_opts
     attr_accessor :signed_assertion_opts
+    attr_accessor :compression_opts
 
     def initialize(
       reference_id,
@@ -34,10 +37,11 @@ module SamlIdp
       expiry = 60 * 60,
       encryption_opts = nil,
       session_expiry = 0,
+      name_id_formats_opts = nil,
+      asserted_attributes_opts = nil,
       signed_message_opts = false,
       signed_assertion_opts = true,
-      name_id_formats_opts = nil,
-      asserted_attributes_opts = nil
+      compression_opts = false
     )
 
       self.reference_id = reference_id
