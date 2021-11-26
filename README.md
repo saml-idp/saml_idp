@@ -2,7 +2,8 @@
 
 Forked from <https://github.com/lawrencepit/ruby-saml-idp>
 
-# Ruby SAML Identity Provider (IdP)
+[![Build Status](https://travis-ci.org/saml-idp/saml_idp.svg)](https://travis-ci.org/saml-idp/saml_idp)
+[![Gem Version](https://badge.fury.io/rb/saml_idp.svg)](http://badge.fury.io/rb/saml_idp)
 
 The ruby SAML Identity Provider library is for implementing the server side of SAML authentication. It allows
 your application to act as an IdP (Identity Provider) using the
@@ -228,3 +229,17 @@ The second parameter is optional and default to your configuration `SamlIdp.conf
 
 To act as a Service Provider which generates SAML Requests and can react to SAML Responses use the
 excellent [ruby-saml](https://github.com/onelogin/ruby-saml) gem.
+
+## Author
+
+Jon Phenow, jon@jphenow.com, jphenow.com, @jphenow
+
+Lawrence Pit, lawrence.pit@gmail.com, lawrencepit.com, @lawrencepit
+
+## Copyright
+
+Copyright (c) 2012 Sport Ngin.
+Portions Copyright (c) 2010 OneLogin, LLC
+Portions Copyright (c) 2012 Lawrence Pit (http://lawrencepit.com)
+
+See LICENSE for details.
