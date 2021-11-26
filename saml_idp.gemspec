@@ -31,10 +31,13 @@ Gem::Specification.new do |s|
     If you're just recently updating saml_idp - please be aware we've changed the default
     certificate. See the PR and a description of why we've done this here:
     https://github.com/saml-idp/saml_idp/pull/29
+
     If you just need to see the certificate `bundle open saml_idp` and go to
     `lib/saml_idp/default.rb`
+
     Similarly, please see the README about certificates - you should avoid using the
     defaults in a Production environment. Post any issues you to github.
+
     ** New in Version 0.3.0 **
     Encrypted Assertions require the xmlenc gem. See the example in the Controller
     section of the README.
@@ -44,7 +47,6 @@ Gem::Specification.new do |s|
   s.add_dependency('builder', '>= 3.0')
   s.add_dependency('nokogiri', '>= 1.6.2')
   s.add_dependency('rexml')
-  s.add_dependency('uuid', '>= 2.3')
   s.add_dependency('xmlenc', '>= 0.7.1')
 
   s.add_development_dependency('activeresource', '>= 5.1')
