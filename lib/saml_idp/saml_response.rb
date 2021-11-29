@@ -98,7 +98,7 @@ module SamlIdp
 
     def assertion_builder
       @assertion_builder ||=
-        AssertionBuilder.new reference_id,
+        AssertionBuilder.new SecureRandom.uuid,
                              issuer_uri,
                              principal,
                              audience_uri,
