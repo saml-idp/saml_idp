@@ -27,11 +27,6 @@ describe SamlIdp::Controller do
       params[:SAMLRequest] = make_saml_request("https://foo.example.com/saml/consume", true)
     end
 
-    it 'SP metadata sign_authn_request attribute should be true' do
-      # Signed auth request will be true in the metadata
-      expect(SamlIdp.config.service_provider.persisted_metadata_getter.call(nil,nil)[:sign_authn_request]).to eq(true)
-    end
-
     it 'should call xml signature validation method' do
       signed_doc = SamlIdp::XMLSecurity::SignedDocument.new(params[:SAMLRequest])
       allow(signed_doc).to receive(:validate).and_return(true)

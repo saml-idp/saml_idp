@@ -57,16 +57,8 @@ module SamlIdp
 
     def get_current_or_build
       persisted = metadata_getter[identifier, self]
-      if persisted.is_a? Hash
-        PersistedMetadata.new(persisted)
-      end
     end
     private :get_current_or_build
-
-    def metadata_getter
-      config.service_provider.persisted_metadata_getter
-    end
-    private :metadata_getter
 
     def metadata_persister
       config.service_provider.metadata_persister

@@ -73,10 +73,6 @@ module SamlRequestMacros
         raw_metadata = generate_sp_metadata(saml_acs_url, enable_secure_options)
         SamlIdp::IncomingMetadata.new(raw_metadata).to_h
       }
-      config.service_provider.persisted_metadata_getter = lambda { |_identifier, _settings|
-        raw_metadata = generate_sp_metadata(saml_acs_url, enable_secure_options)
-        SamlIdp::IncomingMetadata.new(raw_metadata).to_h
-      }
       config.service_provider.finder = lambda { |_issuer_or_entity_id|
         {
           response_hosts: [URI(saml_acs_url).host],

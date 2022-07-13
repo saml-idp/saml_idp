@@ -177,20 +177,6 @@ CERT
     end
   }
 
-  # `identifier` is the entity_id or issuer of the Service Provider,
-  # `service_provider` is a ServiceProvider object. Based on the `identifier` or the
-  # `service_provider` you should return the settings.to_h from above
-  config.service_provider.persisted_metadata_getter = ->(identifier, service_provider){
-    fname = identifier.to_s.gsub(/\/|:/,"_")
-    FileUtils.mkdir_p(Rails.root.join('cache', 'saml', 'metadata').to_s)
-    full_filename = Rails.root.join("cache/saml/metadata/#{fname}")
-    if File.file?(full_filename)
-      File.open full_filename, "rb" do |f|
-        Marshal.load f
-      end
-    end
-  }
-
   # Find ServiceProvider metadata_url and fingerprint based on our settings
   config.service_provider.finder = ->(issuer_or_entity_id) do
     service_providers[issuer_or_entity_id]
