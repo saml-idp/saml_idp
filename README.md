@@ -219,7 +219,7 @@ The gem provides an helper to generate a fingerprint for a X.509 certificate.
 The second parameter is optional and default to your configuration `SamlIdp.config.algorithm`
 
 ```ruby
-  Fingerprint.certificate_digest(x509_cert, :sha512)
+  SamlIdp::Fingerprint.certificate_digest(x509_cert, :sha512)
 ```
 
 ## Service Providers
