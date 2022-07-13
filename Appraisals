@@ -10,5 +10,5 @@ end
 
 appraise 'rails-dev' do
   gem 'rails', :github => 'rails/rails', :branch => 'main'
-  gem 'activeresource', :github => 'rails/activeresource', :branch => 'master'
+  gem 'activeresource', :github => 'rails/activeresource', :branch => 'main'
 end
