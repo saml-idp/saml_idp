@@ -166,21 +166,6 @@ CERT
       response_hosts: ["foo.some-issuer-url.com"]
     },
   }
-
-  # `identifier` is the entity_id or issuer of the Service Provider,
-  # settings is an IncomingMetadata object which has a to_h method that needs to be persisted
-  config.service_provider.metadata_persister = ->(identifier, settings) {
-    fname = identifier.to_s.gsub(/\/|:/,"_")
-    FileUtils.mkdir_p(Rails.root.join('cache', 'saml', 'metadata').to_s)
-    File.open Rails.root.join("cache/saml/metadata/#{fname}"), "r+b" do |f|
-      Marshal.dump settings.to_h, f
-    end
-  }
-
-  # Find ServiceProvider metadata_url and fingerprint based on our settings
-  config.service_provider.finder = ->(issuer_or_entity_id) do
-    service_providers[issuer_or_entity_id]
-  end
 end
 ```
 

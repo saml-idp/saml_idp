@@ -28,9 +28,7 @@ module SamlIdp
       self.secret_key = Default::SECRET_KEY
       self.algorithm = :sha1
       self.reference_id_generator = ->() { SecureRandom.uuid }
-      self.service_provider = OpenStruct.new
-      self.service_provider.finder = ->(_) { Default::SERVICE_PROVIDER }
-      self.service_provider.metadata_persister = ->(id, settings) {  }
+      self.service_provider = service_provider
       self.session_expiry = 0
       self.attributes = {}
     end

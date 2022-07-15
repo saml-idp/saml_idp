@@ -13,6 +13,7 @@ module SamlIdp
     attribute :acs_url
     attribute :assertion_consumer_logout_service_url
     attribute :response_hosts
+    attribute :sp_metadata
 
     delegate :config, to: :SamlIdp
 
@@ -28,17 +29,8 @@ module SamlIdp
       end
     end
 
-    def refresh_metadata
-      fresh = fresh_incoming_metadata
-      if valid_signature?(fresh.document)
-        metadata_persister[identifier, fresh]
-        @current_metadata = nil
-        fresh
-      end
-    end
-
     def current_metadata
-      @current_metadata ||= get_current_or_build
+      @current_metadata ||= sp_metadata
     end
 
     def acceptable_response_hosts
@@ -53,25 +45,5 @@ module SamlIdp
         URI(metadata_url).host
       end
     end
-
-    def get_current_or_build
-      persisted = metadata_getter[identifier, self]
-    end
-    private :get_current_or_build
-
-    def metadata_persister
-      config.service_provider.metadata_persister
-    end
-    private :metadata_persister
-
-    def fresh_incoming_metadata
-      IncomingMetadata.new request_metadata
-    end
-    private :fresh_incoming_metadata
-
-    def request_metadata
-      metadata_url.present? ? Net::HTTP.get(URI.parse(metadata_url)) : ""
-    end
-    private :request_metadata
   end
 end
