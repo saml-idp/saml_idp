@@ -1,7 +1,7 @@
 require 'net/http'
 require 'uri'
 require 'saml_idp/attributeable'
-require 'saml_idp/incoming_metadata'
+require 'saml_idp/sp_metadata'
 module SamlIdp
   class ServiceProvider
     include Attributeable
@@ -44,6 +44,25 @@ module SamlIdp
       if metadata_url.present?
         URI(metadata_url).host
       end
+    end
+
+    def fingerprint
+      @fingerprint ||= SamlIdp::Fingerprint.certificate_digest(cert)
+    end
+
+    def response_hosts
+      sp_metadata.assertion_consumer_services.map do |acs|
+        url = acs['location'] || acs[:location]
+        URI(url).host
+      end
+    end
+
+    def acs_url
+      sp_metadata.saml_acs_url
+    end
+
+    def cert
+      @cert ||= sp_metadata.signing_certificate
     end
   end
 end

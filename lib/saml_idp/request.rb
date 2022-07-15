@@ -191,10 +191,5 @@ module SamlIdp
       Saml::XML::Namespaces::SIGNATURE
     end
     private :signature_namespace
-
-    def service_provider_finder
-      config.service_provider.finder
-    end
-    private :service_provider_finder
   end
 end
