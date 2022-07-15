@@ -2,7 +2,6 @@ require 'net/http'
 require 'uri'
 require 'saml_idp/attributeable'
 require 'saml_idp/incoming_metadata'
-require 'saml_idp/persisted_metadata'
 module SamlIdp
   class ServiceProvider
     include Attributeable
