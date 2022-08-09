@@ -45,7 +45,7 @@ Check out our Wiki page for Rails integration
 By default SAML Assertion will be signed with an algorithm which defined to `config.algorithm`. Because SAML assertions contain secure information used for authentication such as NameID.
 
 Signing SAML Response is optional, but some security perspective SP services might require Response message itself must be signed.
-For that, you can enable it with `config.signed_message` option. [More about SAML spec](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf#page=68)
+For that, you can enable it with `signed_message: true` option for `encode_response(user_email, signed_message: true)` method. [More about SAML spec](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf#page=68)
 
 #### Signing algorithm
 
@@ -85,7 +85,6 @@ CERT
   # config.attribute_service_location = "#{base}/saml/attributes"
   # config.single_service_post_location = "#{base}/saml/auth"
   # config.session_expiry = 86400                                 # Default: 0 which means never
-  # config.signed_message = true                                  # Default: false which means unsigned SAML Response
 
   # Principal (e.g. User) is passed in when you `encode_response`
   #
