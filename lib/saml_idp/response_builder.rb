@@ -11,16 +11,32 @@ module SamlIdp
     attr_accessor :saml_request_id
     attr_accessor :assertion_and_signature
     attr_accessor :raw_algorithm
+    attr_accessor :x509_certificate
+    attr_accessor :secret_key
+    attr_accessor :password
 
     alias_method :reference_id, :response_id
 
-    def initialize(response_id, issuer_uri, saml_acs_url, saml_request_id, assertion_and_signature, raw_algorithm)
+    def initialize(
+      response_id,
+      issuer_uri,
+      saml_acs_url,
+      saml_request_id,
+      assertion_and_signature,
+      raw_algorithm,
+      x509_certificate = nil,
+      secret_key = nil,
+      password = nil
+    )
       self.response_id = response_id
       self.issuer_uri = issuer_uri
       self.saml_acs_url = saml_acs_url
       self.saml_request_id = saml_request_id
       self.assertion_and_signature = assertion_and_signature
       self.raw_algorithm = raw_algorithm
+      self.x509_certificate = x509_certificate
+      self.secret_key = secret_key
+      self.password = password
     end
 
     def encoded(signed_message: false)
