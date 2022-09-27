@@ -99,7 +99,17 @@ module SamlIdp
     private :encoded_message
 
     def response_builder
-      ResponseBuilder.new(response_id, issuer_uri, saml_acs_url, saml_request_id, signed_assertion, algorithm)
+      ResponseBuilder.new(
+        response_id,
+        issuer_uri,
+        saml_acs_url,
+        saml_request_id,
+        signed_assertion,
+        algorithm,
+        x509_certificate,
+        secret_key,
+        password
+      )
     end
     private :response_builder
 
