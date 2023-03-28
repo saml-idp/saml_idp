@@ -172,8 +172,6 @@ module SamlIdp
         if element = REXML::XPath.first(self, "//ec:InclusiveNamespaces", { "ec" => C14N })
           prefix_list = element.attributes.get_attribute("PrefixList").value
           prefix_list.split(" ")
-        else
-          []
         end
       end
     end
