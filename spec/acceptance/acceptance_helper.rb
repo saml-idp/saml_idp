@@ -7,3 +7,5 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 RSpec.configure do |config|
   config.include Rails.application.routes.url_helpers, :type => :request
 end
+
+SamlIdp.request_config = SamlIdp::Configurator.new
