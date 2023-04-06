@@ -94,14 +94,14 @@ module SamlIdp
         expect(inclusive_namespaces).to eq %w[#default saml ds xs xsi]
       end
 
-      it "return an empty list when inclusive namespace element is missing" do
+      it "return nil when inclusive namespace element is missing" do
         response = fixture(:no_signature_ns, false)
         response.slice! %r{<InclusiveNamespaces xmlns="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
 
         document = XMLSecurity::SignedDocument.new(response)
         inclusive_namespaces = document.send(:extract_inclusive_namespaces)
 
-        expect(inclusive_namespaces).to be_empty
+        expect(inclusive_namespaces).to be_nil
       end
     end
 

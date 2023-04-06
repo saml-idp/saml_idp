@@ -27,9 +27,8 @@ RSpec.configure do |config|
   config.include SamlRequestMacros
   config.include SecurityHelpers
 
-  SamlIdp.request_config = SamlIdp::Configurator.new
-
   config.before do
+    SamlIdp.request_config = SamlIdp::Configurator.new
     SamlIdp.configure do |c|
       c.attributes = {
         emailAddress: {
@@ -48,6 +47,7 @@ RSpec.configure do |config|
 
   # To reset to default config
   config.after do
+    SamlIdp.request_config = SamlIdp::Configurator.new
     SamlIdp.instance_variable_set(:@config, nil)
     SamlIdp.configure do |c|
       c.attributes = {
