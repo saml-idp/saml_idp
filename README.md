@@ -85,6 +85,7 @@ CERT
   # config.attribute_service_location = "#{base}/saml/attributes"
   # config.single_service_post_location = "#{base}/saml/auth"
   # config.session_expiry = 86400                                 # Default: 0 which means never
+  # config.logger = ::Logger.new($stdout)                         # Default: if in Rails context - Rails.logger, else ->(msg) { puts msg }. Works with either a Ruby Logger or a lambda
 
   # Principal (e.g. User) is passed in when you `encode_response`
   #

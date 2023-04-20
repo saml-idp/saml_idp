@@ -17,6 +17,7 @@ module SamlIdp
     it { should respond_to :attributes }
     it { should respond_to :service_provider }
     it { should respond_to :session_expiry }
+    it { should respond_to :logger }
 
     it "has a valid x509_certificate" do
       expect(subject.x509_certificate).to eq(Default::X509_CERTIFICATE)
