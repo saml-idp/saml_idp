@@ -8,7 +8,12 @@ appraise 'rails-6.1' do
   gem 'activeresource', '~> 5.1.0'
 end
 
+appraise 'rails-7.0' do
+  gem 'rails', '~> 7.0.0'
+  gem 'activeresource', '~> 6.0.0'
+end
+
 appraise 'rails-dev' do
   gem 'rails', :github => 'rails/rails', :branch => 'main'
-  gem 'activeresource', :github => 'rails/activeresource', :branch => 'master'
+  gem 'activeresource', :github => 'rails/activeresource', :branch => 'main'
 end

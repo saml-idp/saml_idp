@@ -23,21 +23,21 @@ module SamlIdp
       self.raw_algorithm = raw_algorithm
     end
 
-    def encoded(signed_message: false)
-      @encoded ||= signed_message ? encode_signed_message : encode_raw_message
+    def encoded(signed_message: false, compress: false)
+      @encoded ||= signed_message ? encode_signed_message(compress) : encode_raw_message(compress)
     end
 
     def raw
       build
     end
 
-    def encode_raw_message
-      Base64.strict_encode64(raw)
+    def encode_raw_message(compress)
+      Base64.strict_encode64(compress ? deflate(raw) : raw)
     end
     private :encode_raw_message
 
-    def encode_signed_message
-      Base64.strict_encode64(signed)
+    def encode_signed_message(compress)
+      Base64.strict_encode64(compress ? deflate(signed) : signed)
     end
     private :encode_signed_message
 
@@ -66,11 +66,17 @@ module SamlIdp
     def response_id_string
       "_#{response_id}"
     end
+    alias_method :reference_id, :response_id
     private :response_id_string
 
     def now_iso
       Time.now.utc.iso8601
     end
     private :now_iso
+
+    def deflate(inflated)
+      Zlib::Deflate.deflate(inflated, 9)[2..-5]
+    end
+    private :deflate
   end
 end

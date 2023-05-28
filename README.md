@@ -2,7 +2,6 @@
 
 Forked from <https://github.com/lawrencepit/ruby-saml-idp>
 
-[![Build Status](https://travis-ci.org/saml-idp/saml_idp.svg)](https://travis-ci.org/saml-idp/saml_idp)
 [![Gem Version](https://badge.fury.io/rb/saml_idp.svg)](http://badge.fury.io/rb/saml_idp)
 
 The ruby SAML Identity Provider library is for implementing the server side of SAML authentication. It allows
@@ -42,10 +41,11 @@ Check out our Wiki page for Rails integration
 
 #### Signed assertions and Signed Response
 
-By default SAML Assertion will be signed with an algorithm which defined to `config.algorithm`. Because SAML assertions contain secure information used for authentication such as NameID.
+By default SAML Assertion will be signed with an algorithm which defined to `config.algorithm`, because SAML assertions contain secure information used for authentication such as NameID.
+Besides that, signing assertions could be optional and can be defined with `config.signed_assertion` option. Setting this configuration flag to `false` will add raw assertions on the response instead of signed ones. If the response is encrypted the `config.signed_assertion` will be ignored and all assertions will be signed.
 
 Signing SAML Response is optional, but some security perspective SP services might require Response message itself must be signed.
-For that, you can enable it with `config.signed_message` option. [More about SAML spec](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf#page=68)
+For that, you can enable it with `signed_message: true` option for `encode_response(user_email, signed_message: true)` method. [More about SAML spec](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf#page=68)
 
 #### Signing algorithm
 
@@ -85,7 +85,9 @@ CERT
   # config.attribute_service_location = "#{base}/saml/attributes"
   # config.single_service_post_location = "#{base}/saml/auth"
   # config.session_expiry = 86400                                 # Default: 0 which means never
-  # config.signed_message = true                                  # Default: false which means unsigned SAML Response
+  # config.signed_assertion = false                               # Default: true which means signed assertions on the SAML Response
+  # config.compress = true                                        # Default: false which means the SAML Response is not being compressed
+  # config.logger = ::Logger.new($stdout)                         # Default: if in Rails context - Rails.logger, else ->(msg) { puts msg }. Works with either a Ruby Logger or a lambda
 
   # Principal (e.g. User) is passed in when you `encode_response`
   #
@@ -179,7 +181,7 @@ The gem provides an helper to generate a fingerprint for a X.509 certificate.
 The second parameter is optional and default to your configuration `SamlIdp.config.algorithm`
 
 ```ruby
-  Fingerprint.certificate_digest(x509_cert, :sha512)
+  SamlIdp::Fingerprint.certificate_digest(x509_cert, :sha512)
 ```
 
 ## Service Providers
