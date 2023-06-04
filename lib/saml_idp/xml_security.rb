@@ -61,7 +61,9 @@ module SamlIdp
           end
         end
 
-        raise "Certificate validation is required, but it doesn't exist." if idp_base64_cert.nil? || idp_base64_cert.empty?
+        if idp_base64_cert.nil? || idp_base64_cert.empty?
+          raise ValidationError.new("Certificate validation is required, but it doesn't exist.")
+        end
 
         validate_doc(idp_base64_cert, soft)
       end

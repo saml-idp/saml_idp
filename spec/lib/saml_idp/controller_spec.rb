@@ -91,7 +91,6 @@ describe SamlIdp::Controller do
         expect(response.issuer).to eq("http://example.com")
       end
 
-
       [:sha1, :sha256, :sha384, :sha512].each do |algorithm_name|
         it "should create a SAML Response using the #{algorithm_name} algorithm" do
           self.algorithm = algorithm_name
