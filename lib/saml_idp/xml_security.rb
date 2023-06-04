@@ -43,24 +43,27 @@ module SamlIdp
         extract_signed_element_id
       end
 
-      def validate(idp_cert_fingerprint, soft = true)
+      def validate(idp_base64_cert, idp_cert_fingerprint, soft = true)
         # get cert from response
         cert_element = REXML::XPath.first(self, "//ds:X509Certificate", { "ds"=>DSIG })
-        raise ValidationError.new("Certificate element missing in response (ds:X509Certificate)") unless cert_element
-        base64_cert  = cert_element.text
-        cert_text    = Base64.decode64(base64_cert)
-        cert         = OpenSSL::X509::Certificate.new(cert_text)
+        if cert_element
+          idp_base64_cert = cert_element.text
+          cert_text    = Base64.decode64(idp_base64_cert)
+          cert         = OpenSSL::X509::Certificate.new(cert_text)
 
-        # check cert matches registered idp cert
-        fingerprint = fingerprint_cert(cert)
-        sha1_fingerprint = fingerprint_cert_sha1(cert)
-        plain_idp_cert_fingerprint = idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
+          # check cert matches registered idp cert
+          fingerprint = fingerprint_cert(cert)
+          sha1_fingerprint = fingerprint_cert_sha1(cert)
+          plain_idp_cert_fingerprint = idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/,"").downcase
 
-        if fingerprint != plain_idp_cert_fingerprint && sha1_fingerprint != plain_idp_cert_fingerprint
-          return soft ? false : (raise ValidationError.new("Fingerprint mismatch"))
+          if fingerprint != plain_idp_cert_fingerprint && sha1_fingerprint != plain_idp_cert_fingerprint
+            return soft ? false : (raise ValidationError.new("Fingerprint mismatch"))
+          end
         end
 
-        validate_doc(base64_cert, soft)
+        raise "Certificate validation is required, but it doesn't exist." if idp_base64_cert.nil? || idp_base64_cert.empty?
+
+        validate_doc(idp_base64_cert, soft)
       end
 
       def fingerprint_cert(cert)
