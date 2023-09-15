@@ -119,7 +119,7 @@ module SamlIdp
       # Force signatures for logout requests because there is no other protection against a cross-site DoS.
       # Validate signature when metadata specify AuthnRequest should be signed
       metadata = service_provider.current_metadata
-      if logout_request? || authn_request? && metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
+      if (logout_request? || authn_request?) && metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
         document.valid_signature?(service_provider.fingerprint)
       else
         true
