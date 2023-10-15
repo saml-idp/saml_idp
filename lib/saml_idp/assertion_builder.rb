@@ -18,6 +18,7 @@ module SamlIdp
     attr_accessor :session_expiry
     attr_accessor :name_id_formats_opts
     attr_accessor :asserted_attributes_opts
+    attr_accessor :assertion_extension
 
     delegate :config, to: :SamlIdp
 
@@ -34,7 +35,8 @@ module SamlIdp
         encryption_opts=nil,
         session_expiry=nil,
         name_id_formats_opts = nil,
-        asserted_attributes_opts = nil
+        asserted_attributes_opts = nil,
+        assertion_extension = nil
     )
       self.reference_id = reference_id
       self.issuer_uri = issuer_uri
@@ -49,6 +51,7 @@ module SamlIdp
       self.session_expiry = session_expiry.nil? ? config.session_expiry : session_expiry
       self.name_id_formats_opts = name_id_formats_opts
       self.asserted_attributes_opts = asserted_attributes_opts
+      self assertion_extension = assertion_extension
     end
 
     def fresh
