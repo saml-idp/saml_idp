@@ -3,7 +3,6 @@ module SamlIdp
   class AssertionExtension
     SUBJECT_CONFIRMATION_DATA_EXTENSION_POINT = "SubjectConfirmationData"
     AUTHN_CONTEXT_DECL_EXTENSION_POINT = "AuthnContextDecl"
-    ATTRIBUTE_VALUE_EXTENSION_POINT = "AttributeValue"
 
     attr_accessor :extension_point
 
