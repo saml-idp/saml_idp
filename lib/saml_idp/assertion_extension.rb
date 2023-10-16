@@ -1,4 +1,5 @@
 require "builder"
+
 module SamlIdp
   class AssertionExtension
     SUBJECT_CONFIRMATION_DATA_EXTENSION_POINT = "SubjectConfirmationData"
@@ -11,12 +12,8 @@ module SamlIdp
     end
 
     # this is an abstract base class.
-    def build
-      raise "#{self.class} must implement build method"
-    end
-
-    def raw
-      build
+    def extend(context)
+      raise "#{self.class} must implement extend method"
     end
   end
 end

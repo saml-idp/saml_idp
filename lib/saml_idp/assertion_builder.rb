@@ -51,7 +51,7 @@ module SamlIdp
       self.session_expiry = session_expiry.nil? ? config.session_expiry : session_expiry
       self.name_id_formats_opts = name_id_formats_opts
       self.asserted_attributes_opts = asserted_attributes_opts
-      self assertion_extension = assertion_extension
+      self.assertion_extension = assertion_extension
     end
 
     def fresh
@@ -70,7 +70,7 @@ module SamlIdp
               confirmation_hash[:NotOnOrAfter] = not_on_or_after_subject
               confirmation_hash[:Recipient] = saml_acs_url
               if assertion_extension.present? && assertion_extension.extension_point == AssertionExtension::SUBJECT_CONFIRMATION_DATA_EXTENSION_POINT
-                confirmation.SubjectConfirmationData assertion_extension.build
+                assertion_extension.extend confirmation
               else
                 confirmation.SubjectConfirmationData "", confirmation_hash
               end
@@ -92,7 +92,7 @@ module SamlIdp
             statement.AuthnContext do |context|
               context.AuthnContextClassRef authn_context_classref
               if assertion_extension.present? && assertion_extension.extension_point == AssertionExtension::AUTHN_CONTEXT_DECL_EXTENSION_POINT
-                context.AuthnContextDecl assertion_extension.build
+                assertion_extension.extend context
               end
             end
           end
