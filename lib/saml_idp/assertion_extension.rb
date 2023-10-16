@@ -12,8 +12,8 @@ module SamlIdp
     end
 
     # this is an abstract base class.
-    def extend(context)
-      raise "#{self.class} must implement extend method"
+    def build(context)
+      raise "#{self.class} must implement build method"
     end
   end
 end

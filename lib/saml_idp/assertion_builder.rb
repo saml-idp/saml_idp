@@ -70,7 +70,7 @@ module SamlIdp
               confirmation_hash[:NotOnOrAfter] = not_on_or_after_subject
               confirmation_hash[:Recipient] = saml_acs_url
               if assertion_extension.present? && assertion_extension.extension_point == AssertionExtension::SUBJECT_CONFIRMATION_DATA_EXTENSION_POINT
-                assertion_extension.extend confirmation
+                assertion_extension.build confirmation
               else
                 confirmation.SubjectConfirmationData "", confirmation_hash
               end
@@ -92,7 +92,7 @@ module SamlIdp
             statement.AuthnContext do |context|
               context.AuthnContextClassRef authn_context_classref
               if assertion_extension.present? && assertion_extension.extension_point == AssertionExtension::AUTHN_CONTEXT_DECL_EXTENSION_POINT
-                assertion_extension.extend context
+                assertion_extension.build context
               end
             end
           end
