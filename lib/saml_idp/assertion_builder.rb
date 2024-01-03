@@ -18,10 +18,10 @@ module SamlIdp
     attr_accessor :session_expiry
     attr_accessor :name_id_formats_opts
     attr_accessor :asserted_attributes_opts
-    attr_accessor :config
+    attr_accessor :idp_config
 
     def initialize(
-        sp_config,
+        idp_config,
         reference_id,
         issuer_uri,
         principal,
@@ -42,7 +42,7 @@ module SamlIdp
       self.audience_uri = audience_uri
       self.saml_request_id = saml_request_id
       self.saml_acs_url = saml_acs_url
-      self.raw_algorithm = raw_algorithm || sp_config.algorithm
+      self.raw_algorithm = raw_algorithm || idp_config.algorithm
       self.authn_context_classref = authn_context_classref
       self.expiry = expiry
       self.encryption_opts = encryption_opts

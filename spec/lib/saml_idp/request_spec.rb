@@ -32,12 +32,12 @@ module SamlIdp
         expect(subject.acs_url).to eq("http://localhost:3000/saml/consume")
       end
 
-      it "has a valid service_provider" do
-        expect(subject.service_provider).to be_a ServiceProvider
+      it "has a valid sp_config" do
+        expect(subject.sp_config).to be_a SpConfig
       end
 
-      it "has a valid service_provider" do
-        expect(subject.service_provider).to be_truthy
+      it "has a valid sp_config" do
+        expect(subject.sp_config).to be_truthy
       end
 
       it "has a valid issuer" do

@@ -69,11 +69,11 @@ module SamlRequestMacros
     config.attribute_service_location = 'http://idp.com/saml/idp/attribute'
     config.single_service_post_location = 'http://idp.com/saml/idp/sso'
     config.name_id.formats = SamlIdp::Default::NAME_ID_FORMAT
-    config.service_provider = lambda { |_identifier, _service_provider|
+    config.sp_config = lambda { |_identifier, _service_provider|
       raw_metadata = generate_sp_metadata('https://foo.example.com/saml/consume', false)
       SamlIdp::SpMetadata.new(raw_metadata).to_h
     }
-    config.service_provider.finder = lambda { |_issuer_or_entity_id|
+    config.sp_config.finder = lambda { |_issuer_or_entity_id|
       {
         response_hosts: [URI('https://foo.example.com/saml/consume').host],
         acs_url: 'https://foo.example.com/saml/consume',

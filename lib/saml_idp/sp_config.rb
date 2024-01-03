@@ -3,7 +3,7 @@ require 'uri'
 require 'saml_idp/attributeable'
 require 'saml_idp/sp_metadata'
 module SamlIdp
-  class ServiceProvider
+  class SpConfig
     include Attributeable
     attribute :identifier
     attribute :cert

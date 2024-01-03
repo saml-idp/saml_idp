@@ -19,7 +19,7 @@ module SamlIdp
     attr_accessor :single_logout_service_post_location
     attr_accessor :single_logout_service_redirect_location
     attr_accessor :attributes
-    attr_accessor :service_provider
+    attr_accessor :sp_config
     attr_accessor :assertion_consumer_service_hosts
     attr_accessor :session_expiry
     attr_accessor :logger
@@ -29,7 +29,7 @@ module SamlIdp
       self.secret_key = Default::SECRET_KEY
       self.algorithm = :sha1
       self.reference_id_generator = ->() { SecureRandom.uuid }
-      self.service_provider = service_provider
+      self.sp_config = sp_config
       self.session_expiry = 0
       self.attributes = {}
       self.logger = defined?(::Rails) ? Rails.logger : ->(msg) { puts msg }

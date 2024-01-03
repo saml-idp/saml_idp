@@ -15,7 +15,7 @@ module SamlIdp
     it { should respond_to :single_logout_service_redirect_location }
     it { should respond_to :name_id }
     it { should respond_to :attributes }
-    it { should respond_to :service_provider }
+    it { should respond_to :sp_config }
     it { should respond_to :session_expiry }
     it { should respond_to :logger }
 

@@ -61,13 +61,11 @@ module SamlIdp
       name_id_formats_opts = opts[:name_id_formats] || nil
       asserted_attributes_opts = opts[:attributes] || nil
       signed_message_opts = opts[:signed_message] || false
-      name_id_formats_opts = opts[:name_id_formats] || nil
-      asserted_attributes_opts = opts[:attributes] || nil
       signed_assertion_opts = opts[:signed_assertion] || true
       compress_opts = opts[:compress] || false
 
       SamlResponse.new(
-        sp_config,
+        idp_config,
         reference_id,
         response_id,
         opt_issuer_uri,
@@ -142,16 +140,16 @@ module SamlIdp
       OpenSSL::Digest::SHA256
     end
 
-    def sp_config
-      @sp_config ||= SamlIdp::IdPConfig.new
+    def idp_config
+      @idp_config ||= SamlIdp::IdPConfig.new
     end
 
     def configure_sp
-      yield sp_config
+      yield idp_config
     end
 
     def idp_metadata
-      @idp_metadata ||= MetadataBuilder.new(sp_config)
+      @idp_metadata ||= MetadataBuilder.new(idp_config)
     end
   end
 end

@@ -1,5 +1,5 @@
 require 'saml_idp/xml_security'
-require 'saml_idp/service_provider'
+require 'saml_idp/sp_config'
 require 'logger'
 module SamlIdp
   class Request
@@ -61,12 +61,12 @@ module SamlIdp
     end
 
     def acs_url
-      service_provider.acs_url ||
+      sp_config.acs_url ||
         authn_request["AssertionConsumerServiceURL"].to_s
     end
 
     def logout_url
-      service_provider.assertion_consumer_logout_service_url
+      sp_config.assertion_consumer_logout_service_url
     end
 
     def response_url
@@ -86,7 +86,7 @@ module SamlIdp
     end
 
     def valid?
-      unless service_provider?
+      unless sp_config?
         log "Unable to find service provider for issuer #{issuer}"
         return false
       end
@@ -106,9 +106,9 @@ module SamlIdp
         return false
       end
 
-      if !service_provider.acceptable_response_hosts.include?(response_host)
-        log "#{service_provider.acceptable_response_hosts} compare to #{response_host}"
-        log "No acceptable AssertionConsumerServiceURL, either configure them via config.service_provider.response_hosts or match to your metadata_url host"
+      if !sp_config.acceptable_response_hosts.include?(response_host)
+        log "#{sp_config.acceptable_response_hosts} compare to #{response_host}"
+        log "No acceptable AssertionConsumerServiceURL, either configure them via config.sp_config.response_hosts or match to your metadata_url host"
         return false
       end
 
@@ -118,21 +118,21 @@ module SamlIdp
     def valid_signature?
       # Force signatures for logout requests because there is no other protection against a cross-site DoS.
       # Validate signature when metadata specify AuthnRequest should be signed
-      metadata = service_provider.current_metadata
+      metadata = sp_config.current_metadata
       if logout_request? || authn_request? && metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
-        document.valid_signature?(service_provider.fingerprint)
+        document.valid_signature?(sp_config.fingerprint)
       else
         true
       end
     end
 
-    def service_provider?
-      service_provider && service_provider.valid?
+    def sp_config?
+      sp_config && sp_config.valid?
     end
 
-    def service_provider
+    def sp_config
       return unless issuer.present?
-      @_service_provider ||= ServiceProvider.new((service_provider_finder[issuer] || {}).merge(identifier: issuer))
+      @_service_provider ||= SpConfig.new((service_provider_finder[issuer] || {}).merge(identifier: issuer))
     end
 
     def issuer
