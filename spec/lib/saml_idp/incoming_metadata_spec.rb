@@ -79,7 +79,11 @@ module SamlIdp
       metadata = SamlIdp::IncomingMetadata.new(metadata_with_slo)
       expect(metadata.single_logout_services).to be_a(Array)
       expect(metadata.single_logout_services.size).to eq(1)
-      expect(metadata.single_logout_services.first[:binding]).to eq("HTTP-Redirect")
+      expect(metadata.single_logout_services).to include(
+        hash_including(binding: "HTTP-Redirect"),
+        hash_including(location: "https://test/logout"),
+        hash_including(default: false)
+      )
     end
   end
 end
