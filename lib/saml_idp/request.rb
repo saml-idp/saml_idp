@@ -78,10 +78,10 @@ module SamlIdp
     end
 
     def log(msg)
-      if config.logger.class <= ::Logger
-        config.logger.info msg
-      else
+      if config.logger.respond_to?(:call)
         config.logger.call msg
+      else
+        config.logger.info msg
       end
     end
 
