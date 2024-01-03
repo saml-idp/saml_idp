@@ -91,6 +91,23 @@ module SamlIdp
           end
         end
 
+        context 'a Logger-like logger is configured' do
+          let(:logger) do
+            Class.new {
+              def info(msg); end
+            }.new
+          end
+
+          before do
+            allow(logger).to receive(:info)
+          end
+
+          it 'logs an error message' do
+            expect(subject.valid?).to be false
+            expect(logger).to have_received(:info).with('Unable to find service provider for issuer ')
+          end
+        end
+
         context 'a logger lambda is configured' do
           let(:logger) { double }
 
