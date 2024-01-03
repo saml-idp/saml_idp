@@ -67,6 +67,7 @@ module SamlIdp
       compress_opts = opts[:compress] || false
 
       SamlResponse.new(
+        sp_config,
         reference_id,
         response_id,
         opt_issuer_uri,
@@ -139,6 +140,18 @@ module SamlIdp
 
     def default_algorithm
       OpenSSL::Digest::SHA256
+    end
+
+    def sp_config
+      @sp_config ||= SamlIdp::IdPConfig.new
+    end
+
+    def configure_sp
+      yield sp_config
+    end
+
+    def idp_metadata
+      @idp_metadata ||= MetadataBuilder.new(sp_config)
     end
   end
 end

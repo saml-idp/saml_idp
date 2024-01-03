@@ -3,7 +3,7 @@ require 'ostruct'
 require 'securerandom'
 
 module SamlIdp
-  class Configurator
+  class IdPConfig
     attr_accessor :x509_certificate
     attr_accessor :secret_key
     attr_accessor :password

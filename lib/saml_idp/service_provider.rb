@@ -15,8 +15,6 @@ module SamlIdp
     attribute :response_hosts
     attribute :sp_metadata
 
-    delegate :config, to: :SamlIdp
-
     def valid?
       attributes.present?
     end

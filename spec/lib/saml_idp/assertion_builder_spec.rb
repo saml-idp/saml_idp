@@ -51,7 +51,7 @@ module SamlIdp
     end
 
     describe "without attributes" do
-      let(:config) { SamlIdp::Configurator.new }
+      let(:config) { SamlIdp::IdPConfig.new }
       before do
         config.name_id.formats = {
           "1.1" => {
@@ -177,7 +177,7 @@ module SamlIdp
     end
 
     describe "with custom session_expiry configuration" do
-      let(:config) { SamlIdp::Configurator.new }
+      let(:config) { SamlIdp::IdPConfig.new }
       before do
         config.session_expiry = 8
         allow(SamlIdp).to receive(:config).and_return(config)

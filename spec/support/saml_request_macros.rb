@@ -55,33 +55,33 @@ module SamlRequestMacros
     settings.certificate = sp_x509_cert
   end
 
-  def idp_configure(saml_acs_url = "https://foo.example.com/saml/consume", enable_secure_options = false)
-    SamlIdp.configure do |config|
-      config.x509_certificate = SamlIdp::Default::X509_CERTIFICATE
-      config.secret_key = SamlIdp::Default::SECRET_KEY
-      config.password = nil
-      config.algorithm = :sha256
-      config.organization_name = 'idp.com'
-      config.organization_url = 'http://idp.com'
-      config.base_saml_location = 'http://idp.com/saml/idp'
-      config.single_logout_service_post_location = 'http://idp.com/saml/idp/logout'
-      config.single_logout_service_redirect_location = 'http://idp.com/saml/idp/logout'
-      config.attribute_service_location = 'http://idp.com/saml/idp/attribute'
-      config.single_service_post_location = 'http://idp.com/saml/idp/sso'
-      config.name_id.formats = SamlIdp::Default::NAME_ID_FORMAT
-      config.service_provider = lambda { |_identifier, _service_provider|
-        raw_metadata = generate_sp_metadata(saml_acs_url, enable_secure_options)
-        SamlIdp::IncomingMetadata.new(raw_metadata).to_h
+  def configure_for_sp(config)
+    config ||= SamlIdp::IdPConfig.new
+    config.x509_certificate = SamlIdp::Default::X509_CERTIFICATE
+    config.secret_key = SamlIdp::Default::SECRET_KEY
+    config.password = nil
+    config.algorithm = :sha256
+    config.organization_name = 'idp.com'
+    config.organization_url = 'http://idp.com'
+    config.base_saml_location = 'http://idp.com/saml/idp'
+    config.single_logout_service_post_location = 'http://idp.com/saml/idp/logout'
+    config.single_logout_service_redirect_location = 'http://idp.com/saml/idp/logout'
+    config.attribute_service_location = 'http://idp.com/saml/idp/attribute'
+    config.single_service_post_location = 'http://idp.com/saml/idp/sso'
+    config.name_id.formats = SamlIdp::Default::NAME_ID_FORMAT
+    config.service_provider = lambda { |_identifier, _service_provider|
+      raw_metadata = generate_sp_metadata('https://foo.example.com/saml/consume', false)
+      SamlIdp::SpMetadata.new(raw_metadata).to_h
+    }
+    config.service_provider.finder = lambda { |_issuer_or_entity_id|
+      {
+        response_hosts: [URI('https://foo.example.com/saml/consume').host],
+        acs_url: 'https://foo.example.com/saml/consume',
+        cert: sp_x509_cert,
+        fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert)
       }
-      config.service_provider.finder = lambda { |_issuer_or_entity_id|
-        {
-          response_hosts: [URI(saml_acs_url).host],
-          acs_url: saml_acs_url,
-          cert: sp_x509_cert,
-          fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert)
-        }
-      }
-    end
+    }
+    config
   end
 
   def print_pretty_xml(xml_string)

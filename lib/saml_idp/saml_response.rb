@@ -4,6 +4,7 @@ require 'saml_idp/assertion_builder'
 require 'saml_idp/response_builder'
 module SamlIdp
   class SamlResponse
+    attr_accessor :sp_config
     attr_accessor :reference_id
     attr_accessor :response_id
     attr_accessor :issuer_uri
@@ -25,6 +26,7 @@ module SamlIdp
     attr_accessor :compression_opts
 
     def initialize(
+      sp_config,
       reference_id,
       response_id,
       issuer_uri,
@@ -99,6 +101,7 @@ module SamlIdp
     def assertion_builder
       @assertion_builder ||=
         AssertionBuilder.new SecureRandom.uuid,
+                             sp_config,
                              issuer_uri,
                              principal,
                              audience_uri,

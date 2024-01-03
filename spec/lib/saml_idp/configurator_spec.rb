@@ -1,6 +1,6 @@
 require 'spec_helper'
 module SamlIdp
-  describe Configurator do
+  describe IdPConfig do
     it { should respond_to :x509_certificate }
     it { should respond_to :secret_key }
     it { should respond_to :algorithm }

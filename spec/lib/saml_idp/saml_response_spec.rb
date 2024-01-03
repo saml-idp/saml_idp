@@ -28,7 +28,12 @@ module SamlIdp
     let(:unsigned_response_opts) { false }
     let(:signed_assertion_opts) { true }
     let(:compress_opts) { false }
-    let(:subject_encrypted) { described_class.new(reference_id,
+    let(:sp_config) do
+      configure_for_sp
+    end
+    let(:subject_encrypted) { described_class.new(
+                                  sp_config,
+                                  reference_id,
                                   response_id,
                                   issuer_uri,
                                   name_id,
@@ -48,7 +53,9 @@ module SamlIdp
                                  )
     }
 
-    subject { described_class.new(reference_id,
+    subject { described_class.new(
+                                  sp_config,
+                                  reference_id,
                                   response_id,
                                   issuer_uri,
                                   name_id,
