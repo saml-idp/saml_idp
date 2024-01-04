@@ -1,7 +1,6 @@
 module SamlIdp
   module Fingerprint
     def self.certificate_digest(cert, sha_size = nil)
-      sha_size ||= SamlIdp.config.algorithm
       digest_sha_class(sha_size).hexdigest(OpenSSL::X509::Certificate.new(cert).to_der).scan(/../).join(':')
     end
 

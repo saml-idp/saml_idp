@@ -28,7 +28,7 @@ module SamlIdp
       if reference_id
         fin = yield reference_id if block_given?
       else
-        self.reference_id = ref = reference_id_generator.call
+        self.reference_id = ref = reference_id_generator
         fin = yield reference_id if block_given?
         self.reference_id = nil
       end
@@ -37,7 +37,7 @@ module SamlIdp
     private :generated_reference_id
 
     def reference_id_generator
-      SamlIdp.config.reference_id_generator
+      SecureRandom.uuid
     end
     private :reference_id_generator
 
@@ -65,7 +65,7 @@ module SamlIdp
     private :sign?
 
     def signature
-      SignatureBuilder.new(signed_info_builder).raw
+      SignatureBuilder.new(signed_info_builder, get_x509_certificate).raw
     end
     private :signature
 
@@ -90,6 +90,11 @@ module SamlIdp
       send(self.class.algorithm_method)
     end
     private :get_algorithm
+
+    def get_x509_certificate
+      send(self.class.x509_certificate_method)
+    end
+    private :get_x509_certificate
 
     def get_raw
       send(self.class.raw_method)
@@ -124,6 +129,7 @@ module SamlIdp
       module_method :raw
       module_method :digest
       module_method :algorithm
+      module_method :x509_certificate
       module_method :reference_id
     end
   end

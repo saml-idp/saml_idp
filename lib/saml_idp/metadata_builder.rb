@@ -117,6 +117,11 @@ module SamlIdp
     end
     private :build_contact
 
+    def reference_id
+      configurator.reference_id
+    end
+    private :reference_id
+
     def reference_string
       "_#{reference_id}"
     end
@@ -152,7 +157,7 @@ module SamlIdp
     private :raw_algorithm
 
     def x509_certificate
-      SamlIdp.config.x509_certificate
+      configurator.x509_certificate
       .to_s
       .gsub(/-----BEGIN CERTIFICATE-----/,"")
       .gsub(/-----END CERTIFICATE-----/,"")

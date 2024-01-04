@@ -119,38 +119,47 @@ module SamlIdp
     def given_name
       contact_person_document.xpath("//md:GivenName", md: metadata_namespace).first.try(:content).to_s
     end
+    hashable :given_name
 
     def surname
       contact_person_document.xpath("//md:SurName", md: metadata_namespace).first.try(:content).to_s
     end
+    hashable :surname
 
     def company
       contact_person_document.xpath("//md:Company", md: metadata_namespace).first.try(:content).to_s
     end
+    hashable :company
 
     def telephone_number
       contact_person_document.xpath("//md:TelephoneNumber", md: metadata_namespace).first.try(:content).to_s
     end
+    hashable :telephone_number
 
     def email_address
       contact_person_document.xpath("//md:EmailAddress", md: metadata_namespace).first.try(:content).to_s.gsub("mailto:", "")
     end
+    hashable :email_address
 
     def role_descriptor_document
       @role_descriptor ||= xpath("//md:RoleDescriptor", md: metadata_namespace).first
     end
+    hashable :role_descriptor_document
 
     def service_provider_descriptor_document
       @service_provider_descriptor ||= xpath("//md:SPSSODescriptor", md: metadata_namespace).first
     end
+    hashable :service_provider_descriptor_document
 
     def idp_descriptor_document
       @idp_descriptor ||= xpath("//md:IDPSSODescriptor", md: metadata_namespace).first
     end
+    hashable :idp_descriptor_document
 
     def contact_person_document
       @contact_person_document ||= (xpath("//md:ContactPerson", md: metadata_namespace).first || Saml::XML::Document.new)
     end
+    hashable :contact_person_document
 
     def metadata_namespace
       Saml::XML::Namespaces::METADATA

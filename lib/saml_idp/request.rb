@@ -3,7 +3,7 @@ require 'saml_idp/sp_config'
 require 'logger'
 module SamlIdp
   class Request
-    def self.from_deflated_request(raw)
+    def self.from_deflated_request(raw, sp_config)
       if raw
         decoded = Base64.decode64(raw)
         zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
@@ -18,18 +18,20 @@ module SamlIdp
       else
         inflated = ""
       end
-      new(inflated)
+      new(inflated, sp_config)
     end
 
-    attr_accessor :raw_xml
+    attr_accessor :raw_xml, :sp_config, :error_msg
 
     delegate :config, to: :SamlIdp
     private :config
     delegate :xpath, to: :document
     private :xpath
 
-    def initialize(raw_xml = "")
+    def initialize(raw_xml = "", sp_config)
       self.raw_xml = raw_xml
+      self.sp_config = sp_config
+      self.error_msg = ""
     end
 
     def logout_request?
@@ -61,8 +63,7 @@ module SamlIdp
     end
 
     def acs_url
-      sp_config.acs_url ||
-        authn_request["AssertionConsumerServiceURL"].to_s
+      authn_request["AssertionConsumerServiceURL"].to_s || sp_config.acs_url
     end
 
     def logout_url
@@ -77,38 +78,30 @@ module SamlIdp
       end
     end
 
-    def log(msg)
-      if config.logger.class <= ::Logger
-        config.logger.info msg
-      else
-        config.logger.call msg
-      end
-    end
-
     def valid?
       unless sp_config?
-        log "Unable to find service provider for issuer #{issuer}"
+        @error_msg = "Unable to find service provider for issuer #{issuer}"
         return false
       end
 
       unless (authn_request? ^ logout_request?)
-        log "One and only one of authnrequest and logout request is required. authnrequest: #{authn_request?} logout_request: #{logout_request?} "
+        @error_msg = "One and only one of authnrequest and logout request is required. authnrequest: #{authn_request?} logout_request: #{logout_request?} "
         return false
       end
 
       unless valid_signature?
-        log "Signature is invalid in #{raw_xml}"
+        @error_msg = "Signature is invalid in #{raw_xml}"
         return false
       end
 
       if response_url.nil?
-        log "Unable to find response url for #{issuer}: #{raw_xml}"
+        @error_msg = "Unable to find response url for #{issuer}: #{raw_xml}"
         return false
       end
 
       if !sp_config.acceptable_response_hosts.include?(response_host)
-        log "#{sp_config.acceptable_response_hosts} compare to #{response_host}"
-        log "No acceptable AssertionConsumerServiceURL, either configure them via config.sp_config.response_hosts or match to your metadata_url host"
+        @error_msg = "#{sp_config.acceptable_response_hosts} compare to #{response_host}"
+        @error_msg = "No acceptable AssertionConsumerServiceURL, request AssertionConsumerServiceURL should include in SP metadata"
         return false
       end
 
@@ -128,11 +121,6 @@ module SamlIdp
 
     def sp_config?
       sp_config && sp_config.valid?
-    end
-
-    def sp_config
-      return unless issuer.present?
-      @_service_provider ||= SpConfig.new((service_provider_finder[issuer] || {}).merge(identifier: issuer))
     end
 
     def issuer

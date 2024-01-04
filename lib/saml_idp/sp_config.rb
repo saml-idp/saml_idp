@@ -5,15 +5,27 @@ require 'saml_idp/sp_metadata'
 module SamlIdp
   class SpConfig
     include Attributeable
-    attribute :identifier
+    attribute :entity_id
     attribute :cert
     attribute :fingerprint
-    attribute :metadata_url
+    attribute :fingerprint_algorithm
     attribute :validate_signature
     attribute :acs_url
     attribute :assertion_consumer_logout_service_url
     attribute :response_hosts
     attribute :sp_metadata
+
+    def self.load_from_sp_metadata(raw_xml)
+      metadata = SamlIdp::SpMetadata.new(raw_xml)
+      metadata_hash = metadata.to_h
+      new(
+        sp_metadata: metadata,
+        entity_id: metadata_hash[:entity_id],
+        cert: metadata_hash[:signing_certificate],
+        acs_url: metadata_hash[:assertion_consumer_services].first,
+        assertion_consumer_logout_service_url: metadata_hash[:single_logout_services]&.first
+      )
+    end
 
     def valid?
       attributes.present?
@@ -27,25 +39,13 @@ module SamlIdp
       end
     end
 
-    def current_metadata
-      @current_metadata ||= sp_metadata
-    end
-
     def acceptable_response_hosts
-      hosts = Array(self.response_hosts)
-      hosts.push(metadata_url_host) if metadata_url_host
-
-      hosts
-    end
-
-    def metadata_url_host
-      if metadata_url.present?
-        URI(metadata_url).host
-      end
+      Array(self.response_hosts)
     end
 
     def fingerprint
-      @fingerprint ||= SamlIdp::Fingerprint.certificate_digest(cert)
+      sha_size = fingerprint_algorithm || :sha256
+      @fingerprint ||= SamlIdp::Fingerprint.certificate_digest(cert, sha_size)
     end
 
     def response_hosts
