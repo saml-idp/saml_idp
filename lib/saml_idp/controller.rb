@@ -48,51 +48,19 @@ module SamlIdp
       Saml::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
     end
 
-    def encode_authn_response(principal, opts = {})
-      response_id = get_saml_response_id
-      reference_id = opts[:reference_id] || get_saml_reference_id
-      audience_uri = opts[:audience_uri] || saml_request.issuer || saml_acs_url[/^(.*?\/\/.*?\/)/, 1]
-      opt_issuer_uri = opts[:issuer_uri] || issuer_uri
-      my_authn_context_classref = opts[:authn_context_classref] || authn_context_classref
-      acs_url = opts[:acs_url] || saml_acs_url
-      expiry = opts[:expiry] || 60*60
-      session_expiry = opts[:session_expiry]
-      encryption_opts = opts[:encryption] || nil
-      name_id_formats_opts = opts[:name_id_formats] || nil
-      asserted_attributes_opts = opts[:attributes] || nil
-      signed_message_opts = opts[:signed_message] || false
-      signed_assertion_opts = opts[:signed_assertion] || true
-      compress_opts = opts[:compress] || false
-
+    def encode_authn_response(principal)
+      idp_config.load_saml_request(saml_request)
       SamlResponse.new(
-        idp_config,
-        reference_id,
-        response_id,
-        opt_issuer_uri,
-        principal,
-        audience_uri,
-        saml_request_id,
-        acs_url,
-        (opts[:algorithm] || algorithm || default_algorithm),
-        my_authn_context_classref,
-        expiry,
-        encryption_opts,
-        session_expiry,
-        name_id_formats_opts,
-        asserted_attributes_opts,
-        signed_assertion_opts,
-        signed_message_opts,
-        compress_opts
+        principal: principal,
+        idp_config: idp_config,
+        saml_request: saml_request
       ).build
     end
 
-    def encode_logout_response(_principal, opts = {})
+    def encode_logout_response(_principal)
       SamlIdp::LogoutResponseBuilder.new(
-        get_saml_response_id,
-        (opts[:issuer_uri] || issuer_uri),
-        saml_logout_url,
-        saml_request_id,
-        (opts[:algorithm] || algorithm || default_algorithm)
+        idp_config: idp_config,
+        saml_request: saml_request,
       ).signed
     end
 
@@ -106,38 +74,8 @@ module SamlIdp
       end
     end
 
-    def issuer_uri
-      (SamlIdp.config.base_saml_location.present? && SamlIdp.config.base_saml_location) ||
-        (defined?(request) && request.url.to_s.split("?").first) ||
-        "http://example.com"
-    end
-
     def valid_saml_request?
       saml_request.valid?
-    end
-
-    def saml_request_id
-      saml_request.request_id
-    end
-
-    def saml_acs_url
-      saml_request.acs_url
-    end
-
-    def saml_logout_url
-      saml_request.logout_url
-    end
-
-    def get_saml_response_id
-      SecureRandom.uuid
-    end
-
-    def get_saml_reference_id
-      SecureRandom.uuid
-    end
-
-    def default_algorithm
-      OpenSSL::Digest::SHA256
     end
 
     def idp_config

@@ -4,69 +4,12 @@ require 'saml_idp/assertion_builder'
 require 'saml_idp/response_builder'
 module SamlIdp
   class SamlResponse
-    attr_accessor :sp_config
-    attr_accessor :reference_id
-    attr_accessor :response_id
-    attr_accessor :issuer_uri
-    attr_accessor :principal
-    attr_accessor :audience_uri
-    attr_accessor :saml_request_id
-    attr_accessor :saml_acs_url
-    attr_accessor :algorithm
-    attr_accessor :secret_key
-    attr_accessor :x509_certificate
-    attr_accessor :authn_context_classref
-    attr_accessor :expiry
-    attr_accessor :encryption_opts
-    attr_accessor :session_expiry
-    attr_accessor :name_id_formats_opts
-    attr_accessor :asserted_attributes_opts
-    attr_accessor :signed_message_opts
-    attr_accessor :signed_assertion_opts
-    attr_accessor :compression_opts
+    attr_accessor :principal, :idp_config, :saml_request
 
-    def initialize(
-      sp_config,
-      reference_id,
-      response_id,
-      issuer_uri,
-      principal,
-      audience_uri,
-      saml_request_id,
-      saml_acs_url,
-      algorithm,
-      authn_context_classref,
-      expiry = 60 * 60,
-      encryption_opts = nil,
-      session_expiry = 0,
-      name_id_formats_opts = nil,
-      asserted_attributes_opts = nil,
-      signed_message_opts = false,
-      signed_assertion_opts = true,
-      compression_opts = false
-    )
-
-      self.reference_id = reference_id
-      self.response_id = response_id
-      self.issuer_uri = issuer_uri
+    def initialize(principal:, idp_config:, saml_request:)
       self.principal = principal
-      self.audience_uri = audience_uri
-      self.saml_request_id = saml_request_id
-      self.saml_acs_url = saml_acs_url
-      self.algorithm = algorithm
-      self.secret_key = secret_key
-      self.x509_certificate = x509_certificate
-      self.authn_context_classref = authn_context_classref
-      self.expiry = expiry
-      self.encryption_opts = encryption_opts
-      self.session_expiry = session_expiry
-      self.signed_message_opts = signed_message_opts
-      self.name_id_formats_opts = name_id_formats_opts
-      self.asserted_attributes_opts = asserted_attributes_opts
-      self.signed_assertion_opts = signed_assertion_opts
-      self.name_id_formats_opts = name_id_formats_opts
-      self.asserted_attributes_opts = asserted_attributes_opts
-      self.compression_opts = compression_opts
+      self.idp_config = idp_config
+      self.saml_request = saml_request
     end
 
     def build
@@ -74,9 +17,9 @@ module SamlIdp
     end
 
     def signed_assertion
-      if encryption_opts
+      if idp_config.encryption
         assertion_builder.encrypt(sign: true)
-      elsif signed_assertion_opts
+      elsif idp_config.signed_assertion
         assertion_builder.signed
       else
         assertion_builder.raw
@@ -85,35 +28,39 @@ module SamlIdp
     private :signed_assertion
 
     def encoded_message
-      if signed_message_opts
-        response_builder.encoded(signed_message: true, compress: compression_opts)
-      else
-        response_builder.encoded(signed_message: false, compress: compression_opts)
-      end
+      response_builder.encoded(signed_message: idp_config.signed_message, compress: idp_config.compression)
     end
     private :encoded_message
 
     def response_builder
-      ResponseBuilder.new(response_id, issuer_uri, saml_acs_url, saml_request_id, signed_assertion, algorithm)
+      
+      ResponseBuilder.new(
+        response_id: idp_config.response_id,
+        issuer_uri: idp_config.issuer_uri,
+        saml_acs_url: idp_config.saml_acs_url,
+        saml_request_id: saml_request.request_id,
+        assertion_and_signature: idp_config.assertion_and_signature,
+        raw_algorithm: idp_config.raw_algorithm
+      )
     end
     private :response_builder
 
     def assertion_builder
-      @assertion_builder ||=
-        AssertionBuilder.new SecureRandom.uuid,
-                             sp_config,
-                             issuer_uri,
-                             principal,
-                             audience_uri,
-                             saml_request_id,
-                             saml_acs_url,
-                             algorithm,
-                             authn_context_classref,
-                             expiry,
-                             encryption_opts,
-                             session_expiry,
-                             name_id_formats_opts,
-                             asserted_attributes_opts
+      @assertion_builder ||= AssertionBuilder.new(
+        reference_id: SecureRandom.uuid,
+        issuer_uri: idp_config.issuer_uri,
+        principal: principal,
+        audience_uri: idp_config.audience_uri,
+        saml_request_id: saml_request.request_id,
+        saml_acs_url: idp_config.saml_acs_url,
+        raw_algorithm: idp_config.raw_algorithm,
+        authn_context_classref:  idp_config.authn_context_classref,
+        expiry: idp_config.expiry,
+        encryption_opts: idp_config.encryption_opts,
+        session_expiry: idp_config.session_expiry,
+        name_id_formats_opts: idp_config.name_id_formats_opts,
+        asserted_attributes_opts: idp_config.asserted_attributes_opts
+      )
     end
     private :assertion_builder
   end
