@@ -19,22 +19,20 @@ module SamlIdp
     attr_accessor :name_id_formats_opts
     attr_accessor :asserted_attributes_opts
 
-    delegate :config, to: :SamlIdp
-
     def initialize(
-        reference_id,
-        issuer_uri,
-        principal,
-        audience_uri,
-        saml_request_id,
-        saml_acs_url,
-        raw_algorithm,
-        authn_context_classref,
-        expiry=60*60,
-        encryption_opts=nil,
-        session_expiry=nil,
-        name_id_formats_opts = nil,
-        asserted_attributes_opts = nil
+        reference_id:,
+        issuer_uri:,
+        principal:,
+        audience_uri:,
+        saml_request_id:,
+        saml_acs_url:,
+        raw_algorithm:,
+        authn_context_classref:,
+        expiry: 60*60,
+        encryption_opts: nil,
+        session_expiry: nil,
+        name_id_formats_opts:  nil,
+        asserted_attributes_opts:  nil
     )
       self.reference_id = reference_id
       self.issuer_uri = issuer_uri
@@ -42,7 +40,7 @@ module SamlIdp
       self.audience_uri = audience_uri
       self.saml_request_id = saml_request_id
       self.saml_acs_url = saml_acs_url
-      self.raw_algorithm = raw_algorithm
+      self.raw_algorithm = raw_algorithm || idp_config.algorithm
       self.authn_context_classref = authn_context_classref
       self.expiry = expiry
       self.encryption_opts = encryption_opts

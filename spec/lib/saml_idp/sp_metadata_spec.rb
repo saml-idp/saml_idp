@@ -29,31 +29,31 @@ module SamlIdp
 </md:EntityDescriptor>
   eos
 
-  describe IncomingMetadata do
+  describe SpMetadata do
     it 'should properly set sign_assertions to false' do
-      metadata = SamlIdp::IncomingMetadata.new(metadata_1)
+      metadata = SamlIdp::SpMetadata.new(metadata_1)
       expect(metadata.sign_assertions).to eq(false)
       expect(metadata.sign_authn_request).to eq(false)
     end
 
     it 'should properly set entity_id as https://test-saml.com/saml' do
-      metadata = SamlIdp::IncomingMetadata.new(metadata_1)
+      metadata = SamlIdp::SpMetadata.new(metadata_1)
       expect(metadata.entity_id).to eq('https://test-saml.com/saml')
     end
 
     it 'should properly set sign_assertions to true' do
-      metadata = SamlIdp::IncomingMetadata.new(metadata_2)
+      metadata = SamlIdp::SpMetadata.new(metadata_2)
       expect(metadata.sign_assertions).to eq(true)
       expect(metadata.sign_authn_request).to eq(true)
     end
 
     it 'should properly set sign_assertions to false when WantAssertionsSigned is not included' do
-      metadata = SamlIdp::IncomingMetadata.new(metadata_3)
+      metadata = SamlIdp::SpMetadata.new(metadata_3)
       expect(metadata.sign_assertions).to eq(false)
     end
 
     it 'should properly set sign_authn_request to false when AuthnRequestsSigned is not included' do
-      metadata = SamlIdp::IncomingMetadata.new(metadata_4)
+      metadata = SamlIdp::SpMetadata.new(metadata_4)
       expect(metadata.sign_authn_request).to eq(false)
     end
   end

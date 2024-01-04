@@ -1,7 +1,7 @@
 require 'set'
 require 'saml_idp/hashable'
 module SamlIdp
-  class IncomingMetadata
+  class SpMetadata
     include Hashable
     attr_accessor :raw
 

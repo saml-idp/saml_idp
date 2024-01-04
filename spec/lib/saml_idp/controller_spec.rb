@@ -23,13 +23,8 @@ describe SamlIdp::Controller do
 
   context "When SP metadata required to validate auth request signature" do
     before do
-      idp_configure("https://foo.example.com/saml/consume", true)
+      configure_for_sp
       params[:SAMLRequest] = make_saml_request("https://foo.example.com/saml/consume", true)
-    end
-
-    it 'SP metadata sign_authn_request attribute should be true' do
-      # Signed auth request will be true in the metadata
-      expect(SamlIdp.config.service_provider.persisted_metadata_getter.call(nil,nil)[:sign_authn_request]).to eq(true)
     end
 
     it 'should call xml signature validation method' do

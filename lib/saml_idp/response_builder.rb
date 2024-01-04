@@ -14,7 +14,7 @@ module SamlIdp
 
     alias_method :reference_id, :response_id
 
-    def initialize(response_id, issuer_uri, saml_acs_url, saml_request_id, assertion_and_signature, raw_algorithm)
+    def initialize(response_id:, issuer_uri:, saml_acs_url:, saml_request_id:, assertion_and_signature:, raw_algorithm:)
       self.response_id = response_id
       self.issuer_uri = issuer_uri
       self.saml_acs_url = saml_acs_url

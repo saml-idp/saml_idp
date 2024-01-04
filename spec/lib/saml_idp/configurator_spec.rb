@@ -1,6 +1,6 @@
 require 'spec_helper'
 module SamlIdp
-  describe Configurator do
+  describe IdPConfig do
     it { should respond_to :x509_certificate }
     it { should respond_to :secret_key }
     it { should respond_to :algorithm }
@@ -15,7 +15,7 @@ module SamlIdp
     it { should respond_to :single_logout_service_redirect_location }
     it { should respond_to :name_id }
     it { should respond_to :attributes }
-    it { should respond_to :service_provider }
+    it { should respond_to :sp_config }
     it { should respond_to :session_expiry }
     it { should respond_to :logger }
 
@@ -33,15 +33,6 @@ module SamlIdp
 
     it "has a valid reference_id_generator" do
       expect(subject.reference_id_generator).to respond_to :call
-    end
-
-
-    it "can call service provider finder" do
-      expect(subject.service_provider.finder).to respond_to :call
-    end
-
-    it "can call service provider metadata persister" do
-      expect(subject.service_provider.metadata_persister).to respond_to :call
     end
 
     it 'has a valid session_expiry' do

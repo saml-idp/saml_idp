@@ -1,6 +1,6 @@
 require 'spec_helper'
 module SamlIdp
-  describe ServiceProvider do
+  describe SpConfig do
     subject { described_class.new attributes }
     let(:attributes) { {} }
 

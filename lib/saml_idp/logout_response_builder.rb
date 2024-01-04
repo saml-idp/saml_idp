@@ -1,11 +1,13 @@
 require 'saml_idp/logout_builder'
 module SamlIdp
   class LogoutResponseBuilder < LogoutBuilder
-    attr_accessor :saml_request_id
+    attr_accessor :idp_config, :saml_request
 
-    def initialize(response_id, issuer_uri, saml_slo_url, saml_request_id, algorithm)
-      super(response_id, issuer_uri, saml_slo_url, algorithm)
-      self.saml_request_id = saml_request_id
+    def initialize(idp_config:, saml_request:, response_id: nil)
+      @response_id = response_id || SecureRandom.uuid
+      self.saml_request = saml_request
+      self.idp_config = idp_config
+      super(@response_id, idp_config.issuer_uri, saml_slo_url, idp_config.algorithm)
     end
 
     def build
@@ -14,7 +16,7 @@ module SamlIdp
         Version: "2.0",
         IssueInstant: now_iso,
         Destination: saml_slo_url,
-        InResponseTo: saml_request_id,
+        InResponseTo: saml_request.request_id,
         xmlns: Saml::XML::Namespaces::PROTOCOL do |response|
           response.Issuer issuer_uri, xmlns: Saml::XML::Namespaces::ASSERTION
           sign response
