@@ -91,6 +91,12 @@ describe SamlIdp::Controller do
         expect(response.issuer).to eq("http://example.com")
       end
 
+      it "should by default create a SAML Response with a signed assertion" do
+        saml_response = encode_response(principal)
+        response = OneLogin::RubySaml::Response.new(saml_response)
+        response.settings = saml_settings("https://foo.example.com/saml/consume", true)
+        expect(response.is_valid?).to be_truthy
+      end
 
       [:sha1, :sha256, :sha384, :sha512].each do |algorithm_name|
         it "should create a SAML Response using the #{algorithm_name} algorithm" do

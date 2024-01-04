@@ -40,7 +40,8 @@ module SamlRequestMacros
                                     logout_requests_signed: true, 
                                     logout_responses_signed: true,
                                     digest_method: XMLSecurity::Document::SHA256,
-                                    signature_method: XMLSecurity::Document::RSA_SHA256)
+                                    signature_method: XMLSecurity::Document::RSA_SHA256,
+                                    assertions_signed: true)
     # Security section
     settings.idp_cert = SamlIdp::Default::X509_CERTIFICATE
     # Signed embedded singature
@@ -51,6 +52,7 @@ module SamlRequestMacros
     settings.security[:metadata_signed] = digest_method
     settings.security[:digest_method] = digest_method
     settings.security[:signature_method] = signature_method
+    settings.security[:want_assertions_signed] = assertions_signed
     settings.private_key = sp_pv_key
     settings.certificate = sp_x509_cert
   end
