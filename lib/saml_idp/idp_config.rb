@@ -96,11 +96,10 @@ module SamlIdp
       end
     end
 
-    private
-
     def check_required_attributes(attributes)
       missing_attributes = IDP_REQUIRED_ATTR - attributes.keys
       raise ArgumentError, "Missing required attributes: #{missing_attributes.join(', ')}" unless missing_attributes.empty?
     end
+    private :check_required_attributes
   end
 end
