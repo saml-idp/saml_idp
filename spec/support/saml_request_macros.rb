@@ -13,7 +13,10 @@ module SamlRequestMacros
       'http://example.com',
       requested_saml_logout_url,
       'some_name_id',
-      OpenSSL::Digest::SHA256
+      OpenSSL::Digest::SHA256,
+      SamlIdp::Default::X509_CERTIFICATE,
+      SamlIdp::Default::SECRET_KEY,
+      nil
     )
     Base64.strict_encode64(request_builder.signed)
   end
@@ -56,32 +59,28 @@ module SamlRequestMacros
   end
 
   def configure_for_sp(config)
-    config ||= SamlIdp::IdPConfig.new
-    config.x509_certificate = SamlIdp::Default::X509_CERTIFICATE
-    config.secret_key = SamlIdp::Default::SECRET_KEY
-    config.password = nil
-    config.algorithm = :sha256
-    config.organization_name = 'idp.com'
-    config.organization_url = 'http://idp.com'
-    config.base_saml_location = 'http://idp.com/saml/idp'
-    config.single_logout_service_post_location = 'http://idp.com/saml/idp/logout'
-    config.single_logout_service_redirect_location = 'http://idp.com/saml/idp/logout'
-    config.attribute_service_location = 'http://idp.com/saml/idp/attribute'
-    config.single_service_post_location = 'http://idp.com/saml/idp/sso'
-    config.name_id.formats = SamlIdp::Default::NAME_ID_FORMAT
-    config.sp_config = lambda { |_identifier, _service_provider|
-      raw_metadata = generate_sp_metadata('https://foo.example.com/saml/consume', false)
-      SamlIdp::SpMetadata.new(raw_metadata).to_h
-    }
-    config.sp_config.finder = lambda { |_issuer_or_entity_id|
-      {
-        response_hosts: [URI('https://foo.example.com/saml/consume').host],
-        acs_url: 'https://foo.example.com/saml/consume',
-        cert: sp_x509_cert,
-        fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert)
-      }
-    }
-    config
+    sp_config ||= SamlIdp::SpConfig.load_from_sp_metadata(
+      generate_sp_metadata('https://foo.example.com/saml/consume', false)
+    )
+    sp_config.response_hosts = [URI('https://foo.example.com/saml/consume').host]
+    sp_config.signing_certificate = sp_x509_cert
+    sp_config.fingerprint = SamlIdp::Fingerprint.certificate_digest(sp_x509_cert)
+    sp_config.name_id_formats = [SamlIdp::Default::NAME_ID_FORMAT]
+
+    idp_config ||= SamlIdp::IdPConfig.new(
+      x509_certificate: SamlIdp::Default::X509_CERTIFICATE,
+      secret_key: SamlIdp::Default::SECRET_KEY,
+      password: nil,
+      algorithm: :sha256,
+      organization_name: 'idp.com',
+      organization_url: 'http://idp.com',
+      base_saml_location: 'http://idp.com/saml/idp',
+      single_logout_service_post_location: 'http://idp.com/saml/idp/logout',
+      single_logout_service_redirect_location: 'http://idp.com/saml/idp/logout',
+      attribute_service_location: 'http://idp.com/saml/idp/attribute',
+      single_service_post_location: 'http://idp.com/saml/idp/sso',
+    )
+    [idp_config, sp_config]
   end
 
   def print_pretty_xml(xml_string)

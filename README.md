@@ -127,7 +127,7 @@ Your application need to manage 2 things for configuration.
   If you have a method called `asserted_attributes` in your Principal class,
   there is no need to define it here in the config.
 
-  config.attributes  =>
+  config.saml_attributes  =>
   {
     <friendly_name> => {                                                  # required (ex "eduPersonAffiliation")
       "name" => <attrname>                                                # required (ex "urn:oid:1.3.6.1.4.1.5923.1.1.1.1")
@@ -139,7 +139,7 @@ Your application need to manage 2 things for configuration.
   }
   
   # EXAMPLE ##
-  config.attributes = {
+  config.saml_attributes = {
     GivenName: {
       getter: :first_name,
     },

@@ -128,7 +128,7 @@ module SamlIdp
     private :reference_string
 
     def entity_id
-      configurator.entity_id.presence || configurator.base_saml_location
+      configurator.entity_id.presence
     end
     private :entity_id
 

@@ -33,11 +33,11 @@ module SamlIdp
         saml_acs_url:,
         raw_algorithm:,
         authn_context_classref:,
+        name_id_formats_opts:,
         expiry: 60*60,
         encryption_opts: nil,
         session_expiry: nil,
-        name_id_formats_opts:  nil,
-        asserted_attributes_opts:  nil,
+        asserted_attributes_opts: nil,
         x509_certificate: nil,
         secret_key: nil,
         password: nil
@@ -52,7 +52,7 @@ module SamlIdp
       self.authn_context_classref = authn_context_classref
       self.expiry = expiry
       self.encryption_opts = encryption_opts
-      self.session_expiry = session_expiry.nil? ? config.session_expiry : session_expiry
+      self.session_expiry = session_expiry
       self.name_id_formats_opts = name_id_formats_opts
       self.asserted_attributes_opts = asserted_attributes_opts
       self.x509_certificate = x509_certificate
@@ -129,8 +129,6 @@ module SamlIdp
         asserted_attributes_opts
       elsif principal.respond_to?(:asserted_attributes)
         principal.send(:asserted_attributes)
-      elsif !config.attributes.nil? && !config.attributes.empty?
-        config.attributes
       end
     end
     private :asserted_attributes
@@ -173,7 +171,7 @@ module SamlIdp
     private :name_id_format
 
     def name_id_formats
-      @name_id_formats ||= (name_id_formats_opts || config.name_id.formats)
+      @name_id_formats ||= name_id_formats_opts
     end
     private :name_id_formats
 

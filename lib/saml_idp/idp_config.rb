@@ -5,46 +5,45 @@ require 'securerandom'
 module SamlIdp
   class IdPConfig
     IDP_REQUIRED_ATTR = [
-      :entity_id,
-      :audience_uri,
-      :issuer_uri,
-      :saml_acs_url,
+      :base_url,
       :x509_certificate,
       :secret_key,
       :password,
-      :organization_name,
-      :organization_url,
-      :attribute_service_location,
+      :name_id_formats,
       :single_service_post_location,
       :single_service_redirect_location,
-      :single_logout_service_post_location,
-      :single_logout_service_redirect_location
     ].freeze
 
     IDP_OPTIONAL_ATTR = [
+      :entity_id,
+      :issuer_uri,
       :reference_id,
       :response_id,
-      :algorithm,
-      :attributes,
+      :raw_algorithm,
+      :saml_attributes,
       :session_expiry,
       :authn_context_classref,
       :expiry,
-      :encryption,
-      :name_id_format,
+      :encryption_config,
       :asserted_attributes,
       :signed_message,
       :signed_assertion,
-      :compress
+      :compress,
+      :single_logout_service_post_location,
+      :single_logout_service_redirect_location,
+      :attribute_service_location,
+      :organization_name,
+      :organization_url
     ].freeze
 
     ALL_ATTRIBUTES = (IDP_REQUIRED_ATTR + IDP_OPTIONAL_ATTR).freeze
 
     DEFAULT_VALUES = {
-      encryption: nil,
+      encryption_config: nil,
       signed_message: false,
       signed_assertion: true,
       compress: false,
-      algorithm: :sha256,
+      raw_algorithm: :sha256,
       authn_context_classref: SamlIdp::XML::Namespaces::AuthnContext::ClassRef::PASSWORD,
       attributes: {},
       session_expiry: 0,
@@ -60,12 +59,18 @@ module SamlIdp
         instance_variable_set("@#{attr}", attributes.key?(attr) ? attributes[attr] : DEFAULT_VALUES[attr])
       end
 
-      self.reference_id ||= SecureRandom.uuid
-      self.response_id ||= SecureRandom.uuid
+      @reference_id ||= SecureRandom.uuid
+      @response_id ||= SecureRandom.uuid
+      @entity_id ||= @base_url
+      @issuer_uri ||= @base_url
     end
 
     def single_logout_url
       single_logout_service_post_location || single_logout_service_redirect_location
+    end
+
+    def algorithm
+      OpenSSL::Digest.const_get(raw_algorithm.to_s.upcase)
     end
 
     # formats
@@ -82,12 +87,6 @@ module SamlIdp
       def mail_to_string
         "mailto:#{email_address}" if email_address.to_s.length > 0
       end
-    end
-
-    def load_saml_request(saml_request)
-      self.audience_uri = idp_config.audience_uri || saml_request.issuer || saml_request.acs_url[/^(.*?\/\/.*?\/)/, 1]
-      self.issuer_uri = idp_config.issuer_uri || saml_request.to_s.split("?").first || "http://example.com"
-      self.acs_url = idp_config.acs_url || saml_request.acs_url
     end
 
     def to_hash

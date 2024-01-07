@@ -17,42 +17,45 @@ module SamlIdp
     protected
 
     def saml_request
-      @saml_request ||= Struct.new(:request_id) do
+      @saml_request ||= Struct.new(
+        :request_id,
+        :issue_url,
+        :acs_url
+      ) do
         def authn_request?
           true
         end
 
-        def issuer
-          nil
+        def idp_initiated?
+          true
         end
 
-        def acs_url
-          nil
+        def issuer
+          url = URI(issue_url)
+          url.query = nil
+          url.to_s
         end
-      end.new(nil)
+      end.new(nil, idp_config.issuer_uri, sp_config.assertion_consumer_services.first[:location])
     end
 
-    def validate_saml_request(raw_saml_request = params[:SAMLRequest])
-      decode_request(raw_saml_request)
+    def validate_saml_request
+      decode_request
       return true if valid_saml_request?
 
       head :forbidden if defined?(::Rails)
       false
     end
 
-    def decode_request(raw_saml_request)
-      @saml_request = Request.from_deflated_request(raw_saml_request, sp_config)
-    end
-
-    def authn_context_classref
-      SamlIdp::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
+    def decode_request
+      @saml_request ||= Request.from_deflated_request(raw_saml_request, sp_config)
+      sp_config.load_saml_request(@saml_request)
     end
 
     def encode_authn_response(principal)
-      idp_config.load_saml_request(saml_request)
       SamlIdp::SamlResponse.new(
         principal: principal,
         idp_config: idp_config,
+        sp_config: sp_config,
         saml_request: saml_request
       ).build
     end
@@ -64,11 +67,11 @@ module SamlIdp
       ).signed
     end
 
-    def encode_response(principal, opts = {})
+    def encode_response(principal)
       if saml_request.authn_request?
-        encode_authn_response(principal, opts)
+        encode_authn_response(principal)
       elsif saml_request.logout_request?
-        encode_logout_response(principal, opts)
+        encode_logout_response(principal)
       else
         raise "Unknown request: #{saml_request}"
       end
@@ -86,6 +89,10 @@ module SamlIdp
       else
         raise "Missing SP configuration"
       end
+    end
+
+    def raw_saml_request
+      raise "Missing SAML SP initiated request getter implementation"
     end
 
     def sp_config_hash

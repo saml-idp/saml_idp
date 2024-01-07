@@ -10,11 +10,11 @@ module SamlIdp
     ].freeze
 
     SP_OPTIONAL_ATTR = [
-      :fingerprint,
-      :fingerprint_algorithm,
       :sign_assertions,
       :sign_authn_request,
       :signing_certificate,
+      :fingerprint,
+      :fingerprint_algorithm,
       :encryption_certificate,
       :single_logout_services,
       :name_id_formats,
@@ -32,6 +32,8 @@ module SamlIdp
     ].freeze
 
     INTERNAL_ATTR = [
+      :audience_uri,
+      :acs_url,
       :response_hosts,
       :sp_metadata
     ]
@@ -40,7 +42,7 @@ module SamlIdp
 
     DEFAULT_VALUES = {
       sign_assertions: false,
-      sign_authn_request: true,
+      sign_authn_request: false,
       fingerprint_algorithm: :sha256,
     }.freeze
 
@@ -58,6 +60,18 @@ module SamlIdp
       ALL_ATTRIBUTES.each do |attr|
         instance_variable_set("@#{attr}", attributes.key?(attr) ? attributes[attr] : DEFAULT_VALUES[attr])
       end
+
+      @signing_certificate = format_x509_cert(signing_certificate)
+      @encryption_certificate = format_x509_cert(encryption_certificate)
+      @audience_uri = entity_id
+      @acs_url = assertion_consumer_services.first[:location]
+    end
+
+    def load_saml_request(saml_request)
+      return if saml_request.nil?
+
+      @audience_uri = saml_request.issuer || saml_request.acs_url[/^(.*?\/\/.*?\/)/, 1] if saml_request.authn_request?
+      @acs_url = saml_request.acs_url if saml_request.authn_request?
     end
 
     def valid?
@@ -69,12 +83,19 @@ module SamlIdp
     end
 
     def acceptable_response_hosts
-      Array(self.response_hosts)
+      Array(response_hosts)
     end
 
     def fingerprint
       sha_size = fingerprint_algorithm || :sha256
-      @fingerprint ||= SamlIdp::Fingerprint.certificate_digest(cert, sha_size)
+      @fingerprint ||= SamlIdp::Fingerprint.certificate_digest(signing_certificate, sha_size)
+    end
+
+    def format_x509_cert(cert)
+      return cert if cert.nil? || cert.include?("BEGIN CERTIFICATE")
+
+      cert = cert.strip
+      "-----BEGIN CERTIFICATE-----\n#{cert}\n-----END CERTIFICATE-----\n"
     end
 
     def response_hosts

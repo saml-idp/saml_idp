@@ -23,8 +23,6 @@ module SamlIdp
 
     attr_accessor :raw_xml, :sp_config, :error_msg
 
-    delegate :config, to: :SamlIdp
-    private :config
     delegate :xpath, to: :document
     private :xpath
 
@@ -63,7 +61,11 @@ module SamlIdp
     end
 
     def acs_url
-      authn_request["AssertionConsumerServiceURL"].to_s || sp_config.acs_url
+      authn_request["AssertionConsumerServiceURL"].to_s || sp_config.assertion_consumer_services.first[:location]
+    end
+
+    def protocol_binding
+      authn_request["ProtocolBinding"].to_s || sp_config.assertion_consumer_services.first[:binding]
     end
 
     def logout_url
@@ -111,8 +113,7 @@ module SamlIdp
     def valid_signature?
       # Force signatures for logout requests because there is no other protection against a cross-site DoS.
       # Validate signature when metadata specify AuthnRequest should be signed
-      metadata = sp_config.current_metadata
-      if logout_request? || authn_request? && metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
+      if logout_request? || authn_request? && sp_config.sign_authn_request
         document.valid_signature?(sp_config.fingerprint)
       else
         true
