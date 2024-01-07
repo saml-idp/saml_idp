@@ -33,14 +33,16 @@ module SamlIdp
     private :encoded_message
 
     def response_builder
-      
       ResponseBuilder.new(
         response_id: idp_config.response_id,
         issuer_uri: idp_config.issuer_uri,
         saml_acs_url: idp_config.saml_acs_url,
         saml_request_id: saml_request.request_id,
         assertion_and_signature: idp_config.assertion_and_signature,
-        raw_algorithm: idp_config.raw_algorithm
+        raw_algorithm: idp_config.raw_algorithm,
+        x509_certificate: idp_config.x509_certificate,
+        secret_key: idp_config.secret_key,
+        password: idp_config.password
       )
     end
     private :response_builder
@@ -59,7 +61,10 @@ module SamlIdp
         encryption_opts: idp_config.encryption_opts,
         session_expiry: idp_config.session_expiry,
         name_id_formats_opts: idp_config.name_id_formats_opts,
-        asserted_attributes_opts: idp_config.asserted_attributes_opts
+        asserted_attributes_opts: idp_config.asserted_attributes_opts,
+        x509_certificate: idp_config.x509_certificate,
+        secret_key: idp_config.secret_key,
+        password: idp_config.password
       )
     end
     private :assertion_builder

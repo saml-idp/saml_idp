@@ -64,6 +64,10 @@ module SamlIdp
       self.response_id ||= SecureRandom.uuid
     end
 
+    def single_logout_url
+      single_logout_service_post_location || single_logout_service_redirect_location
+    end
+
     # formats
     # getter
     def name_id

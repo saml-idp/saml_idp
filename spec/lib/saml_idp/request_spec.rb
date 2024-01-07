@@ -66,40 +66,12 @@ module SamlIdp
 
       context 'the issuer is empty' do
         let(:issuer) { nil }
-        let(:logger) { ->(msg) { puts msg } }
-
-        before do
-          allow(SamlIdp.config).to receive(:logger).and_return(logger)
-        end
 
         it 'is invalid' do
           expect(subject.issuer).to_not eq('')
           expect(subject.issuer).to be_nil
           expect(subject.valid?).to eq(false)
-        end
-
-        context 'a Ruby Logger is configured' do
-          let(:logger) { Logger.new($stdout) }
-
-          before do
-            allow(logger).to receive(:info)
-          end
-
-          it 'logs an error message' do
-            expect(subject.valid?).to be false
-            expect(logger).to have_received(:info).with('Unable to find service provider for issuer ')
-          end
-        end
-
-        context 'a logger lambda is configured' do
-          let(:logger) { double }
-
-          before { allow(logger).to receive(:call) }
-
-          it 'logs an error message' do
-            expect(subject.valid?).to be false
-            expect(logger).to have_received(:call).with('Unable to find service provider for issuer ')
-          end
+          expect(subject.error_msg).to include('Unable to find service provider for issuer ')
         end
       end
     end

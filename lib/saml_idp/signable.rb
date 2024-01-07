@@ -70,7 +70,7 @@ module SamlIdp
     private :signature
 
     def signed_info_builder
-      SignedInfoBuilder.new(get_reference_id, get_digest, get_algorithm)
+      SignedInfoBuilder.new(get_reference_id, get_digest, get_algorithm, get_secret_key, get_password)
     end
     private :signed_info_builder
 
@@ -92,9 +92,19 @@ module SamlIdp
     private :get_algorithm
 
     def get_x509_certificate
-      send(self.class.x509_certificate_method)
+      send(self.class.x509_certificate_method).presence
     end
     private :get_x509_certificate
+
+    def get_secret_key
+      send(self.class.secret_key_method).presence
+    end
+    private :get_secret_key
+
+    def get_password
+      send(self.class.password_method).presence
+    end
+    private :get_password
 
     def get_raw
       send(self.class.raw_method)
@@ -130,6 +140,8 @@ module SamlIdp
       module_method :digest
       module_method :algorithm
       module_method :x509_certificate
+      module_method :secret_key
+      module_method :password
       module_method :reference_id
     end
   end

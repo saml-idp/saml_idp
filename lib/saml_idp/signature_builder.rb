@@ -1,10 +1,11 @@
 require 'builder'
 module SamlIdp
   class SignatureBuilder
-    attr_accessor :signed_info_builder
+    attr_accessor :signed_info_builder, :x509_certificate
 
-    def initialize(signed_info_builder)
+    def initialize(signed_info_builder, x509_certificate)
       self.signed_info_builder = signed_info_builder
+      self.x509_certificate = x509_certificate
     end
 
     def raw
@@ -14,20 +15,20 @@ module SamlIdp
         signature.tag! "ds:SignatureValue", signature_value
         signature.KeyInfo xmlns: "http://www.w3.org/2000/09/xmldsig#" do |key_info|
           key_info.tag! "ds:X509Data" do |x509|
-            x509.tag! "ds:X509Certificate", x509_certificate
+            x509.tag! "ds:X509Certificate", compact_certificate
           end
         end
       end
     end
 
-    def x509_certificate
-      SamlIdp.config.x509_certificate
+    def compact_certificate
+      x509_certificate
       .to_s
       .gsub(/-----BEGIN CERTIFICATE-----/,"")
       .gsub(/-----END CERTIFICATE-----/,"")
       .gsub(/\n/, "")
     end
-    private :x509_certificate
+    private :compact_certificate
 
     def signed_info
       signed_info_builder.raw

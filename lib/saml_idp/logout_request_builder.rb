@@ -3,8 +3,8 @@ module SamlIdp
   class LogoutRequestBuilder < LogoutBuilder
     attr_accessor :name_id
 
-    def initialize(response_id, issuer_uri, saml_slo_url, name_id, algorithm)
-      super(response_id, issuer_uri, saml_slo_url, algorithm)
+    def initialize(response_id, issuer_uri, saml_slo_url, name_id, algorithm, x509_certificate = nil, secret_key = nil, password = nil)
+      super(response_id, issuer_uri, saml_slo_url, algorithm, x509_certificate, secret_key, password)
       self.name_id = name_id
     end
 
