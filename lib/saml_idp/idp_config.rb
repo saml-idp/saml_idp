@@ -45,7 +45,7 @@ module SamlIdp
       signed_assertion: true,
       compress: false,
       algorithm: :sha256,
-      authn_context_classref: Saml::XML::Namespaces::AuthnContext::ClassRef::PASSWORD,
+      authn_context_classref: SamlIdp::XML::Namespaces::AuthnContext::ClassRef::PASSWORD,
       attributes: {},
       session_expiry: 0,
       expiry: 60 * 60

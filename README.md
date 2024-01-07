@@ -117,8 +117,8 @@ Your application need to manage 2 things for configuration.
         phone: { getter: :phone },
         email: {
           getter: :email,
-          name_format: Saml::XML::Namespaces::Formats::NameId::EMAIL_ADDRESS,
-          name_id_format: Saml::XML::Namespaces::Formats::NameId::EMAIL_ADDRESS
+          name_format: SamlIdp::XML::Namespaces::Formats::NameId::EMAIL_ADDRESS,
+          name_id_format: SamlIdp::XML::Namespaces::Formats::NameId::EMAIL_ADDRESS
         }
       }
     end

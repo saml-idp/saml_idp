@@ -14,11 +14,11 @@ module SamlIdp
         Version: "2.0",
         IssueInstant: now_iso,
         Destination: saml_slo_url,
-        "xmlns" => Saml::XML::Namespaces::PROTOCOL do |request|
-          request.Issuer issuer_uri, xmlns: Saml::XML::Namespaces::ASSERTION
+        "xmlns" => SamlIdp::XML::Namespaces::PROTOCOL do |request|
+          request.Issuer issuer_uri, xmlns: SamlIdp::XML::Namespaces::ASSERTION
           sign request
-          request.NameID name_id, xmlns: Saml::XML::Namespaces::ASSERTION,
-            Format: Saml::XML::Namespaces::Formats::NameId::PERSISTENT
+          request.NameID name_id, xmlns: SamlIdp::XML::Namespaces::ASSERTION,
+            Format: SamlIdp::XML::Namespaces::Formats::NameId::PERSISTENT
           request.SessionIndex response_id_string
         end
     end
