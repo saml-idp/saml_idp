@@ -82,9 +82,9 @@ module SamlIdp
         session_expiry,
         name_id_formats_opts,
         asserted_attributes_opts,
-        signed_assertion_opts,
         signed_message_opts,
-        compress_opts,
+        signed_assertion_opts,
+        compress_opts
         assertion_extension
       ).build
     end
