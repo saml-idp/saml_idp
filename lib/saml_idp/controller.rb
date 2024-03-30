@@ -18,14 +18,6 @@ module SamlIdp
 
     def saml_request
       @saml_request ||= Struct.new(:request_id) do
-        def authn_request?
-          true
-        end
-
-        def issuer
-          nil
-        end
-
         def acs_url
           nil
         end
@@ -51,7 +43,7 @@ module SamlIdp
     def encode_authn_response(principal, opts = {})
       response_id = get_saml_response_id
       reference_id = opts[:reference_id] || get_saml_reference_id
-      audience_uri = opts[:audience_uri] || saml_request.issuer || saml_acs_url[/^(.*?\/\/.*?\/)/, 1]
+      audience_uri = opts[:audience_uri] || audience_uri
       opt_issuer_uri = opts[:issuer_uri] || issuer_uri
       my_authn_context_classref = opts[:authn_context_classref] || authn_context_classref
       acs_url = opts[:acs_url] || saml_acs_url
@@ -87,7 +79,7 @@ module SamlIdp
       ).build
     end
 
-    def encode_logout_response(_principal, opts = {})
+    def encode_logout_response(opts = {})
       SamlIdp::LogoutResponseBuilder.new(
         get_saml_response_id,
         (opts[:issuer_uri] || issuer_uri),
@@ -97,13 +89,13 @@ module SamlIdp
       ).signed
     end
 
-    def encode_response(principal, opts = {})
-      if saml_request.authn_request?
+    def encode_response(principal, type, opts = {})
+      if type == :auth
         encode_authn_response(principal, opts)
-      elsif saml_request.logout_request?
-        encode_logout_response(principal, opts)
+      elsif type == :logout
+        encode_logout_response(opts)
       else
-        raise "Unknown request: #{saml_request}"
+        raise "Unknown request: #{type}"
       end
     end
 
@@ -111,6 +103,10 @@ module SamlIdp
       (SamlIdp.config.base_saml_location.present? && SamlIdp.config.base_saml_location) ||
         (defined?(request) && request.url.to_s.split("?").first) ||
         "http://example.com"
+    end
+
+    def audience_uri
+      SamlIdp.config.service_provider
     end
 
     def valid_saml_request?

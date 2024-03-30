@@ -24,7 +24,6 @@ module SamlIdp
   end
 end
 
-# TODO Needs extraction out
 module Saml
   module XML
     module Namespaces
