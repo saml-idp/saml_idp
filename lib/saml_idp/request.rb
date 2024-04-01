@@ -120,7 +120,7 @@ module SamlIdp
       # Validate signature when metadata specify AuthnRequest should be signed
       metadata = service_provider.current_metadata
       if logout_request? || authn_request? && metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
-        document.valid_signature?(service_provider.fingerprint)
+        document.valid_signature?(service_provider.cert, service_provider.fingerprint)
       else
         true
       end
