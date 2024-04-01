@@ -1,5 +1,6 @@
 require 'saml_idp/xml_security'
 require 'saml_idp/service_provider'
+require 'logger'
 module SamlIdp
   class Request
     def self.from_deflated_request(raw)
@@ -77,10 +78,10 @@ module SamlIdp
     end
 
     def log(msg)
-      if defined?(::Rails) && Rails.logger
-        Rails.logger.info msg
+      if config.logger.respond_to?(:call)
+        config.logger.call msg
       else
-        puts msg
+        config.logger.info msg
       end
     end
 

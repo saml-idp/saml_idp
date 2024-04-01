@@ -1,7 +1,10 @@
 require 'spec_helper'
 module SamlIdp
   describe Request do
-    let(:raw_authn_request) { "<samlp:AuthnRequest AssertionConsumerServiceURL='http://localhost:3000/saml/consume' Destination='http://localhost:1337/saml/auth' ID='_af43d1a0-e111-0130-661a-3c0754403fdb' IssueInstant='2013-08-06T22:01:35Z' Version='2.0' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'><saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>localhost:3000</saml:Issuer><samlp:NameIDPolicy AllowCreate='true' Format='urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'/><samlp:RequestedAuthnContext Comparison='exact'><saml:AuthnContextClassRef xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef></samlp:RequestedAuthnContext></samlp:AuthnRequest>" }
+    let(:issuer) { 'localhost:3000' }
+    let(:raw_authn_request) do
+      "<samlp:AuthnRequest AssertionConsumerServiceURL='http://localhost:3000/saml/consume' Destination='http://localhost:1337/saml/auth' ID='_af43d1a0-e111-0130-661a-3c0754403fdb' IssueInstant='2013-08-06T22:01:35Z' Version='2.0' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'><saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>#{issuer}</saml:Issuer><samlp:NameIDPolicy AllowCreate='true' Format='urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'/><samlp:RequestedAuthnContext Comparison='exact'><saml:AuthnContextClassRef xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef></samlp:RequestedAuthnContext></samlp:AuthnRequest>"
+    end
 
     describe "deflated request" do
       let(:deflated_request) { Base64.encode64(Zlib::Deflate.deflate(raw_authn_request, 9)[2..-5]) }
@@ -57,16 +60,64 @@ module SamlIdp
         expect(subject.request['ID']).to eq(subject.request_id)
       end
 
-      it "has a valid authn context" do
-        expect(subject.requested_authn_context).to eq("urn:oasis:names:tc:SAML:2.0:ac:classes:Password")
+      it 'has a valid authn context' do
+        expect(subject.requested_authn_context).to eq('urn:oasis:names:tc:SAML:2.0:ac:classes:Password')
       end
 
-      it "does not permit empty issuer" do
-        raw_req = raw_authn_request.gsub('localhost:3000', '')
-        authn_request = described_class.new raw_req
-        expect(authn_request.issuer).to_not eq('')
-        expect(authn_request.issuer).to be_nil
-        expect(authn_request.valid?).to eq(false)
+      context 'the issuer is empty' do
+        let(:issuer) { nil }
+        let(:logger) { ->(msg) { puts msg } }
+
+        before do
+          allow(SamlIdp.config).to receive(:logger).and_return(logger)
+        end
+
+        it 'is invalid' do
+          expect(subject.issuer).to_not eq('')
+          expect(subject.issuer).to be_nil
+          expect(subject.valid?).to eq(false)
+        end
+
+        context 'a Ruby Logger is configured' do
+          let(:logger) { Logger.new($stdout) }
+
+          before do
+            allow(logger).to receive(:info)
+          end
+
+          it 'logs an error message' do
+            expect(subject.valid?).to be false
+            expect(logger).to have_received(:info).with('Unable to find service provider for issuer ')
+          end
+        end
+
+        context 'a Logger-like logger is configured' do
+          let(:logger) do
+            Class.new {
+              def info(msg); end
+            }.new
+          end
+
+          before do
+            allow(logger).to receive(:info)
+          end
+
+          it 'logs an error message' do
+            expect(subject.valid?).to be false
+            expect(logger).to have_received(:info).with('Unable to find service provider for issuer ')
+          end
+        end
+
+        context 'a logger lambda is configured' do
+          let(:logger) { double }
+
+          before { allow(logger).to receive(:call) }
+
+          it 'logs an error message' do
+            expect(subject.valid?).to be false
+            expect(logger).to have_received(:call).with('Unable to find service provider for issuer ')
+          end
+        end
       end
     end
 

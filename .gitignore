@@ -9,5 +9,5 @@
 /Gemfile.lock
 /gemfiles/*.gemfile.lock
 /.byebug_history
-
+/vendor
 _config\.yml
