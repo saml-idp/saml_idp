@@ -156,7 +156,7 @@ module SamlIdp
         end
       end
 
-      context 'when REDIRECT binding' do
+      context 'when signature provided as external param' do
         let!(:uri_query) { make_saml_sp_slo_request }
         let(:raw_saml_request) { uri_query['SAMLRequest'] }
         let(:relay_state) { uri_query['RelayState'] }
@@ -178,7 +178,7 @@ module SamlIdp
             ServiceProvider.new(
               issuer: "http://example.com/issuer",
               cert: sp_x509_cert,
-              acceptable_response_hosts: ["http://example.com"],
+              response_hosts: ["example.com"],
               assertion_consumer_logout_service_url: "http://example.com/logout"
             )
           )
