@@ -96,7 +96,8 @@ module SamlRequestMacros
           response_hosts: [URI(saml_acs_url).host],
           acs_url: saml_acs_url,
           cert: sp_x509_cert,
-          fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert)
+          fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
+          assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout'
         }
       }
     end

@@ -101,7 +101,7 @@ module SamlIdp
       end
 
       # XML embedded signature
-      if signature.nil? && valid_signature?
+      if signature.nil? && !valid_signature?
         log "Requested document signature is invalid in #{raw_xml}"
         return false
       end
