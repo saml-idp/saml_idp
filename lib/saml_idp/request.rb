@@ -3,7 +3,7 @@ require 'saml_idp/service_provider'
 require 'logger'
 module SamlIdp
   class Request
-    def self.from_deflated_request(raw)
+    def self.from_deflated_request(raw, external_attributes = {})
       if raw
         decoded = Base64.decode64(raw)
         zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
@@ -18,18 +18,22 @@ module SamlIdp
       else
         inflated = ""
       end
-      new(inflated)
+      new(inflated, external_attributes)
     end
 
-    attr_accessor :raw_xml
+    attr_accessor :raw_xml, :saml_request, :signature, :sig_algorithm, :relay_state
 
     delegate :config, to: :SamlIdp
     private :config
     delegate :xpath, to: :document
     private :xpath
 
-    def initialize(raw_xml = "")
+    def initialize(raw_xml = "", external_attributes = {})
       self.raw_xml = raw_xml
+      self.saml_request = external_attributes[:saml_request]
+      self.relay_state = external_attributes[:relay_state]
+      self.sig_algorithm = external_attributes[:sig_algorithm]
+      self.signature = external_attributes[:signature]
     end
 
     def logout_request?
@@ -85,7 +89,7 @@ module SamlIdp
       end
     end
 
-    def valid?
+    def valid?(external_attributes = {})
       unless service_provider?
         log "Unable to find service provider for issuer #{issuer}"
         return false
@@ -96,8 +100,15 @@ module SamlIdp
         return false
       end
 
-      unless valid_signature?
-        log "Signature is invalid in #{raw_xml}"
+      # XML embedded signature
+      if signature.nil? && valid_signature?
+        log "Requested document signature is invalid in #{raw_xml}"
+        return false
+      end
+
+      # URI query signature
+      if signature.present? && !valid_external_signature?
+        log "Requested URI signature is invalid in #{raw_xml}"
         return false
       end
 
@@ -126,6 +137,23 @@ module SamlIdp
       end
     end
 
+    def valid_external_signature?
+      cert = OpenSSL::X509::Certificate.new(service_provider.cert)
+
+      sha_version = sig_algorithm =~ /sha(.*?)$/i && $1.to_i
+      raw_signature = Base64.decode64(signature)
+
+      signature_algorithm = case sha_version
+      when 256 then OpenSSL::Digest::SHA256
+      when 384 then OpenSSL::Digest::SHA384
+      when 512 then OpenSSL::Digest::SHA512
+      else
+        OpenSSL::Digest::SHA1
+      end
+
+      cert.public_key.verify(signature_algorithm.new, raw_signature, query_request_string)
+    end
+
     def service_provider?
       service_provider && service_provider.valid?
     end
@@ -147,6 +175,13 @@ module SamlIdp
     def session_index
       @_session_index ||= xpath("//samlp:SessionIndex", samlp: samlp).first.try(:content)
     end
+
+    def query_request_string
+      url_string = "SAMLRequest=#{CGI.escape(saml_request)}"
+      url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
+      url_string << "&SigAlg=#{CGI.escape(sig_algorithm)}"
+    end
+    private :query_request_string
 
     def response_host
       uri = URI(response_url)

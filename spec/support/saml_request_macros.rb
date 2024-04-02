@@ -18,6 +18,17 @@ module SamlRequestMacros
     Base64.strict_encode64(request_builder.signed)
   end
 
+  def make_saml_sp_slo_request(param_type: true, embed_sign: false)
+    logout_request = OneLogin::RubySaml::Logoutrequest.new
+    saml_sp_setting = saml_settings("https://foo.example.com/saml/consume")
+    add_securty_options(saml_sp_setting, embed_sign: embed_sign)
+    if param_type
+      logout_request.create_params(saml_sp_setting, 'RelayState' => 'https://foo.example.com/home')
+    else
+      logout_request.create(saml_sp_setting, 'RelayState' => 'https://foo.example.com/home')
+    end
+  end
+
   def generate_sp_metadata(saml_acs_url = "https://foo.example.com/saml/consume", enable_secure_options = false)
     sp_metadata = OneLogin::RubySaml::Metadata.new
     sp_metadata.generate(saml_settings(saml_acs_url, enable_secure_options), true)
@@ -28,6 +39,7 @@ module SamlRequestMacros
     settings.assertion_consumer_service_url = saml_acs_url
     settings.issuer = "http://example.com/issuer"
     settings.idp_sso_target_url = "http://idp.com/saml/idp"
+    settings.idp_slo_target_url = "http://idp.com/saml/slo"
     settings.assertion_consumer_logout_service_url = 'https://foo.example.com/saml/logout'
     settings.idp_cert_fingerprint = SamlIdp::Default::FINGERPRINT
     settings.name_identifier_format = SamlIdp::Default::NAME_ID_FORMAT
