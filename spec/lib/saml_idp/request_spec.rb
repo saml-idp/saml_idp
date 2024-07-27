@@ -119,6 +119,140 @@ module SamlIdp
           end
         end
       end
+
+      context "when signature provided in authn request" do
+        let(:auth_request) { OneLogin::RubySaml::Authrequest.new }
+        let(:sp_setting) { saml_settings("https://foo.example.com/saml/consume", true) }
+        let(:raw_authn_request) { CGI.unescape(auth_request.create(sp_setting).split("=").last) }
+
+        subject { described_class.from_deflated_request raw_authn_request }
+
+        before do
+          idp_configure("http://localhost:3000/saml/consume", true)
+        end
+
+        context "when AuthnRequest signature validation is enabled" do
+          before do
+            SamlIdp.configure do |config|
+              config.service_provider.finder = lambda { |_issuer_or_entity_id|
+                {
+                  response_hosts: [URI("http://localhost:3000/saml/consume").host],
+                  acs_url: "http://localhost:3000/saml/consume",
+                  cert: sp_x509_cert,
+                  fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
+                  assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
+                  sign_authn_request: true
+                }
+              }
+            end
+          end
+
+          it "returns true" do
+            expect(subject.send(:validate_auth_request_signature?)).to be true
+          end
+
+          it "validates the signature" do
+            allow(subject).to receive(:signature).and_return(nil)
+            allow(subject).to receive(:valid_signature?).and_call_original
+
+            expect(subject.valid_signature?).to be true
+          end
+        end
+
+        context "when AuthnRequest signature validation is disabled" do
+          before do
+            SamlIdp.configure do |config|
+              config.service_provider.finder = lambda { |_issuer_or_entity_id|
+                {
+                  response_hosts: [URI("http://localhost:3000/saml/consume").host],
+                  acs_url: "http://localhost:3000/saml/consume",
+                  cert: sp_x509_cert,
+                  fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
+                  assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
+                  sign_authn_request: false
+                }
+              }
+            end
+          end
+
+          it "returns false" do
+            expect(subject.send(:validate_auth_request_signature?)).to be false
+          end
+
+          it "does not validate the signature and return true" do
+            allow(subject).to receive(:signature).and_return(nil)
+            allow(subject).to receive(:valid_signature?).and_call_original
+
+            expect(subject.valid_signature?).to be true
+          end
+        end
+      end
+
+      context "when signature provided as external params" do
+        let(:auth_request) { OneLogin::RubySaml::Authrequest.new }
+        let(:sp_setting) { saml_settings("https://foo.example.com/saml/consume", true, security_options: { embed_sign: false }) }
+        let(:saml_response) { auth_request.create(sp_setting) }
+        let(:query_params) { CGI.parse(URI.parse(saml_response).query) }
+        let(:raw_authn_request) { query_params['SAMLRequest'].first }
+        let(:signature) { query_params['Signature'].first }
+        let(:sig_algorithm) { query_params['SigAlg'].first }
+
+        before do
+          idp_configure("http://localhost:3000/saml/consume", true)
+        end
+
+        subject do
+          described_class.from_deflated_request(
+            raw_authn_request,
+            saml_request: raw_authn_request,
+            relay_state: query_params['RelayState'].first,
+            sig_algorithm: sig_algorithm,
+            signature: signature
+          )
+        end
+
+        context "when AuthnRequest signature validation is enabled" do
+          before do
+            SamlIdp.configure do |config|
+              config.service_provider.finder = lambda { |_issuer_or_entity_id|
+                {
+                  response_hosts: [URI("http://localhost:3000/saml/consume").host],
+                  acs_url: "http://localhost:3000/saml/consume",
+                  cert: sp_x509_cert,
+                  fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
+                  assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
+                  sign_authn_request: true
+                }
+              }
+            end
+          end
+
+          it "validate certificates and return valid" do
+            expect(subject.valid_external_signature?).to be true
+          end
+        end
+
+        context "when AuthnRequest signature validation is disabled" do
+          before do
+            SamlIdp.configure do |config|
+              config.service_provider.finder = lambda { |_issuer_or_entity_id|
+                {
+                  response_hosts: [URI("http://localhost:3000/saml/consume").host],
+                  acs_url: "http://localhost:3000/saml/consume",
+                  cert: sp_x509_cert,
+                  fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
+                  assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
+                  sign_authn_request: false
+                }
+              }
+            end
+          end
+
+          it "skip signature validation and return valid" do
+            expect(subject.valid_external_signature?).to be true
+          end
+        end
+      end
     end
 
     describe "logout request" do
@@ -157,7 +291,7 @@ module SamlIdp
       end
 
       context 'when signature provided as external param' do
-        let!(:uri_query) { make_saml_sp_slo_request }
+        let!(:uri_query) { make_saml_sp_slo_request(security_options: { embed_sign: false }) }
         let(:raw_saml_request) { uri_query['SAMLRequest'] }
         let(:relay_state) { uri_query['RelayState'] }
         let(:siging_algorithm) { uri_query['SigAlg'] }

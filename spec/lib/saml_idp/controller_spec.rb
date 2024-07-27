@@ -128,7 +128,7 @@ describe SamlIdp::Controller do
   context "Single Logout Request" do
     before do
       idp_configure("https://foo.example.com/saml/consume", true)
-      slo_request = make_saml_sp_slo_request
+      slo_request = make_saml_sp_slo_request(security_options: { embed_sign: false })
       params[:SAMLRequest] = slo_request['SAMLRequest']
       params[:RelayState] = slo_request['RelayState']
       params[:SigAlg] = slo_request['SigAlg']
