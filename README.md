@@ -61,7 +61,7 @@ Be sure to load a file like this during your app initialization:
 ```ruby
 SamlIdp.configure do |config|
   base = "http://example.com"
-  
+
   config.x509_certificate = <<-CERT
 -----BEGIN CERTIFICATE-----
 CERTIFICATE DATA
