@@ -16,9 +16,9 @@ module SamlIdp
       builder = Builder::XmlMarkup.new
       generated_reference_id do
         builder.EntityDescriptor ID: reference_string,
-          xmlns: Saml::XML::Namespaces::METADATA,
-          "xmlns:saml" => Saml::XML::Namespaces::ASSERTION,
-          "xmlns:ds" => Saml::XML::Namespaces::SIGNATURE,
+          xmlns: SamlIdp::XML::Namespaces::METADATA,
+          "xmlns:saml" => SamlIdp::XML::Namespaces::ASSERTION,
+          "xmlns:ds" => SamlIdp::XML::Namespaces::SIGNATURE,
           entityID: entity_id do |entity|
             sign entity
 
@@ -56,7 +56,7 @@ module SamlIdp
 
     def build_key_descriptor(el)
       el.KeyDescriptor use: "signing" do |key_descriptor|
-        key_descriptor.KeyInfo xmlns: Saml::XML::Namespaces::SIGNATURE do |key_info|
+        key_descriptor.KeyInfo xmlns: SamlIdp::XML::Namespaces::SIGNATURE do |key_info|
           key_info.X509Data do |x509|
             x509.X509Certificate x509_certificate
           end
@@ -128,7 +128,7 @@ module SamlIdp
     private :entity_id
 
     def protocol_enumeration
-      Saml::XML::Namespaces::PROTOCOL
+      SamlIdp::XML::Namespaces::PROTOCOL
     end
     private :protocol_enumeration
 
