@@ -25,8 +25,9 @@ module SamlIdp
     attr_accessor :logger
 
     def initialize
-      self.x509_certificate = Default::X509_CERTIFICATE
-      self.secret_key = Default::SECRET_KEY
+      self.x509_certificate = -> { Default::X509_CERTIFICATE }
+      self.secret_key = -> { Default::SECRET_KEY }
+      self.password = nil
       self.algorithm = :sha1
       self.reference_id_generator = ->() { SecureRandom.uuid }
       self.service_provider = OpenStruct.new
