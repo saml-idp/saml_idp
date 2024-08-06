@@ -1,3 +1,5 @@
+require 'nokogiri'
+
 module SamlIdp
   module XML
     module Namespaces
