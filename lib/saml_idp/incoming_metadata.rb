@@ -63,6 +63,15 @@ module SamlIdp
     end
     hashable :contact_person
 
+    def unspecified_certificate
+      xpath(
+        "//md:SPSSODescriptor/md:KeyDescriptor[not(@use)]/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
+        ds: signature_namespace,
+        md: metadata_namespace
+      ).first.try(:content).to_s
+    end
+    hashable :unspecified_certificate
+
     def signing_certificate
       xpath(
         "//md:SPSSODescriptor/md:KeyDescriptor[@use='signing']/ds:KeyInfo/ds:X509Data/ds:X509Certificate",
