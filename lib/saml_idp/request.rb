@@ -2,7 +2,7 @@ require 'saml_idp/xml_security'
 require 'saml_idp/service_provider'
 module SamlIdp
   class Request
-    IAL_PREFIX = %r{^http://idmanagement.gov/ns/assurance/ial}
+    IAL_PREFIX = %r{^http://idmanagement.gov/ns/assurance/ial|urn:acr.login.gov:}
     LOA_PREFIX = %r{^http://idmanagement.gov/ns/assurance/loa}
     AAL_PREFIX = %r{^http://idmanagement.gov/ns/assurance/aal|urn:gov:gsa:ac:classes:sp:PasswordProtectedTransport:duo}
     VTR_REGEXP = /\A[A-Z][a-z0-9](\.[A-Z][a-z0-9])*\z/

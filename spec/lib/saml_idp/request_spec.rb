@@ -241,6 +241,15 @@ module SamlIdp
         end
       end
 
+      context 'when the context requested is a biometric ial' do
+        let(:ial) { 'urn:acr.login.gov:verified-facial-match-preferred' }
+        let(:authn_context_classref) { build_authn_context_classref(ial) }
+
+        it 'returns the ial uri' do
+          expect(subject.requested_ial_authn_context).to eq(ial)
+        end
+      end
+
       context 'multiple contexts requested including ial' do
         let(:authn_context_classref) { build_authn_context_classref([aal, ial]) }
 
