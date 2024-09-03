@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.authors = ['Jon Phenow']
   s.email = 'jon.phenow@sportngin.com'
   s.homepage = 'https://github.com/saml-idp/saml_idp'
-  s.summary = 'SAML Indentity Provider for Ruby'
+  s.summary = 'SAML Identity Provider for Ruby'
   s.description = 'SAML IdP (Identity Provider) Library for Ruby'
   s.date = Time.now.utc.strftime('%Y-%m-%d')
   s.files = Dir['lib/**/*', 'LICENSE', 'README.md', 'Gemfile', 'saml_idp.gemspec']
