@@ -46,6 +46,7 @@ Gem::Specification.new do |s|
   s.add_dependency('activesupport', '>= 5.2')
   s.add_dependency('builder', '>= 3.0')
   s.add_dependency('nokogiri', '>= 1.6.2')
+  s.add_dependency('ostruct')
   s.add_dependency('rexml')
   s.add_dependency('xmlenc', '>= 0.7.1')
 
