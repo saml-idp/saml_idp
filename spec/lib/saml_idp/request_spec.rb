@@ -18,6 +18,7 @@ module SamlIdp
       it "handles invalid SAML" do
         req = described_class.from_deflated_request "bang!"
         expect(req.valid?).to eq(false)
+        expect(req.erros).to include(:sp_not_found)
       end
     end
 
@@ -36,228 +37,52 @@ module SamlIdp
         expect(subject.service_provider).to be_a ServiceProvider
       end
 
-      it "has a valid service_provider" do
-        expect(subject.service_provider).to be_truthy
-      end
-
-      it "has a valid issuer" do
-        expect(subject.issuer).to eq("localhost:3000")
-      end
-
-      it "has a valid valid_signature" do
-        expect(subject.valid_signature?).to be_truthy
-      end
-
       it "should return acs_url for response_url" do
         expect(subject.response_url).to eq(subject.acs_url)
       end
 
-      it "is a authn request" do
-        expect(subject.authn_request?).to eq(true)
+      it "collects errors when service_provider is not found" do
+        allow(subject).to receive(:service_provider?).and_return(false)
+        expect(subject.valid?).to eq(false)
+        expect(subject.erros).to include(:sp_not_found)
       end
 
-      it "fetches internal request" do
-        expect(subject.request['ID']).to eq(subject.request_id)
-      end
-
-      it 'has a valid authn context' do
-        expect(subject.requested_authn_context).to eq('urn:oasis:names:tc:SAML:2.0:ac:classes:Password')
+      it "collects errors when no request type is provided" do
+        allow(subject).to receive(:authn_request?).and_return(false)
+        allow(subject).to receive(:logout_request?).and_return(false)
+        expect(subject.valid?).to eq(false)
+        expect(subject.erros).to include(:unaccepted_request)
       end
 
       context 'the issuer is empty' do
         let(:issuer) { nil }
-        let(:logger) { ->(msg) { puts msg } }
 
-        before do
-          allow(SamlIdp.config).to receive(:logger).and_return(logger)
-        end
-
-        it 'is invalid' do
-          expect(subject.issuer).to_not eq('')
-          expect(subject.issuer).to be_nil
+        it 'is invalid and collects an error' do
           expect(subject.valid?).to eq(false)
-        end
-
-        context 'a Ruby Logger is configured' do
-          let(:logger) { Logger.new($stdout) }
-
-          before do
-            allow(logger).to receive(:info)
-          end
-
-          it 'logs an error message' do
-            expect(subject.valid?).to be false
-            expect(logger).to have_received(:info).with('Unable to find service provider for issuer ')
-          end
-        end
-
-        context 'a Logger-like logger is configured' do
-          let(:logger) do
-            Class.new {
-              def info(msg); end
-            }.new
-          end
-
-          before do
-            allow(logger).to receive(:info)
-          end
-
-          it 'logs an error message' do
-            expect(subject.valid?).to be false
-            expect(logger).to have_received(:info).with('Unable to find service provider for issuer ')
-          end
-        end
-
-        context 'a logger lambda is configured' do
-          let(:logger) { double }
-
-          before { allow(logger).to receive(:call) }
-
-          it 'logs an error message' do
-            expect(subject.valid?).to be false
-            expect(logger).to have_received(:call).with('Unable to find service provider for issuer ')
-          end
+          expect(subject.erros).to include(:sp_not_found)
         end
       end
 
-      context "when signature provided in authn request" do
-        let(:auth_request) { OneLogin::RubySaml::Authrequest.new }
-        let(:sp_setting) { saml_settings("https://foo.example.com/saml/consume", true) }
-        let(:raw_authn_request) { CGI.unescape(auth_request.create(sp_setting).split("=").last) }
-
-        subject { described_class.from_deflated_request raw_authn_request }
-
+      context "when signature is invalid" do
         before do
-          idp_configure("http://localhost:3000/saml/consume", true)
+          allow(subject).to receive(:valid_signature?).and_return(false)
         end
 
-        context "when AuthnRequest signature validation is enabled" do
-          before do
-            SamlIdp.configure do |config|
-              config.service_provider.finder = lambda { |_issuer_or_entity_id|
-                {
-                  response_hosts: [URI("http://localhost:3000/saml/consume").host],
-                  acs_url: "http://localhost:3000/saml/consume",
-                  cert: sp_x509_cert,
-                  fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
-                  assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
-                  sign_authn_request: true
-                }
-              }
-            end
-          end
-
-          it "returns true" do
-            expect(subject.send(:validate_auth_request_signature?)).to be true
-          end
-
-          it "validates the signature" do
-            allow(subject).to receive(:signature).and_return(nil)
-            allow(subject).to receive(:valid_signature?).and_call_original
-
-            expect(subject.valid_signature?).to be true
-          end
-        end
-
-        context "when AuthnRequest signature validation is disabled" do
-          before do
-            SamlIdp.configure do |config|
-              config.service_provider.finder = lambda { |_issuer_or_entity_id|
-                {
-                  response_hosts: [URI("http://localhost:3000/saml/consume").host],
-                  acs_url: "http://localhost:3000/saml/consume",
-                  cert: sp_x509_cert,
-                  fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
-                  assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
-                  sign_authn_request: false
-                }
-              }
-            end
-          end
-
-          it "returns false" do
-            expect(subject.send(:validate_auth_request_signature?)).to be false
-          end
-
-          it "does not validate the signature and return true" do
-            allow(subject).to receive(:signature).and_return(nil)
-            allow(subject).to receive(:valid_signature?).and_call_original
-
-            expect(subject.valid_signature?).to be true
-          end
-        end
-      end
-
-      context "when signature provided as external params" do
-        let(:auth_request) { OneLogin::RubySaml::Authrequest.new }
-        let(:sp_setting) { saml_settings("https://foo.example.com/saml/consume", true, security_options: { embed_sign: false }) }
-        let(:saml_response) { auth_request.create(sp_setting) }
-        let(:query_params) { CGI.parse(URI.parse(saml_response).query) }
-        let(:raw_authn_request) { query_params['SAMLRequest'].first }
-        let(:signature) { query_params['Signature'].first }
-        let(:sig_algorithm) { query_params['SigAlg'].first }
-
-        before do
-          idp_configure("http://localhost:3000/saml/consume", true)
-        end
-
-        subject do
-          described_class.from_deflated_request(
-            raw_authn_request,
-            saml_request: raw_authn_request,
-            relay_state: query_params['RelayState'].first,
-            sig_algorithm: sig_algorithm,
-            signature: signature
-          )
-        end
-
-        context "when AuthnRequest signature validation is enabled" do
-          before do
-            SamlIdp.configure do |config|
-              config.service_provider.finder = lambda { |_issuer_or_entity_id|
-                {
-                  response_hosts: [URI("http://localhost:3000/saml/consume").host],
-                  acs_url: "http://localhost:3000/saml/consume",
-                  cert: sp_x509_cert,
-                  fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
-                  assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
-                  sign_authn_request: true
-                }
-              }
-            end
-          end
-
-          it "validate certificates and return valid" do
-            expect(subject.valid_external_signature?).to be true
-          end
-        end
-
-        context "when AuthnRequest signature validation is disabled" do
-          before do
-            SamlIdp.configure do |config|
-              config.service_provider.finder = lambda { |_issuer_or_entity_id|
-                {
-                  response_hosts: [URI("http://localhost:3000/saml/consume").host],
-                  acs_url: "http://localhost:3000/saml/consume",
-                  cert: sp_x509_cert,
-                  fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
-                  assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
-                  sign_authn_request: false
-                }
-              }
-            end
-          end
-
-          it "skip signature validation and return valid" do
-            expect(subject.valid_external_signature?).to be true
-          end
+        it "collects invalid signature error" do
+          expect(subject.valid?).to eq(false)
+          expect(subject.erros).to include(:invalid_embedded_signature)
         end
       end
     end
 
     describe "logout request" do
       context 'when POST binding' do
-        let(:raw_logout_request) { "<LogoutRequest ID='_some_response_id' Version='2.0' IssueInstant='2010-06-01T13:00:00Z' Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'><Issuer xmlns='urn:oasis:names:tc:SAML:2.0:assertion'>http://example.com</Issuer><NameID xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:persistent'>some_name_id</NameID><SessionIndex>abc123index</SessionIndex></LogoutRequest>" }
+        let(:raw_logout_request) do
+          "<LogoutRequest ID='_some_response_id' Version='2.0' IssueInstant='2010-06-01T13:00:00Z' Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'>
+          <Issuer xmlns='urn:oasis:names:tc:SAML:2.0:assertion'>http://example.com</Issuer>
+          <NameID xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:persistent'>some_name_id</NameID>
+          <SessionIndex>abc123index</SessionIndex></LogoutRequest>"
+        end
 
         subject { described_class.new raw_logout_request }
 
@@ -288,6 +113,42 @@ module SamlIdp
         it "should return logout_url for response_url" do
           expect(subject.response_url).to eq(subject.logout_url)
         end
+
+        it "is valid when all conditions are met" do
+          expect(subject.valid?).to eq(true)
+          expect(subject.erros).to be_empty
+        end
+      end
+
+      context 'when there are errors in the logout request' do
+        let(:raw_logout_request) do
+          "<LogoutRequest ID='' Version='2.0' IssueInstant='2010-06-01T13:00:00Z' Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'>
+          <Issuer xmlns='urn:oasis:names:tc:SAML:2.0:assertion'></Issuer>
+          <NameID xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:persistent'></NameID>
+          <SessionIndex></SessionIndex></LogoutRequest>"
+        end
+
+        subject { described_class.new raw_logout_request }
+
+        it "should collect errors when there is an empty request_id" do
+          expect(subject.valid?).to eq(false)
+          expect(subject.erros).to include(:sp_not_found)
+        end
+
+        it "should collect errors when there is no valid name_id" do
+          expect(subject.name_id).to be_nil
+          expect(subject.erros).to include(:invalid_name_id)
+        end
+
+        it "should collect errors when the issuer is missing" do
+          expect(subject.issuer).to be_nil
+          expect(subject.erros).to include(:invalid_issuer)
+        end
+
+        it "should be flagged as invalid" do
+          expect(subject.valid?).to eq(false)
+          expect(subject.erros).to include(:invalid_request)
+        end
       end
 
       context 'when signature provided as external param' do
@@ -312,11 +173,17 @@ module SamlIdp
             ServiceProvider.new(
               issuer: "http://example.com/issuer",
               cert: sp_x509_cert,
-              response_hosts: ["example.com"],
-              assertion_consumer_logout_service_url: "http://example.com/logout"
+              fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert),
             )
           )
-          expect(subject.valid?).to be true
+          expect(subject.valid_external_signature?).to be true
+          expect(subject.erros).to be_empty
+        end
+
+        it "should collect errors when the signature is invalid" do
+          allow(subject).to receive(:valid_external_signature?).and_return(false)
+          expect(subject.valid?).to eq(false)
+          expect(subject.erros).to include(:invalid_external_signature)
         end
       end
     end

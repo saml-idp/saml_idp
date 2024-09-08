@@ -3,6 +3,8 @@ require 'saml_idp/service_provider'
 require 'logger'
 module SamlIdp
   class Request
+    attr_accessor :erros
+
     def self.from_deflated_request(raw, external_attributes = {})
       if raw
         decoded = Base64.decode64(raw)
@@ -34,6 +36,7 @@ module SamlIdp
       self.relay_state = external_attributes[:relay_state]
       self.sig_algorithm = external_attributes[:sig_algorithm]
       self.signature = external_attributes[:signature]
+      self.erros = []
     end
 
     def logout_request?
@@ -89,37 +92,47 @@ module SamlIdp
       end
     end
 
+    def collect_erros(error_type)
+      erros.push(error_type)
+    end
+
     def valid?(external_attributes = {})
       unless service_provider?
         log "Unable to find service provider for issuer #{issuer}"
+        collect_erros(:sp_not_found)
         return false
       end
 
       unless (authn_request? ^ logout_request?)
         log "One and only one of authnrequest and logout request is required. authnrequest: #{authn_request?} logout_request: #{logout_request?} "
+        collect_erros(:unaccepted_request)
         return false
       end
 
       # XML embedded signature
       if signature.nil? && !valid_signature?
         log "Requested document signature is invalid in #{raw_xml}"
+        collect_erros(:invalid_embedded_signature)
         return false
       end
 
       # URI query signature
       if signature.present? && !valid_external_signature?
         log "Requested URI signature is invalid in #{raw_xml}"
+        collect_erros(:invalid_external_signature)
         return false
       end
 
       if response_url.nil?
         log "Unable to find response url for #{issuer}: #{raw_xml}"
+        collect_erros(:empty_response_url)
         return false
       end
 
       if !service_provider.acceptable_response_hosts.include?(response_host)
         log "#{service_provider.acceptable_response_hosts} compare to #{response_host}"
         log "No acceptable AssertionConsumerServiceURL, either configure them via config.service_provider.response_hosts or match to your metadata_url host"
+        collect_erros(:not_allowed_host)
         return false
       end
 
@@ -152,6 +165,9 @@ module SamlIdp
       end
 
       cert.public_key.verify(signature_algorithm.new, raw_signature, query_request_string)
+    rescue OpenSSL::X509::CertificateError => e
+      log e.message
+      collect_erros(:cert_format_error)
     end
 
     def service_provider?
