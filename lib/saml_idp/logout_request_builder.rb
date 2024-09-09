@@ -1,8 +1,6 @@
 require 'saml_idp/logout_builder'
 module SamlIdp
   class LogoutRequestBuilder < LogoutBuilder
-    include SamlIdp::Signable
-
     attr_accessor :name_id
 
     def initialize(response_id, issuer_uri, saml_slo_url, name_id, algorithm)
@@ -24,7 +22,7 @@ module SamlIdp
         request.tag! "saml:Issuer", issuer_uri
         sign request
         request.tag! "saml:NameID", name_id, Format: Saml::XML::Namespaces::Formats::NameId::PERSISTENT
-        request.SessionIndex response_id_string
+        request.tag! "samlp:SessionIndex", response_id_string
       end
     end
     private :build
