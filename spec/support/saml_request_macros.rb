@@ -103,6 +103,17 @@ module SamlRequestMacros
     puts outbuf
   end
 
+  def decode_saml_request(saml_request)
+    decoded_request = Base64.decode64(saml_request)
+    begin
+      # Try to decompress, since SAMLRequest might be compressed
+      Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(decoded_request)
+    rescue Zlib::DataError
+      # If it's not compressed, just return the decoded request
+      decoded_request
+    end
+  end
+
   def default_sp_security_options
     {
       authn_requests_signed: true, 
