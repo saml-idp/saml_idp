@@ -54,6 +54,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency('byebug')
   s.add_development_dependency('capybara', '>= 2.16')
   s.add_development_dependency('rails', '>= 5.2')
+  s.add_development_dependency('debug')
   s.add_development_dependency('rake')
   s.add_development_dependency('rspec', '>= 3.7.0')
   s.add_development_dependency('ruby-saml', '>= 1.7.2')
