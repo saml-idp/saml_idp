@@ -3,8 +3,8 @@ require 'saml_idp/logout_request_builder'
 module SamlRequestMacros
   def make_saml_request(requested_saml_acs_url = "https://foo.example.com/saml/consume", enable_secure_options = false)
     auth_request = OneLogin::RubySaml::Authrequest.new
-    auth_url = auth_request.create(saml_settings(requested_saml_acs_url, enable_secure_options))
-    CGI.unescape(auth_url.split("=").last)
+    auth_url = auth_request.create_params(saml_settings(requested_saml_acs_url, enable_secure_options))
+    auth_url['SAMLRequest']
   end
 
   def make_saml_logout_request(requested_saml_logout_url = 'https://foo.example.com/saml/logout')
