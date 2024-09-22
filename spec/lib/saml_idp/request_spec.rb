@@ -121,6 +121,56 @@ RSpec.describe SamlIdp::Request, type: :model do
       end
     end
 
+    context "when empty certificate for authn request validation" do
+      let(:valid_service_provider) do 
+        instance_double(
+          "SamlIdp::ServiceProvider",
+          valid?: true,
+          acs_url: 'https://foo.example.com/saml/consume',
+          current_metadata: instance_double("Metadata", sign_authn_request?: true),
+          assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
+          sign_authn_request: true,
+          acceptable_response_hosts: ["foo.example.com"],
+          cert: nil,
+          fingerprint: nil,
+        )
+      end
+      it "returns false and logs an error" do
+        request = SamlIdp::Request.from_deflated_request(valid_saml_request)
+
+        expect(request.valid?).to be false
+        expect(request.errors).to include(:empty_certificate)
+      end
+    end
+
+    context "when empty certificate for logout validation" do
+      let(:valid_service_provider) do 
+        instance_double(
+          "SamlIdp::ServiceProvider",
+          valid?: true,
+          acs_url: 'https://foo.example.com/saml/consume',
+          current_metadata: instance_double("Metadata", sign_authn_request?: true),
+          assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
+          sign_authn_request: true,
+          acceptable_response_hosts: ["foo.example.com"],
+          cert: nil,
+          fingerprint: nil,
+        )
+      end
+
+      before do
+        allow_any_instance_of(SamlIdp::Request).to receive(:authn_request?).and_return(false)
+        allow_any_instance_of(SamlIdp::Request).to receive(:logout_request?).and_return(true)
+      end
+
+      it "returns false and logs an error" do
+        request = SamlIdp::Request.from_deflated_request(valid_saml_request)
+
+        expect(request.valid?).to be false
+        expect(request.errors).to include(:empty_certificate)
+      end
+    end
+
     context "when both authn and logout requests are present" do
       it "returns false and logs an error" do
         allow_any_instance_of(SamlIdp::Request).to receive(:authn_request?).and_return(true)

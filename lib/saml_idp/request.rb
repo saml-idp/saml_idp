@@ -109,6 +109,12 @@ module SamlIdp
         return false
       end
 
+      if (logout_request? || validate_auth_request_signature?) && (service_provider.cert.to_s.empty? || !!service_provider.fingerprint.to_s.empty?)
+        log "Verifying request signature is required. But certificate and fingerprint was empty."
+        collect_errors(:empty_certificate)
+        return false
+      end
+
       # XML embedded signature
       if signature.nil? && !valid_signature?
         log "Requested document signature is invalid in #{raw_xml}"

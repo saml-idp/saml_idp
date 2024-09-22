@@ -81,16 +81,6 @@ describe SamlIdp::Controller do
         expect(response.is_valid?).to be_truthy
       end
 
-      it "should create a SAML Logout Response" do
-        params[:SAMLRequest] = make_saml_logout_request
-        expect(validate_saml_request).to eq(true)
-        expect(saml_request.logout_request?).to eq true
-        saml_response = encode_response(principal)
-        response = OneLogin::RubySaml::Logoutresponse.new(saml_response, saml_settings)
-        expect(response.validate).to eq(true)
-        expect(response.issuer).to eq("http://example.com")
-      end
-
       it "should by default create a SAML Response with a signed assertion" do
         saml_response = encode_response(principal)
         response = OneLogin::RubySaml::Response.new(saml_response)
@@ -137,6 +127,19 @@ describe SamlIdp::Controller do
 
     it 'should successfully validate signature' do
       expect(validate_saml_request).to eq(true)
+    end
+
+    context "solicited Response" do
+      let(:principal) { double email_address: "foo@example.com" }
+
+      it "should create a SAML Logout Response" do
+        expect(validate_saml_request).to eq(true)
+        expect(saml_request.logout_request?).to eq true
+        saml_response = encode_response(principal)
+        response = OneLogin::RubySaml::Logoutresponse.new(saml_response, saml_settings)
+        expect(response.validate).to eq(true)
+        expect(response.issuer).to eq("http://idp.com/saml/idp")
+      end
     end
   end
 end
