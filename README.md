@@ -74,6 +74,11 @@ KEY DATA
 -----END RSA PRIVATE KEY-----
 CERT
 
+  # x509_certificate, secret_key, and password may also be set from within a proc, for example:
+  # config.x509_certificate = -> { File.read("cert.pem") }
+  # config.secret_key = -> { SecretKeyFinder.key_for(id: 1) }
+  # config.password = -> { "password" }
+
   # config.password = "secret_key_password"
   # config.algorithm = :sha256                                    # Default: sha1 only for development.
   # config.organization_name = "Your Organization"
