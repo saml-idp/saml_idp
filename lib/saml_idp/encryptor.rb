@@ -23,7 +23,7 @@ module SamlIdp
       encrypted_key = Xmlenc::EncryptedKey.new(encrypted_key_node)
       encrypted_key.encrypt(openssl_cert.public_key, encryption_key)
       xml = Builder::XmlMarkup.new
-      xml.EncryptedAssertion xmlns: Saml::XML::Namespaces::ASSERTION do |enc_assert|
+      xml.EncryptedAssertion xmlns: SamlIdp::XML::Namespaces::ASSERTION do |enc_assert|
         enc_assert << encrypted_data.node.to_s
       end 
     end

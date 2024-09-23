@@ -13,7 +13,7 @@ module SamlIdp
     let(:x509_certificate) { Default::X509_CERTIFICATE }
     let(:xauthn) { Default::X509_CERTIFICATE }
     let(:authn_context_classref) {
-      Saml::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
+      SamlIdp::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
     }
     let(:expiry) { 3 * 60 * 60 }
     let(:session_expiry) { 24 * 60 * 60 }

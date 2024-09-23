@@ -6,7 +6,7 @@ module SamlIdp
     end
 
     it "signs valid xml" do
-      expect(Saml::XML::Document.parse(subject.signed).valid_signature?(Default::FINGERPRINT)).to be_truthy
+      expect(SamlIdp::XML::Document.parse(subject.signed).valid_signature?(Default::FINGERPRINT)).to be_truthy
     end
 
     it "includes logout element" do

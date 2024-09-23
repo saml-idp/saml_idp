@@ -45,7 +45,7 @@ module SamlIdp
     end
 
     def authn_context_classref
-      Saml::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
+      SamlIdp::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
     end
 
     def encode_authn_response(principal, opts = {})

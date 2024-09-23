@@ -47,16 +47,16 @@ module SamlIdp
       resp_options[:Version] =  "2.0"
       resp_options[:IssueInstant] = now_iso
       resp_options[:Destination] = saml_acs_url
-      resp_options[:Consent] = Saml::XML::Namespaces::Consents::UNSPECIFIED
+      resp_options[:Consent] = SamlIdp::XML::Namespaces::Consents::UNSPECIFIED
       resp_options[:InResponseTo] = saml_request_id unless saml_request_id.nil?
-      resp_options["xmlns:samlp"] = Saml::XML::Namespaces::PROTOCOL
+      resp_options["xmlns:samlp"] = SamlIdp::XML::Namespaces::PROTOCOL
 
       builder = Builder::XmlMarkup.new
       builder.tag! "samlp:Response", resp_options do |response|
-          response.Issuer issuer_uri, xmlns: Saml::XML::Namespaces::ASSERTION
+          response.Issuer issuer_uri, xmlns: SamlIdp::XML::Namespaces::ASSERTION
           sign response
           response.tag! "samlp:Status" do |status|
-            status.tag! "samlp:StatusCode", Value: Saml::XML::Namespaces::Statuses::SUCCESS
+            status.tag! "samlp:StatusCode", Value: SamlIdp::XML::Namespaces::Statuses::SUCCESS
           end
           response << assertion_and_signature
         end
