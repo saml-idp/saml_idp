@@ -4,10 +4,14 @@ module SamlIdp
     let(:reference_id) { "abc" }
     let(:digest) { "em8csGAWynywpe8S4nN64o56/4DosXi2XWMY6RJ6YfA=" }
     let(:algorithm) { :sha256 }
+    let(:secret_key) { SamlIdp::Default::SECRET_KEY }
+    let(:password) { nil }
     subject { described_class.new(
       reference_id,
       digest,
-      algorithm
+      algorithm,
+      secret_key,
+      password
     ) }
 
     before do
