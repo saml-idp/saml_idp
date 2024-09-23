@@ -9,47 +9,43 @@ module SamlIdp
     def initialize(opts)
       self.block_encryption = opts[:block_encryption]
       self.key_transport = opts[:key_transport]
-      self.cert = opts[:cert]
+      self.cert = opts[:cert].to_s.gsub(/-+(BEGIN|END) CERTIFICATE-+/, '')
     end
 
-    def encrypt(raw_xml) 
+    def encrypt(raw_xml)
       encryption_template = Nokogiri::XML::Document.parse(build_encryption_template).root
       encrypted_data = Xmlenc::EncryptedData.new(encryption_template)
       @encryption_key = encrypted_data.encrypt(raw_xml)
       encrypted_key_node = encrypted_data.node.at_xpath(
         '//xenc:EncryptedData/ds:KeyInfo/xenc:EncryptedKey',
         Xmlenc::NAMESPACES
-      )   
+      )
       encrypted_key = Xmlenc::EncryptedKey.new(encrypted_key_node)
       encrypted_key.encrypt(openssl_cert.public_key, encryption_key)
       xml = Builder::XmlMarkup.new
       xml.EncryptedAssertion xmlns: Saml::XML::Namespaces::ASSERTION do |enc_assert|
         enc_assert << encrypted_data.node.to_s
-      end 
+      end
     end
 
     def openssl_cert
-      if cert.is_a?(String)
-        @_openssl_cert ||= OpenSSL::X509::Certificate.new(Base64.decode64(cert))
-      else
-        @_openssl_cert ||= cert
-      end 
-    end 
+      @_openssl_cert ||= OpenSSL::X509::Certificate.new(Base64.decode64(cert))
+    end
     private :openssl_cert
 
     def block_encryption_ns
       "http://www.w3.org/2001/04/xmlenc##{block_encryption}"
-    end 
+    end
     private :block_encryption_ns
 
     def key_transport_ns
       "http://www.w3.org/2001/04/xmlenc##{key_transport}"
-    end 
+    end
     private :key_transport_ns
 
     def cipher_algorithm
       Xmlenc::EncryptedData::ALGORITHMS[block_encryption_ns]
-    end 
+    end
     private :cipher_algorithm
 
     def build_encryption_template
@@ -63,7 +59,7 @@ module SamlIdp
             enc_key.tag! 'ds:KeyInfo', 'xmlns:ds' => 'http://www.w3.org/2000/09/xmldsig#' do |key_info2|
               key_info2.tag! 'ds:X509Data' do |x509_data|
                 x509_data.tag! 'ds:X509Certificate' do |x509_cert|
-                  x509_cert << cert.to_s.gsub(/-+(BEGIN|END) CERTIFICATE-+/, '') 
+                  x509_cert << cert
                 end
               end
             end
