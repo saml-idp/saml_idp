@@ -33,7 +33,7 @@ describe SamlIdp::Controller do
     end
 
     it 'should call xml signature validation method' do
-      signed_doc = SamlIdp::XMLSecurity::SignedDocument.new(params[:SAMLRequest])
+      signed_doc = SamlIdp::XMLSecurity::SignedDocument.new(decode_saml_request(params[:SAMLRequest]))
       allow(signed_doc).to receive(:validate).and_return(true)
       allow(SamlIdp::XMLSecurity::SignedDocument).to receive(:new).and_return(signed_doc)
       validate_saml_request

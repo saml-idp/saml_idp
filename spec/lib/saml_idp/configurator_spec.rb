@@ -47,5 +47,34 @@ module SamlIdp
     it 'has a valid session_expiry' do
       expect(subject.session_expiry).to eq(0)
     end
+
+    context "logger initialization" do
+      context 'when Rails has been properly initialized' do
+        it 'sets logger to Rails.logger' do
+          rails_logger = double("Rails.logger")
+          stub_const("Rails", double(logger: rails_logger))
+
+          expect(subject.logger).to eq(Rails.logger)
+        end
+      end
+
+      context 'when Rails is not fully initialized' do
+        it 'sets logger to a lambda' do
+          stub_const("Rails", Class.new)
+
+          expect(subject.logger).to be_a(Proc)
+          expect { subject.logger.call("test") }.to output("test\n").to_stdout
+        end
+      end
+
+      context 'when Rails is not defined' do
+        it 'sets logger to a lambda' do
+          hide_const("Rails")
+
+          expect(subject.logger).to be_a(Proc)
+          expect { subject.logger.call("test") }.to output("test\n").to_stdout
+        end
+      end
+    end
   end
 end

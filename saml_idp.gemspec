@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.authors = ['Jon Phenow']
   s.email = 'jon.phenow@sportngin.com'
   s.homepage = 'https://github.com/saml-idp/saml_idp'
-  s.summary = 'SAML Indentity Provider for Ruby'
+  s.summary = 'SAML Identity Provider for Ruby'
   s.description = 'SAML IdP (Identity Provider) Library for Ruby'
   s.date = Time.now.utc.strftime('%Y-%m-%d')
   s.files = Dir['lib/**/*', 'LICENSE', 'README.md', 'Gemfile', 'saml_idp.gemspec']
@@ -46,6 +46,7 @@ Gem::Specification.new do |s|
   s.add_dependency('activesupport', '>= 5.2')
   s.add_dependency('builder', '>= 3.0')
   s.add_dependency('nokogiri', '>= 1.6.2')
+  s.add_dependency('ostruct')
   s.add_dependency('rexml')
   s.add_dependency('xmlenc', '>= 0.7.1')
 
@@ -55,6 +56,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency('capybara', '>= 2.16')
   s.add_development_dependency('rails', '>= 5.2')
   s.add_development_dependency('rake')
+  s.add_development_dependency('debug')
   s.add_development_dependency('rspec', '>= 3.7.0')
   s.add_development_dependency('ruby-saml', '>= 1.7.2')
   s.add_development_dependency('simplecov')
