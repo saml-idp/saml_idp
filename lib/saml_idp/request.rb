@@ -170,7 +170,11 @@ module SamlIdp
         OpenSSL::Digest::SHA1
       end
 
-      cert.public_key.verify(signature_algorithm.new, raw_signature, query_request_string)
+      result = cert.public_key.verify(signature_algorithm.new, raw_signature, query_request_string)
+      # Match all percent-encoded sequences (e.g., %20, %2B) and convert them to lowercase
+      # Upper case is recommended for consistency but some services such as MS Entra Id not follows it
+      # https://datatracker.ietf.org/doc/html/rfc3986#section-2.1
+      result || cert.public_key.verify(signature_algorithm.new, raw_signature, query_request_string.gsub(/%[A-F0-9]{2}/) { |match| match.downcase })
     rescue OpenSSL::X509::CertificateError => e
       log e.message
       collect_errors(:cert_format_error)
