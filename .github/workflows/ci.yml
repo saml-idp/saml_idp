@@ -22,6 +22,8 @@ jobs:
             gemfile: rails_dev.gemfile
           - ruby: '3.0'
             gemfile: rails_dev.gemfile
+          - ruby: '3.1'
+            gemfile: rails_dev.gemfile
           - ruby: '2.5'
             gemfile: rails_7.0.gemfile
           - ruby: '2.5'
