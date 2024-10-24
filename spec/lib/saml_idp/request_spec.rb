@@ -122,36 +122,68 @@ module SamlIdp
     end
 
     describe "logout request" do
-      let(:raw_logout_request) { "<LogoutRequest ID='_some_response_id' Version='2.0' IssueInstant='2010-06-01T13:00:00Z' Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'><Issuer xmlns='urn:oasis:names:tc:SAML:2.0:assertion'>http://example.com</Issuer><NameID xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:persistent'>some_name_id</NameID><SessionIndex>abc123index</SessionIndex></LogoutRequest>" }
+      context 'when POST binding' do
+        let(:raw_logout_request) { "<LogoutRequest ID='_some_response_id' Version='2.0' IssueInstant='2010-06-01T13:00:00Z' Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'><Issuer xmlns='urn:oasis:names:tc:SAML:2.0:assertion'>http://example.com</Issuer><NameID xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:persistent'>some_name_id</NameID><SessionIndex>abc123index</SessionIndex></LogoutRequest>" }
 
-      subject { described_class.new raw_logout_request }
+        subject { described_class.new raw_logout_request }
 
-      it "has a valid request_id" do
-        expect(subject.request_id).to eq('_some_response_id')
+        it "has a valid request_id" do
+          expect(subject.request_id).to eq('_some_response_id')
+        end
+
+        it "should be flagged as a logout_request" do
+          expect(subject.logout_request?).to eq(true)
+        end
+
+        it "should have a valid name_id" do
+          expect(subject.name_id).to eq('some_name_id')
+        end
+
+        it "should have a session index" do
+          expect(subject.session_index).to eq('abc123index')
+        end
+
+        it "should have a valid issuer" do
+          expect(subject.issuer).to eq('http://example.com')
+        end
+
+        it "fetches internal request" do
+          expect(subject.request['ID']).to eq(subject.request_id)
+        end
+
+        it "should return logout_url for response_url" do
+          expect(subject.response_url).to eq(subject.logout_url)
+        end
       end
 
-      it "should be flagged as a logout_request" do
-        expect(subject.logout_request?).to eq(true)
-      end
+      context 'when signature provided as external param' do
+        let!(:uri_query) { make_saml_sp_slo_request }
+        let(:raw_saml_request) { uri_query['SAMLRequest'] }
+        let(:relay_state) { uri_query['RelayState'] }
+        let(:siging_algorithm) { uri_query['SigAlg'] }
+        let(:signature) { uri_query['Signature'] }
 
-      it "should have a valid name_id" do
-        expect(subject.name_id).to eq('some_name_id')
-      end
+        subject do
+          described_class.from_deflated_request(
+            raw_saml_request,
+            saml_request: raw_saml_request,
+            relay_state: relay_state,
+            sig_algorithm: siging_algorithm,
+            signature: signature
+          )
+        end
 
-      it "should have a session index" do
-        expect(subject.session_index).to eq('abc123index')
-      end
-
-      it "should have a valid issuer" do
-        expect(subject.issuer).to eq('http://example.com')
-      end
-
-      it "fetches internal request" do
-        expect(subject.request['ID']).to eq(subject.request_id)
-      end
-
-      it "should return logout_url for response_url" do
-        expect(subject.response_url).to eq(subject.logout_url)
+        it "should validate the request" do
+          allow(ServiceProvider).to receive(:new).and_return(
+            ServiceProvider.new(
+              issuer: "http://example.com/issuer",
+              cert: sp_x509_cert,
+              response_hosts: ["example.com"],
+              assertion_consumer_logout_service_url: "http://example.com/logout"
+            )
+          )
+          expect(subject.valid?).to be true
+        end
       end
     end
   end
