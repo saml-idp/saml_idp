@@ -15,11 +15,11 @@ module SamlIdp
         IssueInstant: now_iso,
         Destination: saml_slo_url,
         InResponseTo: saml_request_id,
-        xmlns: Saml::XML::Namespaces::PROTOCOL do |response|
-          response.Issuer issuer_uri, xmlns: Saml::XML::Namespaces::ASSERTION
+        xmlns: SamlIdp::XML::Namespaces::PROTOCOL do |response|
+          response.Issuer issuer_uri, xmlns: SamlIdp::XML::Namespaces::ASSERTION
           sign response
-          response.Status xmlns: Saml::XML::Namespaces::PROTOCOL do |status|
-            status.StatusCode Value: Saml::XML::Namespaces::Statuses::SUCCESS
+          response.Status xmlns: SamlIdp::XML::Namespaces::PROTOCOL do |status|
+            status.StatusCode Value: SamlIdp::XML::Namespaces::Statuses::SUCCESS
           end
         end
     end

@@ -13,7 +13,7 @@ module SamlIdp
     end
 
     def document
-      @document ||= Saml::XML::Document.parse raw
+      @document ||= SamlIdp::XML::Document.parse raw
     end
 
     def entity_id
@@ -149,16 +149,16 @@ module SamlIdp
     end
 
     def contact_person_document
-      @contact_person_document ||= (xpath("//md:ContactPerson", md: metadata_namespace).first || Saml::XML::Document.new)
+      @contact_person_document ||= (xpath("//md:ContactPerson", md: metadata_namespace).first || SamlIdp::XML::Document.new)
     end
 
     def metadata_namespace
-      Saml::XML::Namespaces::METADATA
+      SamlIdp::XML::Namespaces::METADATA
     end
     private :metadata_namespace
 
     def signature_namespace
-      Saml::XML::Namespaces::SIGNATURE
+      SamlIdp::XML::Namespaces::SIGNATURE
     end
     private :signature_namespace
   end

@@ -157,7 +157,7 @@ module SamlIdp
     private :response_host
 
     def document
-      @_document ||= Saml::XML::Document.parse(raw_xml)
+      @_document ||= SamlIdp::XML::Document.parse(raw_xml)
     end
     private :document
 
@@ -179,17 +179,17 @@ module SamlIdp
     private :logout_request
 
     def samlp
-      Saml::XML::Namespaces::PROTOCOL
+      SamlIdp::XML::Namespaces::PROTOCOL
     end
     private :samlp
 
     def assertion
-      Saml::XML::Namespaces::ASSERTION
+      SamlIdp::XML::Namespaces::ASSERTION
     end
     private :assertion
 
     def signature_namespace
-      Saml::XML::Namespaces::SIGNATURE
+      SamlIdp::XML::Namespaces::SIGNATURE
     end
     private :signature_namespace
 

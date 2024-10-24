@@ -53,7 +53,7 @@ module SamlIdp
 
     def fresh
       builder = Builder::XmlMarkup.new
-      builder.Assertion xmlns: Saml::XML::Namespaces::ASSERTION,
+      builder.Assertion xmlns: SamlIdp::XML::Namespaces::ASSERTION,
         ID: reference_string,
         IssueInstant: now_iso,
         Version: "2.0" do |assertion|
@@ -61,7 +61,7 @@ module SamlIdp
           sign assertion
           assertion.Subject do |subject|
             subject.NameID name_id, Format: name_id_format[:name]
-            subject.SubjectConfirmation Method: Saml::XML::Namespaces::Methods::BEARER do |confirmation|
+            subject.SubjectConfirmation Method: SamlIdp::XML::Namespaces::Methods::BEARER do |confirmation|
               confirmation_hash = {}
               confirmation_hash[:InResponseTo] = saml_request_id unless saml_request_id.nil?
               confirmation_hash[:NotOnOrAfter] = not_on_or_after_subject
@@ -92,7 +92,7 @@ module SamlIdp
               asserted_attributes.each do |friendly_name, attrs|
                 attrs = (attrs || {}).with_indifferent_access
                 attr_statement.Attribute Name: attrs[:name] || friendly_name,
-                  NameFormat: attrs[:name_format] || Saml::XML::Namespaces::Formats::Attr::URI,
+                  NameFormat: attrs[:name_format] || SamlIdp::XML::Namespaces::Formats::Attr::URI,
                   FriendlyName: friendly_name.to_s do |attr|
                     values = get_values_for friendly_name, attrs[:getter]
                     values.each do |val|
