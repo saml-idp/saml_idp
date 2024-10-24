@@ -20,11 +20,11 @@ module SamlIdp
     it { should respond_to :logger }
 
     it "has a valid x509_certificate" do
-      expect(subject.x509_certificate).to eq(Default::X509_CERTIFICATE)
+      expect(subject.x509_certificate.call).to eq(Default::X509_CERTIFICATE)
     end
 
     it "has a valid secret_key" do
-      expect(subject.secret_key).to eq(Default::SECRET_KEY)
+      expect(subject.secret_key.call).to eq(Default::SECRET_KEY)
     end
 
     it "has a valid algorithm" do
