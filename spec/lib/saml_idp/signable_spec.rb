@@ -21,6 +21,18 @@ class MockSignable
   def algorithm
     OpenSSL::Digest::SHA1
   end
+
+  def x509_certificate
+    SamlIdp::Default::X509_CERTIFICATE
+  end
+
+  def secret_key
+    SamlIdp::Default::SECRET_KEY
+  end
+
+  def password
+    "password"
+  end
 end
 
 module SamlIdp
