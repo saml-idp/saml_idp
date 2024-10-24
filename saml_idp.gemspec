@@ -50,9 +50,8 @@ Gem::Specification.new do |s|
   s.add_dependency('rexml')
   s.add_dependency('xmlenc', '>= 0.7.1')
 
-  s.add_development_dependency('activeresource', '>= 5.1')
+  s.add_development_dependency('activeresource', '~> 6.1')
   s.add_development_dependency('appraisal')
-  s.add_development_dependency('byebug')
   s.add_development_dependency('capybara', '>= 2.16')
   s.add_development_dependency('rails', '>= 5.2')
   s.add_development_dependency('rake')
