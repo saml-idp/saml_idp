@@ -34,10 +34,7 @@ module SamlIdp
 
     def validate_saml_request(raw_saml_request = params[:SAMLRequest])
       decode_request(raw_saml_request, params[:Signature], params[:SigAlg], params[:RelayState])
-      return true if valid_saml_request?
-
-      head :forbidden if defined?(::Rails)
-      false
+      valid_saml_request?
     end
 
     def decode_request(raw_saml_request, signature, sig_algorithm, relay_state)
