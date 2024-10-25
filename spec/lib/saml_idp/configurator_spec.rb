@@ -78,6 +78,10 @@ module SamlIdp
           expect { subject.logger.call("test") }.to output("test\n").to_stdout
         end
       end
+
+      after do
+        hide_const("Rails")
+      end
     end
   end
 end

@@ -185,6 +185,7 @@ RSpec.describe SamlIdp::Request, type: :model do
     context "when the signature is invalid" do
       it "returns false and logs an error" do
         allow_any_instance_of(SamlIdp::Request).to receive(:valid_signature?).and_return(false)
+        allow_any_instance_of(SamlIdp::Request).to receive(:log)
         request = SamlIdp::Request.from_deflated_request(valid_saml_request)
 
         expect(request.valid?).to be false
