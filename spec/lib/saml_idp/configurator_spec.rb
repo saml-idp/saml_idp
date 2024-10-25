@@ -50,18 +50,21 @@ module SamlIdp
 
     context "logger initialization" do
       context 'when Rails has been properly initialized' do
-        it 'sets logger to Rails.logger' do
-          rails_logger = double("Rails.logger")
-          stub_const("Rails", double(logger: rails_logger))
+        before do
+          stub_const("Rails", double(logger: double("Rails.logger")))
+        end
 
+        it 'sets logger to Rails.logger' do
           expect(subject.logger).to eq(Rails.logger)
         end
       end
 
       context 'when Rails is not fully initialized' do
-        it 'sets logger to a lambda' do
-          stub_const("Rails", Class.new)
+        before do
+          stub_const("Rails", Class.new)          
+        end
 
+        it 'sets logger to a lambda' do
           expect(subject.logger).to be_a(Proc)
           expect { subject.logger.call("test") }.to output("test\n").to_stdout
         end
