@@ -52,7 +52,7 @@ module SecurityHelpers
   end
 
   def certificate_1
-    @signature1 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'certificate1'))
+    @certificate_1 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'certificate1'))
   end
 
   def r1_signature_2
