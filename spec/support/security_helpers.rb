@@ -51,8 +51,8 @@ module SecurityHelpers
     @signature_fingerprint1 ||= "C5:19:85:D9:47:F1:BE:57:08:20:25:05:08:46:EB:27:F6:CA:B7:83"
   end
 
-  def signature_1
-    @signature1 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'certificate1'))
+  def certificate_1
+    @certificate_1 ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'certificate1'))
   end
 
   def r1_signature_2
