@@ -24,9 +24,13 @@ Add this to your Gemfile:
 
 Include `SamlIdp::Controller` and see the examples that use rails. It should be straightforward for you.
 
-Basically you call `decode_request(params[:SAMLRequest])` on an incoming request and then use the value
-`saml_acs_url` to determine the source for which you need to authenticate a user. How you authenticate
-a user is entirely up to you.
+Basically, you call `decode_request(params[:SAMLRequest])` on an incoming request and then use the value 
+`saml_acs_url` to determine the source for which you need to authenticate a user. 
+If the signature (`Signature`) and signing algorithm (`SigAlg`) are provided as external parameters in the request,
+you can pass those parameters as `decode_request(params[:SAMLRequest], params[:Signature], params[:SigAlg], params[:RelayState])`.
+Then, you can verify the request signature with the `valid?` method.
+
+How you authenticate a user is entirely up to you.
 
 Once a user has successfully authenticated on your system send the Service Provider a SAMLResponse by
 posting to `saml_acs_url` the parameter `SAMLResponse` with the return value from a call to
