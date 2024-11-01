@@ -22,11 +22,15 @@ module SamlIdp
     attr_accessor :reference_id
     attr_accessor :digest_value
     attr_accessor :raw_algorithm
+    attr_accessor :private_key
+    attr_accessor :pv_key_password
 
-    def initialize(reference_id, digest_value, raw_algorithm)
+    def initialize(reference_id, digest_value, raw_algorithm, private_key, pv_key_password)
       self.reference_id = reference_id
       self.digest_value = digest_value
       self.raw_algorithm = raw_algorithm
+      self.private_key = private_key
+      self.pv_key_password = pv_key_password
     end
 
     def raw
@@ -49,40 +53,29 @@ module SamlIdp
       encoded.gsub(/\n/, "")
     end
 
+    private
+
     def digest_method
       DIGEST_METHODS.fetch(clean_algorithm_name, DIGEST_METHODS["sha1"])
     end
-    private :digest_method
 
     def signature_method
       SIGNATURE_METHODS.fetch(clean_algorithm_name, SIGNATURE_METHODS["sha1"])
     end
-    private :signature_method
 
     def clean_algorithm_name
       algorithm_name.to_s.downcase
     end
-    private :clean_algorithm_name
-
-    def secret_key
-      SamlIdp.config.secret_key
-    end
-    private :secret_key
-
-    def password
-      SamlIdp.config.password
-    end
-    private :password
 
     def encoded
-      key = OpenSSL::PKey::RSA.new(secret_key, password)
+      rsa_key = private_key || SamlIdp.config.secret_key
+      key_secret = pv_key_password || SamlIdp.config.pv_key_password
+      key = OpenSSL::PKey::RSA.new(rsa_key, key_secret)
       Base64.strict_encode64(key.sign(algorithm.new, raw))
     end
-    private :encoded
 
     def reference_string
       "#_#{reference_id}"
     end
-    private :reference_string
   end
 end
