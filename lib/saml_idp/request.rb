@@ -3,7 +3,9 @@ require 'saml_idp/service_provider'
 require 'logger'
 module SamlIdp
   class Request
-    def self.from_deflated_request(raw)
+    attr_accessor :errors
+
+    def self.from_deflated_request(raw, external_attributes = {})
       if raw
         decoded = Base64.decode64(raw)
         zstream = Zlib::Inflate.new(-Zlib::MAX_WBITS)
@@ -18,18 +20,23 @@ module SamlIdp
       else
         inflated = ""
       end
-      new(inflated)
+      new(inflated, external_attributes)
     end
 
-    attr_accessor :raw_xml
+    attr_accessor :raw_xml, :saml_request, :signature, :sig_algorithm, :relay_state
 
     delegate :config, to: :SamlIdp
     private :config
     delegate :xpath, to: :document
     private :xpath
 
-    def initialize(raw_xml = "")
+    def initialize(raw_xml = "", external_attributes = {})
       self.raw_xml = raw_xml
+      self.saml_request = external_attributes[:saml_request]
+      self.relay_state = external_attributes[:relay_state]
+      self.sig_algorithm = external_attributes[:sig_algorithm]
+      self.signature = external_attributes[:signature]
+      self.errors = []
     end
 
     def logout_request?
@@ -85,30 +92,53 @@ module SamlIdp
       end
     end
 
-    def valid?
+    def collect_errors(error_type)
+      errors.push(error_type)
+    end
+
+    def valid?(external_attributes = {})
       unless service_provider?
         log "Unable to find service provider for issuer #{issuer}"
+        collect_errors(:sp_not_found)
         return false
       end
 
       unless (authn_request? ^ logout_request?)
         log "One and only one of authnrequest and logout request is required. authnrequest: #{authn_request?} logout_request: #{logout_request?} "
+        collect_errors(:unaccepted_request)
         return false
       end
 
-      unless valid_signature?
-        log "Signature is invalid in #{raw_xml}"
+      if (logout_request? || validate_auth_request_signature?) && (service_provider.cert.to_s.empty? || !!service_provider.fingerprint.to_s.empty?)
+        log "Verifying request signature is required. But certificate and fingerprint was empty."
+        collect_errors(:empty_certificate)
+        return false
+      end
+
+      # XML embedded signature
+      if signature.nil? && !valid_signature?
+        log "Requested document signature is invalid in #{raw_xml}"
+        collect_errors(:invalid_embedded_signature)
+        return false
+      end
+
+      # URI query signature
+      if signature.present? && !valid_external_signature?
+        log "Requested URI signature is invalid in #{raw_xml}"
+        collect_errors(:invalid_external_signature)
         return false
       end
 
       if response_url.nil?
         log "Unable to find response url for #{issuer}: #{raw_xml}"
+        collect_errors(:empty_response_url)
         return false
       end
 
       if !service_provider.acceptable_response_hosts.include?(response_host)
         log "#{service_provider.acceptable_response_hosts} compare to #{response_host}"
         log "No acceptable AssertionConsumerServiceURL, either configure them via config.service_provider.response_hosts or match to your metadata_url host"
+        collect_errors(:not_allowed_host)
         return false
       end
 
@@ -117,13 +147,37 @@ module SamlIdp
 
     def valid_signature?
       # Force signatures for logout requests because there is no other protection against a cross-site DoS.
-      # Validate signature when metadata specify AuthnRequest should be signed
-      metadata = service_provider.current_metadata
-      if logout_request? || authn_request? && metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
-        document.valid_signature?(service_provider.fingerprint)
+      if logout_request? || authn_request? && validate_auth_request_signature?
+        document.valid_signature?(service_provider.cert, service_provider.fingerprint)
       else
         true
       end
+    end
+
+    def valid_external_signature?
+      return true if authn_request? && !validate_auth_request_signature?
+
+      cert = OpenSSL::X509::Certificate.new(service_provider.cert)
+
+      sha_version = sig_algorithm =~ /sha(.*?)$/i && $1.to_i
+      raw_signature = Base64.decode64(signature)
+
+      signature_algorithm = case sha_version
+      when 256 then OpenSSL::Digest::SHA256
+      when 384 then OpenSSL::Digest::SHA384
+      when 512 then OpenSSL::Digest::SHA512
+      else
+        OpenSSL::Digest::SHA1
+      end
+
+      result = cert.public_key.verify(signature_algorithm.new, raw_signature, query_request_string)
+      # Match all percent-encoded sequences (e.g., %20, %2B) and convert them to lowercase
+      # Upper case is recommended for consistency but some services such as MS Entra Id not follows it
+      # https://datatracker.ietf.org/doc/html/rfc3986#section-2.1
+      result || cert.public_key.verify(signature_algorithm.new, raw_signature, query_request_string.gsub(/%[A-F0-9]{2}/) { |match| match.downcase })
+    rescue OpenSSL::X509::CertificateError => e
+      log e.message
+      collect_errors(:cert_format_error)
     end
 
     def service_provider?
@@ -147,6 +201,13 @@ module SamlIdp
     def session_index
       @_session_index ||= xpath("//samlp:SessionIndex", samlp: samlp).first.try(:content)
     end
+
+    def query_request_string
+      url_string = "SAMLRequest=#{CGI.escape(saml_request)}"
+      url_string << "&RelayState=#{CGI.escape(relay_state)}" if relay_state
+      url_string << "&SigAlg=#{CGI.escape(sig_algorithm)}"
+    end
+    private :query_request_string
 
     def response_host
       uri = URI(response_url)
@@ -197,5 +258,14 @@ module SamlIdp
       config.service_provider.finder
     end
     private :service_provider_finder
+
+    def validate_auth_request_signature?
+      # Validate signature when metadata specify AuthnRequest should be signed
+      metadata = service_provider.current_metadata
+      sign_authn_request = metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
+      sign_authn_request = service_provider.sign_authn_request unless service_provider.sign_authn_request.nil? 
+      sign_authn_request
+    end
+    private :validate_auth_request_signature?
   end
 end

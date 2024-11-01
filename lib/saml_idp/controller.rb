@@ -33,15 +33,21 @@ module SamlIdp
     end
 
     def validate_saml_request(raw_saml_request = params[:SAMLRequest])
-      decode_request(raw_saml_request)
+      decode_request(raw_saml_request, params[:Signature], params[:SigAlg], params[:RelayState])
       return true if valid_saml_request?
 
       head :forbidden if defined?(::Rails)
       false
     end
 
-    def decode_request(raw_saml_request)
-      @saml_request = Request.from_deflated_request(raw_saml_request)
+    def decode_request(raw_saml_request, signature, sig_algorithm, relay_state)
+      @saml_request = Request.from_deflated_request(
+        raw_saml_request,
+        saml_request: raw_saml_request,
+        signature: signature,
+        sig_algorithm: sig_algorithm,
+        relay_state: relay_state
+      )
     end
 
     def authn_context_classref
@@ -81,8 +87,8 @@ module SamlIdp
         session_expiry,
         name_id_formats_opts,
         asserted_attributes_opts,
-        signed_assertion_opts,
         signed_message_opts,
+        signed_assertion_opts,
         compress_opts
       ).build
     end

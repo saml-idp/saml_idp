@@ -33,7 +33,7 @@ describe SamlIdp::Controller do
     end
 
     it 'should call xml signature validation method' do
-      signed_doc = SamlIdp::XMLSecurity::SignedDocument.new(params[:SAMLRequest])
+      signed_doc = SamlIdp::XMLSecurity::SignedDocument.new(decode_saml_request(params[:SAMLRequest]))
       allow(signed_doc).to receive(:validate).and_return(true)
       allow(SamlIdp::XMLSecurity::SignedDocument).to receive(:new).and_return(signed_doc)
       validate_saml_request
@@ -81,16 +81,12 @@ describe SamlIdp::Controller do
         expect(response.is_valid?).to be_truthy
       end
 
-      it "should create a SAML Logout Response" do
-        params[:SAMLRequest] = make_saml_logout_request
-        expect(validate_saml_request).to eq(true)
-        expect(saml_request.logout_request?).to eq true
+      it "should by default create a SAML Response with a signed assertion" do
         saml_response = encode_response(principal)
-        response = OneLogin::RubySaml::Logoutresponse.new(saml_response, saml_settings)
-        expect(response.validate).to eq(true)
-        expect(response.issuer).to eq("http://example.com")
+        response = OneLogin::RubySaml::Response.new(saml_response)
+        response.settings = saml_settings("https://foo.example.com/saml/consume", true)
+        expect(response.is_valid?).to be_truthy
       end
-
 
       [:sha1, :sha256, :sha384, :sha512].each do |algorithm_name|
         it "should create a SAML Response using the #{algorithm_name} algorithm" do
@@ -115,6 +111,34 @@ describe SamlIdp::Controller do
           expect(response.issuers.first).to eq("http://example.com")
           expect(response.is_valid?).to be_truthy
         end
+      end
+    end
+  end
+
+  context "Single Logout Request" do
+    before do
+      idp_configure("https://foo.example.com/saml/consume", true)
+      slo_request = make_saml_sp_slo_request(security_options: { embed_sign: false })
+      params[:SAMLRequest] = slo_request['SAMLRequest']
+      params[:RelayState] = slo_request['RelayState']
+      params[:SigAlg] = slo_request['SigAlg']
+      params[:Signature] = slo_request['Signature']
+    end
+
+    it 'should successfully validate signature' do
+      expect(validate_saml_request).to eq(true)
+    end
+
+    context "solicited Response" do
+      let(:principal) { double email_address: "foo@example.com" }
+
+      it "should create a SAML Logout Response" do
+        expect(validate_saml_request).to eq(true)
+        expect(saml_request.logout_request?).to eq true
+        saml_response = encode_response(principal)
+        response = OneLogin::RubySaml::Logoutresponse.new(saml_response, saml_settings)
+        expect(response.validate).to eq(true)
+        expect(response.issuer).to eq("http://idp.com/saml/idp")
       end
     end
   end

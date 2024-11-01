@@ -25,8 +25,8 @@ module SamlIdp
     attr_accessor :logger
 
     def initialize
-      self.x509_certificate = Default::X509_CERTIFICATE
-      self.secret_key = Default::SECRET_KEY
+      self.x509_certificate = -> { Default::X509_CERTIFICATE }
+      self.secret_key = -> { Default::SECRET_KEY }
       self.algorithm = :sha1
       self.reference_id_generator = ->() { SecureRandom.uuid }
       self.service_provider = OpenStruct.new
@@ -35,7 +35,7 @@ module SamlIdp
       self.service_provider.persisted_metadata_getter = ->(id, service_provider) {  }
       self.session_expiry = 0
       self.attributes = {}
-      self.logger = defined?(::Rails) ? Rails.logger : ->(msg) { puts msg }
+      self.logger = (defined?(::Rails) && Rails.respond_to?(:logger)) ? Rails.logger : ->(msg) { puts msg }
     end
 
     # formats

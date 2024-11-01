@@ -9,7 +9,7 @@ module SamlIdp
   require 'saml_idp/metadata_builder'
   require 'saml_idp/version'
   require 'saml_idp/fingerprint'
-  require 'saml_idp/engine' if defined?(::Rails)
+  require 'saml_idp/engine' if defined?(::Rails::Engine)
 
   def self.config
     @config ||= SamlIdp::Configurator.new
@@ -70,9 +70,9 @@ module Saml
         !!xpath("//ds:Signature", ds: signature_namespace).first
       end
 
-      def valid_signature?(fingerprint)
+      def valid_signature?(certificate, fingerprint)
         signed? &&
-          signed_document.validate(fingerprint, :soft)
+          signed_document.validate(certificate, fingerprint, :soft)
       end
 
       def signed_document

@@ -65,12 +65,12 @@ module SamlIdp
     private :clean_algorithm_name
 
     def secret_key
-      SamlIdp.config.secret_key
+      SamlIdp.config.secret_key.is_a?(Proc) ? SamlIdp.config.secret_key.call : SamlIdp.config.secret_key
     end
     private :secret_key
 
     def password
-      SamlIdp.config.password
+      SamlIdp.config.password.is_a?(Proc) ? SamlIdp.config.password.call : SamlIdp.config.password
     end
     private :password
 
