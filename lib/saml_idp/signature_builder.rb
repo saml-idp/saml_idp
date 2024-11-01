@@ -21,7 +21,8 @@ module SamlIdp
     end
 
     def x509_certificate
-      SamlIdp.config.x509_certificate
+      certificate = SamlIdp.config.x509_certificate.is_a?(Proc) ? SamlIdp.config.x509_certificate.call : SamlIdp.config.x509_certificate
+      certificate
       .to_s
       .gsub(/-----BEGIN CERTIFICATE-----/,"")
       .gsub(/-----END CERTIFICATE-----/,"")
