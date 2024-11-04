@@ -98,7 +98,7 @@ module SamlIdp
 
     def assertion_builder
       @assertion_builder ||=
-        AssertionBuilder.new SecureRandom.uuid,
+        AssertionBuilder.new(reference_id || SecureRandom.uuid,
                              issuer_uri,
                              principal,
                              audience_uri,
@@ -110,7 +110,7 @@ module SamlIdp
                              encryption_opts,
                              session_expiry,
                              name_id_formats_opts,
-                             asserted_attributes_opts
+                             asserted_attributes_opts)
     end
     private :assertion_builder
   end
