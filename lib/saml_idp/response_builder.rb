@@ -17,7 +17,8 @@ module SamlIdp
 
     alias_method :reference_id, :response_id
 
-    def initialize(response_id:,
+    def initialize(
+        response_id:,
         issuer_uri:,
         saml_acs_url:,
         saml_request_id:,
