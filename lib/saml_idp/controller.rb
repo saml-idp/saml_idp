@@ -57,9 +57,9 @@ module SamlIdp
       audience_uri = opts[:audience_uri] || saml_request.issuer || saml_acs_url[/^(.*?\/\/.*?\/)/, 1]
       opt_issuer_uri = opts[:issuer_uri] || issuer_uri
       my_authn_context_classref = opts[:authn_context_classref] || authn_context_classref
-      public_cert = opts[:public_cert] || SamlIdp.config.pv_key_password
+      public_cert = opts[:public_cert] || SamlIdp.config.x509_certificate
       private_key = opts[:private_key] || SamlIdp.config.secret_key
-      pv_key_password = opts[:pv_key_password] || SamlIdp.config.pv_key_password
+      pv_key_password = opts[:pv_key_password] || SamlIdp.config.password
       acs_url = opts[:acs_url] || saml_acs_url
       expiry = opts[:expiry] || 60*60
       session_expiry = opts[:session_expiry]
@@ -75,13 +75,16 @@ module SamlIdp
       SamlResponse.new(
         reference_id: reference_id,
         response_id: response_id,
-        opt_issuer_uri: opt_issuer_uri,
+        issuer_uri: opt_issuer_uri,
         principal: principal,
         audience_uri: audience_uri,
         saml_request_id: saml_request_id,
-        acs_url: acs_url,
-        raw_algorithm: (opts[:algorithm] || algorithm || default_algorithm),
-        my_authn_context_classref: my_authn_context_classref,
+        saml_acs_url: acs_url,
+        algorithm: (opts[:algorithm] || algorithm || default_algorithm),
+        authn_context_classref: my_authn_context_classref,
+        public_cert: public_cert,
+        private_key: private_key,
+        pv_key_password: pv_key_password,
         expiry: expiry,
         encryption_opts: encryption_opts,
         session_expiry: session_expiry,
@@ -89,7 +92,7 @@ module SamlIdp
         asserted_attributes_opts: asserted_attributes_opts,
         signed_message_opts: signed_message_opts,
         signed_assertion_opts: signed_assertion_opts,
-        compress_opts: compress_opts
+        compression_opts: compress_opts
       ).build
     end
 
