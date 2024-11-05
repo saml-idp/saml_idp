@@ -68,9 +68,7 @@ module SamlIdp
     end
 
     def encoded
-      rsa_key = private_key || SamlIdp.config.secret_key
-      key_secret = pv_key_password || SamlIdp.config.password
-      key = OpenSSL::PKey::RSA.new(rsa_key, key_secret)
+      key = OpenSSL::PKey::RSA.new(private_key, pv_key_password)
       Base64.strict_encode64(key.sign(algorithm.new, raw))
     end
 
