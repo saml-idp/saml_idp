@@ -25,7 +25,7 @@ module SamlIdp
     private
 
     def der_certificate
-      certificate_formatter(x509_certificate || SamlIdp.config.x509_certificate)
+      certificate_formatter(x509_certificate)
     end
 
     def signed_info
