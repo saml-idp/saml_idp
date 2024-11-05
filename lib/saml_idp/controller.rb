@@ -98,11 +98,14 @@ module SamlIdp
 
     def encode_logout_response(_principal, opts = {})
       SamlIdp::LogoutResponseBuilder.new(
-        get_saml_response_id,
-        (opts[:issuer_uri] || issuer_uri),
-        saml_logout_url,
-        saml_request_id,
-        (opts[:algorithm] || algorithm || default_algorithm)
+        response_id: get_saml_response_id,
+        issuer_uri: (opts[:issuer_uri] || issuer_uri),
+        saml_slo_url: saml_logout_url,
+        saml_request_id: saml_request_id,
+        algorithm: (opts[:algorithm] || algorithm || default_algorithm),
+        public_cert: opts[:public_cert] || SamlIdp.config.x509_certificate,
+        private_key: opts[:private_key] || SamlIdp.config.secret_key,
+        pv_key_password: opts[:pv_key_password] || SamlIdp.config.password
       ).signed
     end
 

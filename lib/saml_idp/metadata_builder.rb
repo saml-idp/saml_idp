@@ -159,6 +159,16 @@ module SamlIdp
       .gsub(/\n/, "")
     end
 
+    alias_method :public_cert, :x509_certificate
+
+    def private_key
+      SamlIdp.config.secret_key
+    end
+
+    def pv_key_password
+      nil
+    end
+
     %w[
       support_email
       organization_name
