@@ -1,91 +1,81 @@
 require 'spec_helper'
 module SamlIdp
   describe Request do
-    let(:aal) { 'http://idmanagement.gov/ns/assurance/aal/3' }
-    let(:default_aal) { 'urn:gov:gsa:ac:classes:sp:PasswordProtectedTransport:duo' }
     let(:ial) { 'http://idmanagement.gov/ns/assurance/ial/2' }
     let(:vtr) { 'C1.C2.P1.Pb' }
-    let(:password) { 'urn:oasis:names:tc:SAML:2.0:ac:classes:Password' }
-    let(:authn_context_classref) { build_authn_context_classref(password) }
+    let(:authn_context_classref) { 'urn:oasis:names:tc:SAML:2.0:ac:classes:Password' }
     let(:issuer) { 'localhost:3000' }
-    let(:raw_authn_request) do
-      "<samlp:AuthnRequest AssertionConsumerServiceURL='http://localhost:3000/saml/consume' Destination='http://localhost:1337/saml/auth' ID='_af43d1a0-e111-0130-661a-3c0754403fdb' IssueInstant='2013-08-06T22:01:35Z' Version='2.0' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'><saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>#{issuer}</saml:Issuer><samlp:NameIDPolicy AllowCreate='true' Format='urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'/><samlp:RequestedAuthnContext Comparison='exact'>#{authn_context_classref}</samlp:RequestedAuthnContext></samlp:AuthnRequest>"
+    let(:local_overrides) { {} }
+    let(:security_overrides) { {} }
+    let(:signed) { false }
+
+    let(:encoded_request) do
+      custom_saml_request(
+        overrides: { issuer:, authn_context: authn_context_classref }.
+          merge(local_overrides),
+        security_overrides:,
+        signed:
+      )
     end
 
-    let(:raw_authn_unspecified_name_id_format) do
-      "<samlp:AuthnRequest AssertionConsumerServiceURL='http://localhost:3000/saml/consume' Destination='http://localhost:1337/saml/auth' ID='_af43d1a0-e111-0130-661a-3c0754403fdb' IssueInstant='2013-08-06T22:01:35Z' Version='2.0' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'><saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>#{issuer}</saml:Issuer><samlp:RequestedAuthnContext Comparison='exact'><saml:AuthnContextClassRef xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef></samlp:RequestedAuthnContext></samlp:AuthnRequest>"
-    end
-
-    let(:raw_authn_forceauthn_present) do
-      "<samlp:AuthnRequest AssertionConsumerServiceURL='http://localhost:3000/saml/consume' Destination='http://localhost:1337/saml/auth' ID='_af43d1a0-e111-0130-661a-3c0754403fdb' IssueInstant='2013-08-06T22:01:35Z' Version='2.0' ForceAuthn='true' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'><saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>#{issuer}</saml:Issuer><samlp:RequestedAuthnContext Comparison='exact'><saml:AuthnContextClassRef xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef></samlp:RequestedAuthnContext></samlp:AuthnRequest>"
-    end
-
-    let(:raw_authn_forceauthn_false) do
-      "<samlp:AuthnRequest AssertionConsumerServiceURL='http://localhost:3000/saml/consume' Destination='http://localhost:1337/saml/auth' ID='_af43d1a0-e111-0130-661a-3c0754403fdb' IssueInstant='2013-08-06T22:01:35Z' Version='2.0' ForceAuthn='false' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'><saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>#{issuer}</saml:Issuer><samlp:RequestedAuthnContext Comparison='exact'><saml:AuthnContextClassRef xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef></samlp:RequestedAuthnContext></samlp:AuthnRequest>"
-    end
-
-    let(:raw_authn_enveloped_signature) do
-      "<samlp:AuthnRequest AssertionConsumerServiceURL='http://localhost:3000/saml/consume' Destination='http://localhost:1337/saml/auth' ID='_af43d1a0-e111-0130-661a-3c0754403fdb' IssueInstant='2013-08-06T22:01:35Z' Version='2.0' ForceAuthn='false' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'><saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>localhost:3000</saml:Issuer><ds:Signature xmlns:ds='http://www.w3.org/2000/09/xmldsig#'></ds:Signature><samlp:RequestedAuthnContext Comparison='exact'><saml:AuthnContextClassRef xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef></samlp:RequestedAuthnContext></samlp:AuthnRequest>"
-    end
-
-    let(:raw_logout_request) do
-      "<LogoutRequest ID='_some_response_id' Version='2.0' IssueInstant='2010-06-01T13:00:00Z' Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'><Issuer xmlns='urn:oasis:names:tc:SAML:2.0:assertion'>http://example.com</Issuer><NameID xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Format='urn:oasis:names:tc:SAML:2.0:nameid-format:persistent'>some_name_id</NameID><SessionIndex>abc123index</SessionIndex></LogoutRequest>"
-    end
-
-    let(:raw_no_ns_authn_request) { fixture('valid_no_ns.xml', path: 'requests') }
-    let(:raw_unknown_authn_request) do
-      fixture('valid_unknown_ns_authn.xml', path: 'requests')
-    end
-
+    subject { described_class.from_deflated_request(encoded_request) }
 
     describe 'deflated request' do
-      let(:deflated_request) { Base64.encode64(Zlib::Deflate.deflate(raw_authn_request, 9)[2..-5]) }
-
-      subject { described_class.from_deflated_request deflated_request }
+      let(:issuer) { 'a specific issuer' }
+      let(:local_overrides) { { issuer: } }
 
       it 'inflates' do
-        expect(subject.request_id).to eq('_af43d1a0-e111-0130-661a-3c0754403fdb')
+        expect(subject.issuer).to eq(issuer)
       end
 
-      it 'handles invalid SAML' do
-        req = described_class.from_deflated_request 'bang!'
-        expect(req.valid?).to eq(false)
+      context 'when SAML is invalid' do
+        subject { described_class.from_deflated_request 'not saml' }
+
+        it 'does not blow up' do
+          expect(subject.valid?).to be false
+        end
       end
     end
 
     describe 'authn request' do
-      subject { described_class.new raw_authn_request }
-
       it 'has a valid request_id' do
-        expect(subject.request_id).to eq('_af43d1a0-e111-0130-661a-3c0754403fdb')
+        expect(subject.request_id).to be_a String
       end
 
       it 'has a valid acs_url' do
-        expect(subject.acs_url).to eq('http://localhost:3000/saml/consume')
+        expect(subject.acs_url).to eq saml_settings.assertion_consumer_service_url
       end
 
       it 'has a valid service_provider' do
         expect(subject.service_provider).to be_a ServiceProvider
       end
 
-      it 'has a valid service_provider' do
-        expect(subject.service_provider).to be_truthy
-      end
-
       it 'has a valid issuer' do
-        expect(subject.issuer).to eq('localhost:3000')
+        expect(subject.issuer).to eq(issuer)
       end
 
       it 'has a valid valid_signature' do
-        expect(subject.valid_signature?).to be_truthy
+        expect(subject.valid_signature?).to be true
       end
 
       it "correctly indicates that it isn't signed" do
-        expect(subject.signed?).to be_falsey
+        expect(subject.signed?).to be false
+      end
+
+      context 'with a signed request' do
+        let(:signed) { true }
+
+        it 'has a valid valid_signature' do
+          expect(subject.valid_signature?).to be true
+        end
+
+        it "correctly indicates that it isn't signed" do
+          expect(subject.signed?).to be true
+        end
       end
 
       context 'the request has no namespace' do
-        subject { described_class.new raw_no_ns_authn_request }
+        subject { described_class.new fixture('valid_no_ns.xml', path: 'requests') }
 
         it 'has a valid valid_signature' do
           expect(subject.valid_signature?).to be true
@@ -97,7 +87,7 @@ module SamlIdp
       end
 
       context 'the request has an unknown namespace' do
-        subject { described_class.new raw_unknown_authn_request }
+        subject { described_class.new fixture('valid_unknown_ns_authn.xml', path: 'requests') }
 
         it 'has a valid valid_signature' do
           expect(subject.valid_signature?).to be true
@@ -110,7 +100,10 @@ module SamlIdp
 
       context 'with signature in params' do
         subject do
-          described_class.new(raw_authn_request, get_params: { Signature: 'abc' })
+          described_class.from_deflated_request(
+            encoded_request,
+            get_params: { Signature: 'abc' }
+          )
         end
 
         it 'correctly indicates that it is signed (even invalidly)' do
@@ -119,10 +112,10 @@ module SamlIdp
       end
 
       context 'with an enveloped signature' do
-        subject { described_class.new raw_authn_enveloped_signature }
+        let(:signed) { true }
 
         it 'correctly indicates that it is signed (even invalidly)' do
-          expect(subject.signed?).to be_truthy
+          expect(subject.signed?).to be true
         end
       end
 
@@ -146,10 +139,6 @@ module SamlIdp
         expect(subject.requested_authn_context_comparison).to eq('exact')
       end
 
-      it 'has a valid authn context' do
-        expect(subject.requested_authn_context).to eq('urn:oasis:names:tc:SAML:2.0:ac:classes:Password')
-      end
-
       context 'empty issuer' do
         let(:issuer) { nil }
 
@@ -163,20 +152,26 @@ module SamlIdp
         expect(subject.force_authn?).to be_falsey
       end
 
-      it 'properly parses ForceAuthn="true" if passed' do
-        authn_request = described_class.new raw_authn_forceauthn_present
+      describe 'ForceAuthn values' do
+        let(:force_authn) { true }
+        let(:local_overrides) { { force_authn: } }
 
-        expect(authn_request.force_authn?).to be_truthy
+        it 'properly parses ForceAuthn="true" if passed' do
+          expect(subject.force_authn?).to be true
+        end
+
+        context 'when force_authn is false' do
+          let(:force_authn) { false }
+
+          it 'properly parses ForceAuthn="false" if passed' do
+            expect(subject.force_authn?).to be_falsey
+          end
+        end
       end
 
-      it 'properly parses ForceAuthn="false" if passed' do
-        authn_request = described_class.new raw_authn_forceauthn_false
-
-        expect(authn_request.force_authn?).to be_falsey
-      end
 
       describe 'unspecified name id format' do
-        subject { described_class.new raw_authn_unspecified_name_id_format }
+        let(:local_overrides) { { name_identifier_format: nil } }
 
         it 'returns nil for name id format' do
           expect(subject.name_id_format).to eq(nil)
@@ -185,10 +180,17 @@ module SamlIdp
     end
 
     describe 'logout request' do
-      subject { described_class.new raw_logout_request }
+      let(:encoded_request) { custom_logout_request(overrides: { issuer: }) }
+
+      subject do
+        described_class.from_deflated_request(
+          encoded_request["SAMLRequest"],
+          get_params: encoded_request
+        )
+      end
 
       it 'has a valid request_id' do
-        expect(subject.request_id).to eq('_some_response_id')
+        expect(subject.request_id).to be_a String
       end
 
       it 'is flagged as a logout_request' do
@@ -196,15 +198,11 @@ module SamlIdp
       end
 
       it 'has a valid name_id' do
-        expect(subject.name_id).to eq('some_name_id')
-      end
-
-      it 'has a session index' do
-        expect(subject.session_index).to eq('abc123index')
+        expect(subject.name_id).to eq('some-user-id')
       end
 
       it 'has a valid issuer' do
-        expect(subject.issuer).to eq('http://example.com')
+        expect(subject.issuer).to eq(issuer)
       end
 
       it 'fetches internal request' do
@@ -217,7 +215,7 @@ module SamlIdp
     end
 
     describe '#requested_vtr_authn_contexts' do
-      subject { described_class.new raw_authn_request }
+      subject { described_class.from_deflated_request encoded_request }
 
       context 'no vtr context requested' do
         let(:authn_context_classref) { '' }
@@ -228,7 +226,7 @@ module SamlIdp
       end
 
       context 'only vtr is requested' do
-        let(:authn_context_classref) { build_authn_context_classref(vtr) }
+        let(:authn_context_classref) { vtr }
 
         it 'returns the vrt' do
           expect(subject.requested_vtr_authn_contexts).to eq([vtr])
@@ -236,7 +234,7 @@ module SamlIdp
       end
 
       context 'multiple contexts including vtr and an old ACR context' do
-        let(:authn_context_classref) { build_authn_context_classref([vtr, ial]) }
+        let(:authn_context_classref) { [vtr, ial] }
 
         it 'returns the vrt' do
           expect(subject.requested_vtr_authn_contexts).to eq([vtr])
@@ -244,17 +242,16 @@ module SamlIdp
       end
 
       context 'multiple contexts that are vectors of trust' do
-        let(:authn_context_classref) { build_authn_context_classref(['C1.C2.P1.Pb', 'C1.C2.P1']) }
+        let(:authn_context_classref) { [vtr, 'C1.C2.P1'] }
 
         it 'returns all of the vectors in an array' do
-          expect(subject.requested_vtr_authn_contexts).to eq(['C1.C2.P1.Pb', 'C1.C2.P1'])
+          expect(subject.requested_vtr_authn_contexts).to eq([vtr, 'C1.C2.P1'])
         end
       end
 
       context 'context that contains a VTR substring but is not a VTR' do
         let(:authn_context_classref) do
-          fake_vtr = 'Not a VTR but does contain LetT3.Rs and Nu.Mb.Ers'
-          build_authn_context_classref(fake_vtr)
+          'Not a VTR but does contain LetT3.Rs and Nu.Mb.Ers'
         end
 
         it 'does not match on the context' do
@@ -263,8 +260,7 @@ module SamlIdp
       end
 
       context 'with the default MFA context' do
-        let(:aal) { 'urn:gov:gsa:ac:classes:sp:PasswordProtectedTransport:duo' }
-        let(:authn_context_classref) { build_authn_context_classref(aal) }
+        let(:authn_context_classref) { 'urn:gov:gsa:ac:classes:sp:PasswordProtectedTransport:duo' }
 
         it 'does not match on the context' do
           expect(subject.requested_vtr_authn_contexts).to eq([])
@@ -273,10 +269,6 @@ module SamlIdp
     end
 
     describe '#valid?' do
-      let(:request_saml) { raw_authn_request }
-
-      subject { described_class.new request_saml }
-
       context 'a valid request' do
         it 'returns true' do
           expect(subject.valid?).to be true
@@ -297,14 +289,16 @@ module SamlIdp
 
           it 'adds an error to the request object' do
             subject.valid?
+
             expect(subject.errors.first).to eq :issuer_missing_or_invald
           end
         end
 
         describe 'no authn_request OR logout_request tag' do
           let(:request_saml) do
-            "<saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>localhost:3000</saml:Issuer><samlp:NameIDPolicy AllowCreate='true' Format='urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'/><samlp:RequestedAuthnContext Comparison='exact'>#{authn_context_classref}</samlp:RequestedAuthnContext>"
+            "<saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>localhost:3000</saml:Issuer><samlp:RequestedAuthnContext Comparison='exact'></samlp:RequestedAuthnContext>"
           end
+          subject { described_class.new request_saml }
 
           it 'is not valid' do
             expect(subject.valid?).to eq false
@@ -312,18 +306,21 @@ module SamlIdp
 
           it 'adds an error to request object' do
             subject.valid?
+
             expect(subject.errors.first).to eq :no_auth_or_logout_request
           end
         end
 
         describe 'both an authn_request AND logout_request tag' do
-          let(:logout_saml) do
-            "<LogoutRequest ID='_some_response_id' Version='2.0' IssueInstant='2010-06-01T13:00:00Z' Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'>"
+          let(:auth_request) do
+            "<samlp:AuthnRequest IssueInstant='2013-08-06T22:01:35Z' Version='2.0' xmlns:samlp='urn:oasis:names:tc:SAML:2.0:protocol'><saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>#{issuer}</saml:Issuer>"
           end
 
-          let(:request_saml) do
-            logout_saml + raw_authn_request + '</LogoutRequest>'
+          let(:logout_request) do
+            "<samlp:LogoutRequest Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'><Issuer xmlns='urn:oasis:names:tc:SAML:2.0:assertion'>http://example.com</Issuer></samlp:LogoutRequest>"
           end
+
+          subject { described_class.new auth_request + logout_request + "</samlp:AuthnRequest>"}
 
           it 'is not valid' do
             expect(subject.valid?).to eq false
@@ -337,11 +334,7 @@ module SamlIdp
 
         describe 'there is no response url' do
           describe 'authn_request' do
-            let(:request_saml) do
-              raw_authn_request.gsub(
-                "AssertionConsumerServiceURL='http://localhost:3000/saml/consume'", ''
-              )
-            end
+            let(:local_overrides) { { assertion_consumer_service_url: nil } }
 
             it 'is not valid' do
               expect(subject.valid?).to eq false
@@ -354,7 +347,14 @@ module SamlIdp
           end
 
           describe 'logout_request' do
-            let(:request_saml) { raw_logout_request }
+            let(:encoded_request) { custom_logout_request }
+
+            subject do
+              described_class.from_deflated_request(
+                encoded_request["SAMLRequest"],
+                get_params: encoded_request
+              )
+            end
 
             before do
               subject.service_provider.assertion_consumer_logout_service_url = nil
@@ -372,9 +372,18 @@ module SamlIdp
         end
 
         describe 'invalid signature' do
+          let(:encoded_request) { custom_logout_request }
+
           subject do
-            # the easiest way to "force" a signature check is to make it a logout request
-            described_class.new(raw_logout_request, get_params: { Signature: 'abc' })
+            described_class.from_deflated_request(
+              encoded_request["SAMLRequest"],
+              get_params: encoded_request
+            )
+          end
+
+          before do
+            subject.service_provider.assertion_consumer_logout_service_url = ' https://example.com/logout'
+            subject.service_provider.certs = []
           end
 
           it 'is not valid' do
@@ -382,6 +391,7 @@ module SamlIdp
           end
 
           it 'adds an error to request object' do
+            # service_provider has no certificates embedded, so signature is invalid
             subject.valid?
             expect(subject.errors.include?(:invalid_signature)).to be true
           end
@@ -390,20 +400,14 @@ module SamlIdp
     end
 
     describe '#matching_cert' do
-      let(:saml_request) { make_saml_request }
-
-      subject do
-        described_class.from_deflated_request saml_request
-      end
-
-      describe 'document is not signed' do
+      context 'when document is not signed' do
         it 'returns nil' do
           expect(subject.matching_cert).to be_nil
         end
       end
 
-      describe 'document is signed' do
-        let(:saml_request) { signed_auth_request }
+      context 'when document is signed' do
+        let(:signed) { true }
         let(:service_provider) { subject.service_provider }
         let(:cert) { saml_settings.get_sp_cert }
 
@@ -446,20 +450,16 @@ module SamlIdp
     end
 
     describe '#cert_errors' do
-      let(:saml_request) { make_saml_request }
-
-      subject do
-        described_class.from_deflated_request saml_request
-      end
-
       describe 'document is not signed' do
+        let(:signed) { false }
+
         it 'returns nil' do
           expect(subject.cert_errors).to be_nil
         end
       end
 
       describe 'document is signed' do
-        let(:saml_request) { signed_auth_request }
+        let(:signed) { true }
         let(:service_provider) { subject.service_provider }
         let(:cert) { saml_settings.get_sp_cert }
 
@@ -482,19 +482,12 @@ module SamlIdp
           end
 
           describe 'the embedded certificate is bad' do
+            let(:signed) { true }
+            let(:local_overrides) { { certificate: invalid_cert.to_pem } }
             let(:error_code) { :invalid_certificate_in_request }
-            let(:cert_text) do
-              invalid_cert.to_s.
-              gsub('-----BEGIN CERTIFICATE-----', '').
-              gsub('-----END CERTIFICATE-----', '').
-              gsub("\n", '')
-            end
-            before do
-              allow(OpenSSL::X509::Certificate).to receive(:new).with(Base64.decode64(cert_text)).and_raise OpenSSL::X509::CertificateError
-            end
 
-            let(:saml_request) do
-              make_invalid_saml_request(values: {certificate: invalid_cert.to_pem}, signed: true)
+            before do
+              allow(OpenSSL::X509::Certificate).to receive(:new).and_raise OpenSSL::X509::CertificateError
             end
 
             it 'returns an invalid certificate error' do
@@ -540,6 +533,8 @@ module SamlIdp
             let(:saml_request) do
               Base64.encode64(Zlib::Deflate.deflate(blank_cert_element_req, 9)[2..-5])
             end
+
+            subject { described_class.from_deflated_request saml_request }
 
             it 'returns a no certificate in request error' do
               expect(subject.cert_errors).to eq errors

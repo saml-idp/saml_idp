@@ -7,7 +7,7 @@ module SamlIdp
     let(:name_id) { 'name' }
     let(:audience_uri) { 'localhost/audience' }
     let(:saml_request_id) { 'abc123' }
-    let(:saml_acs_url) { 'localhost/acs' }
+    let(:saml_acs_url) { 'https://foo.example.com/saml/consume' }
     let(:algorithm) { :sha1 }
     let(:secret_key) { Default::SECRET_KEY }
     let(:x509_certificate) { Default::X509_CERTIFICATE }
@@ -64,7 +64,7 @@ module SamlIdp
     it 'builds encrypted' do
       expect(subject_encrypted.build).not_to match(audience_uri)
       encoded_xml = subject_encrypted.build
-      resp_settings = saml_settings(saml_acs_url)
+      resp_settings = saml_settings
       resp_settings.private_key = Default::SECRET_KEY
       resp_settings.issuer = audience_uri
       saml_resp = OneLogin::RubySaml::Response.new(encoded_xml, settings: resp_settings)
@@ -81,7 +81,7 @@ module SamlIdp
       it 'builds encrypted' do
         expect(subject_encrypted.build).not_to match(audience_uri)
         encoded_xml = subject_encrypted.build
-        resp_settings = saml_settings(saml_acs_url)
+        resp_settings = saml_settings
         resp_settings.private_key = Default::SECRET_KEY
         resp_settings.issuer = audience_uri
         saml_resp = OneLogin::RubySaml::Response.new(encoded_xml, settings: resp_settings)
@@ -111,7 +111,7 @@ module SamlIdp
       it 'builds encrypted' do
         expect(subject.build).not_to match(audience_uri)
         encoded_xml = subject.build
-        resp_settings = saml_settings(saml_acs_url)
+        resp_settings = saml_settings
         resp_settings.private_key = Default::SECRET_KEY
         resp_settings.issuer = audience_uri
         resp_settings.idp_cert_fingerprint = custom_idp_x509_cert_fingerprint

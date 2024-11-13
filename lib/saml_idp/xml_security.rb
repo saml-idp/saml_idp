@@ -56,7 +56,7 @@ module SamlIdp
         cert =
           begin
             OpenSSL::X509::Certificate.new(cert_text)
-          rescue OpenSSL::X509::CertificateError => e
+          rescue OpenSSL::X509::CertificateError
             return false if soft
             raise ValidationError.new(
               'Invalid certificate',
@@ -176,7 +176,6 @@ module SamlIdp
         # check for inclusive namespaces
         inclusive_namespaces = extract_inclusive_namespaces
 
-
         sig_element = document.at_xpath('//ds:Signature | //Signature', DS_NS)
         signed_info_element = sig_element.at_xpath('./ds:SignedInfo | //SignedInfo', DS_NS)
 
@@ -236,6 +235,15 @@ module SamlIdp
         cert_text = Base64.decode64(base64_cert)
         cert = OpenSSL::X509::Certificate.new(cert_text)
         signature_algorithm = algorithm(sig_alg)
+
+        if signature_algorithm != SamlIdp.config.algorithm
+          return false if soft
+
+          raise ValidationError.new(
+            "Signature Algorithm needs to be #{SamlIdp.config.algorithm.new.name}",
+            :wrong_sig_algorithm
+          )
+        end
 
         unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
           return soft ? false : (raise ValidationError.new('Key validation error',

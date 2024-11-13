@@ -21,7 +21,7 @@ module SamlIdp
     end
 
     describe '#valid_signature' do
-      let(:raw_request) { make_saml_request }
+      let(:raw_request) { custom_saml_request }
 
       let(:request) do
         SamlIdp::Request.from_deflated_request(

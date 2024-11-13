@@ -12,10 +12,9 @@ describe SamlIdp::Controller do
   def head(status, options = {}); end
 
   it 'finds the SAML ACS URL' do
-    requested_saml_acs_url = 'https://example.com/saml/consume'
-    params[:SAMLRequest] = make_saml_request(requested_saml_acs_url)
+    params[:SAMLRequest] = custom_saml_request
     validate_saml_request
-    expect(saml_acs_url).to eq(requested_saml_acs_url)
+    expect(saml_acs_url).to eq(saml_settings.assertion_consumer_service_url)
   end
 
   context 'SP-initiated logout w/o embed' do
@@ -34,16 +33,14 @@ describe SamlIdp::Controller do
     end
 
     it 'respects Logout Request' do
-      request_url = URI.parse(make_sp_logout_request)
-      params.merge!(Rack::Utils.parse_nested_query(request_url.query)).symbolize_keys!
+      params.merge!(custom_logout_request).symbolize_keys!
       decode_request(params[:SAMLRequest])
       expect(saml_request.logout_request?).to eq true
       expect(valid_saml_request?).to eq true
     end
 
     it 'requires Signature be present in params' do
-      request_url = URI.parse(make_sp_logout_request)
-      params.merge!(Rack::Utils.parse_nested_query(request_url.query)).symbolize_keys!
+      params.merge!(custom_logout_request).symbolize_keys!
       params.delete(:Signature)
       decode_request(params[:SAMLRequest])
 
@@ -54,7 +51,7 @@ describe SamlIdp::Controller do
 
   context 'SAML Responses' do
     before do
-      params[:SAMLRequest] = make_saml_request
+      params[:SAMLRequest] = custom_saml_request
       validate_saml_request
     end
 
@@ -136,7 +133,7 @@ describe SamlIdp::Controller do
 
   context 'invalid SAML Request' do
     it 'returns headers only with a forbidden status' do
-      params[:SAMLRequest] = make_invalid_saml_request
+      params[:SAMLRequest] = custom_saml_request(overrides: {issuer: ''})
 
       expect(self).to receive(:head).with(:forbidden)
 
@@ -151,7 +148,7 @@ describe SamlIdp::Controller do
     end
 
     it 'returns headers only with a bad_request status' do
-      params[:SAMLRequest] = make_saml_request
+      params[:SAMLRequest] = custom_saml_request
 
       expect(self).to receive(:head).with(:bad_request)
 

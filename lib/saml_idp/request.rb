@@ -71,10 +71,6 @@ module SamlIdp
       request['ForceAuthn'] == 'true'
     end
 
-    def requested_authn_context
-      authn_context_node.content if authn_request? && authn_context_node
-    end
-
     def requested_authn_context_comparison
       requested_authn_context_node['Comparison'] if authn_request? && requested_authn_context_node
     end
@@ -163,6 +159,7 @@ module SamlIdp
 
     def cert_errors
       return nil unless signed?
+
       begin
         return nil if matching_cert.present?
       rescue SamlIdp::XMLSecurity::SignedDocument::ValidationError => e

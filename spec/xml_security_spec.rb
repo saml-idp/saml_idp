@@ -3,62 +3,57 @@ require 'xml_security'
 
 module SamlIdp
   describe 'XmlSecurity::SignedDocument' do
-    let(:xml_string) { fixture('valid_response_sha1.xml') }
+    let(:xml_string) { fixture('valid_SHA256.xml', path: 'requests') }
     let(:ds_namespace) { { 'ds' => 'http://www.w3.org/2000/09/xmldsig#' } }
+    let(:auth_request) { custom_saml_request }
+    let(:request) { Request.from_deflated_request(auth_request) }
+    let(:base64_cert_text) { saml_settings.certificate }
+    let(:base64_cert) { OpenSSL::X509::Certificate.new(add_cert_boundaries(saml_settings.certificate)) }
 
     subject do
-      XMLSecurity::SignedDocument.new(xml_string)
-    end
-
-    let(:base64cert) do
-      subject.document.at_xpath('//ds:X509Certificate', ds_namespace).text
+      request.send(:document).signed_document
     end
 
     describe '#validate_doc' do
       describe 'when softly validating' do
-        it 'does not throw NS related exceptions' do
-          expect(subject.validate_doc(base64cert, true)).to be_falsey
+        before do
+          allow(subject).to receive(:digests_match?).and_return false
         end
 
-        context 'multiple validations' do
+        it 'does not throw NS related exceptions' do
+          expect(subject.validate_doc(base64_cert_text, true)).to be_falsey
+        end
+
+        context 'with multiple validations' do
           it 'does not raise an error' do
-            expect { 2.times { subject.validate_doc(base64cert, true) } }.not_to raise_error
+            expect { 2.times { subject.validate_doc(base64_cert_text, true) } }.not_to raise_error
           end
         end
       end
 
-      describe 'when validating not softly' do
-        it 'throws NS related exceptions' do
-          expect do
-            subject.validate_doc(base64cert,
-                                  false)
-          end.to raise_error(SamlIdp::XMLSecurity::SignedDocument::ValidationError)
+      describe 'when throwing errors' do
+        context 'when when the certs do not match' do
+          let(:wrong_cert) { remove_cert_boundaries(custom_idp_x509_cert) }
+
+          it 'raises key validation error' do
+            expect { subject.validate_doc(wrong_cert, false) }.to(
+              raise_error(
+                SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                'Key validation error'
+              )
+            )
+          end
         end
 
-        it 'raises Fingerprint mismatch' do
-          expect { subject.validate('no:fi:ng:er:pr:in:t', false) }.to(
-            raise_error(SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                        'Fingerprint mismatch')
-          )
-        end
-
-        it 'raises Digest mismatch' do
-          expect { subject.validate_doc(base64cert, false) }.to(
-            raise_error(SamlIdp::XMLSecurity::SignedDocument::ValidationError, 'Digest mismatch')
-          )
-        end
-
-        context 'Key validation error' do
-          let(:xml_string) do
-            xml = fixture('valid_response_sha1.xml')
-            xml.sub!('<ds:DigestValue>pJQ7MS/ek4KRRWGmv/H43ReHYMs=</ds:DigestValue>',
-              '<ds:DigestValue>b9xsAXLsynugg3Wc1CI3kpWku+0=</ds:DigestValue>')
+        context 'when the digests do not match' do
+          before do
+            allow(subject).to receive(:digests_match?).and_return false
           end
 
-          it 'raises Key validation error' do
-            expect { subject.validate_doc(base64cert, false) }.to(
+          it 'raises digest mismatch error' do
+            expect { subject.validate_doc(base64_cert_text, false) }.to(
               raise_error(SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                          'Key validation error')
+                          'Digest mismatch')
             )
           end
         end
@@ -67,25 +62,39 @@ module SamlIdp
 
     describe '#validate' do
       describe 'errors' do
-        context 'invalid document certificate' do
-          let(:xml_string) { fixture('invalid_x509_cert_response.xml') }
+        before do
+          allow(subject.document).to receive(:at_xpath).and_call_original
+        end
 
-          it 'raises invalid certificates when the document certificate is invalid' do
-            expect { subject.validate('no:fi:ng:er:pr:in:t', false) }.to(
+        context 'when certificate is invalid' do
+          let(:cert_element) { double Nokogiri::XML::Element }
+          let(:wrong_cert) { "not-a-certificate" }
+
+          before do
+            allow(subject.document).to receive(:at_xpath).
+              with('//ds:X509Certificate | //X509Certificate', ds_namespace).
+              and_return(cert_element)
+
+            allow(cert_element).to receive(:text).and_return(wrong_cert)
+          end
+
+          it 'raises invalid certificate error' do
+            expect { subject.validate('fingerprint', false) }.to(
               raise_error(SamlIdp::XMLSecurity::SignedDocument::ValidationError,
                           'Invalid certificate')
             )
           end
         end
 
-        context 'x509Certicate is missing' do
-          let(:xml_string) do
-            xml = fixture('valid_response_sha1.xml')
-            xml.sub!(%r{<ds:X509Certificate>.*</ds:X509Certificate>}, '')
+        context 'when x509Certicate is missing entirely' do
+          before do
+            allow(subject.document).to receive(:at_xpath).
+              with('//ds:X509Certificate | //X509Certificate', ds_namespace).
+              and_return(nil)
           end
 
-          it 'raises validation error when the X509Certificate is missing' do
-            expect { subject.validate('a fingerprint', false) }.to(
+          it 'raises validation error' do
+            expect { subject.validate('fingerprint', false) }.to(
               raise_error(
                 SamlIdp::XMLSecurity::SignedDocument::ValidationError,
                 'Certificate element missing in response (ds:X509Certificate) and not provided in options[:cert]'
@@ -94,13 +103,18 @@ module SamlIdp
           end
         end
 
-        context 'find_base_64 returns nil' do
-          let(:xml_string) do
-            xml = fixture('valid_response_sha1.xml')
-            xml.sub!(%r{<ds:X509Certificate>.*</ds:X509Certificate>}, '<ds:X509Certificate></ds:X509Certificate>')
+        context 'when X509 element exists but is empty ' do
+          let(:cert_element) { double Nokogiri::XML::Element }
+
+          before do
+            allow(subject.document).to receive(:at_xpath).
+              with('//ds:X509Certificate | //X509Certificate', ds_namespace).
+              and_return(cert_element)
+
+            allow(cert_element).to receive(:text).and_return('')
           end
 
-          it 'raises a validation error when find_base64_cert returns nil' do
+          it 'returns nil' do
             expect { subject.validate('a fingerprint', false) }.to(
               raise_error(
                 SamlIdp::XMLSecurity::SignedDocument::ValidationError,
@@ -112,8 +126,9 @@ module SamlIdp
       end
 
       describe '#digest_method_algorithm' do
-        let(:xml_string) { fixture('valid_no_ns.xml', path: 'requests') }
+        subject { XMLSecurity::SignedDocument.new(xml_string) }
 
+        let(:xml_string) { fixture('valid_no_ns.xml', path: 'requests') }
         let(:sig_element) do
           subject.document.at_xpath('//ds:Signature | //Signature', ds_namespace)
         end
@@ -122,11 +137,7 @@ module SamlIdp
           sig_element.at_xpath('//ds:Reference | //Reference', ds_namespace)
         end
 
-
         context 'when document does not have ds namespace for Signature elements' do
-          let(:xml_string) { fixture('valid_no_ns.xml', path: 'requests') }
-
-
           it 'returns the value in the DigestMethod node' do
             expect(subject.send(:digest_method_algorithm, ref)).to eq OpenSSL::Digest::SHA256
           end
@@ -134,9 +145,7 @@ module SamlIdp
 
         context 'document does have ds namespace for Signature elements' do
           let(:xml_string) do
-            SamlIdp::Request.from_deflated_request(
-              signed_auth_request
-            ).raw_xml
+            SamlIdp::Request.from_deflated_request(custom_saml_request).raw_xml
           end
 
           it 'returns the value in the DigestMethod node' do
@@ -146,33 +155,66 @@ module SamlIdp
       end
 
       describe 'Algorithms' do
-        context 'SHA1' do
-          let(:xml_string) { fixture(:adfs_response_sha1) }
-          it 'validate using SHA1' do
-            expect(subject.validate('F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72')).to be_truthy
+        let(:signature_method) { "http://www.w3.org/2001/04/xmldsig-more#rsa-sha#{algorithm}" }
+        let(:digest_method) { "http://www.w3.org/2001/04/xmldsig-more#rsa-sha#{algorithm}" }
+
+        let(:auth_request) do
+          custom_saml_request(
+            security_overrides: {
+              signature_method:,
+              digest_method:,
+            }
+          )
+        end
+
+        context 'when using SHA1 as a signing algorithm' do
+          let(:algorithm) { '1' }
+
+          it 'raises an error' do
+            fingerprint = OpenSSL::Digest::SHA1.new(base64_cert.to_der).hexdigest
+            expect { subject.validate(fingerprint, false) }.to(
+              raise_error(
+                SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                'Signature Algorithm needs to be SHA256'
+              )
+            )
           end
         end
 
-        context 'SHA256' do
-          let(:xml_string) { fixture(:adfs_response_sha256) }
+        context 'when using SHA256 as a signing algorithm' do
+          let(:algorithm) { '256' }
+
           it 'validate using SHA256' do
-            expect(subject.validate('28:74:9B:E8:1F:E8:10:9C:A8:7C:A9:C3:E3:C5:01:6C:92:1C:B4:BA')).to be_truthy
+            fingerprint = OpenSSL::Digest::SHA256.new(base64_cert.to_der).hexdigest
+            expect(subject.validate(fingerprint)).to be true
           end
         end
 
-        context 'SHA384' do
-          let(:xml_string) { fixture(:adfs_response_sha384) }
+        context 'when using SHA384 as a signing algorithm' do
+          let(:algorithm) { '384' }
 
-          it 'validate using SHA384' do
-            expect(subject.validate('F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72')).to be_truthy
+          it 'raises an error' do
+            fingerprint = OpenSSL::Digest::SHA384.new(base64_cert.to_der).hexdigest
+            expect { subject.validate(fingerprint, false) }.to(
+              raise_error(
+                SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                'Signature Algorithm needs to be SHA256'
+              )
+            )
           end
         end
 
-        context 'SHA512' do
-          let(:xml_string) { fixture(:adfs_response_sha512) }
+        context 'when using SHA512 as a signing algorithm' do
+          let(:algorithm) { '512' }
 
-          it 'validate using SHA512' do
-            expect(subject.validate('F1:3C:6B:80:90:5A:03:0E:6C:91:3E:5D:15:FA:DD:B0:16:45:48:72')).to be_truthy
+          it 'raises an error' do
+            fingerprint = OpenSSL::Digest::SHA512.new(base64_cert.to_der).hexdigest
+            expect { subject.validate(fingerprint, false) }.to(
+              raise_error(
+                SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                'Signature Algorithm needs to be SHA256'
+              )
+            )
           end
         end
       end
@@ -180,17 +222,17 @@ module SamlIdp
 
     describe '#extract_inclusive_namespaces' do
       context 'explicit namespace resolution' do
-        let(:xml_string) { fixture(:open_saml_response) }
-
         it 'supports explicit namespace resolution for exclusive canonicalization' do
           inclusive_namespaces = subject.send(:extract_inclusive_namespaces)
 
-          expect(inclusive_namespaces).to eq(%w[xs])
+          expect(inclusive_namespaces).to eq(%w[#default samlp saml ds xs xsi md])
         end
       end
 
       context 'implicit namespace resolution' do
-        let(:xml_string) { fixture(:no_signature_ns) }
+        subject { XMLSecurity::SignedDocument.new(xml_string) }
+        # using XML response to test no namespace for the InclusiveNamespaces element
+        let(:xml_string) { fixture('no_signature_ns.xml') }
 
         it 'supports implicit namespace resolution for exclusive canonicalization' do
           inclusive_namespaces = subject.send(:extract_inclusive_namespaces)
@@ -200,10 +242,10 @@ module SamlIdp
       end
 
       context 'inclusive namespace element is missing' do
-        let(:xml_string) do
-          xml = fixture(:no_signature_ns)
-          xml.slice! %r{<InclusiveNamespaces xmlns="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="#default saml ds xs xsi"/>}
-          xml
+        before do
+          allow(subject.document).to receive(:at_xpath).
+            with('//ec:InclusiveNamespaces', { 'ec' => 'http://www.w3.org/2001/10/xml-exc-c14n#' }).
+            and_return(nil)
         end
 
         it 'return an empty list when inclusive namespace element is missing' do

@@ -31,7 +31,7 @@ module SamlIdp
       Timecop.travel(Time.zone.local(2010, 6, 1, 13, 0, 0)) do
         slo_request = OneLogin::RubySaml::SloLogoutrequest.new(
           subject.encoded,
-          settings: saml_settings('localhost:3000')
+          settings: saml_settings
         )
         slo_request.soft = false
         expect(slo_request.is_valid?).to eq true
