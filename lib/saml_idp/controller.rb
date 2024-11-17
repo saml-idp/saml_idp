@@ -34,10 +34,7 @@ module SamlIdp
 
     def validate_saml_request(raw_saml_request = params[:SAMLRequest])
       decode_request(raw_saml_request, params[:Signature], params[:SigAlg], params[:RelayState])
-      return true if valid_saml_request?
-
-      head :forbidden if defined?(::Rails)
-      false
+      valid_saml_request?
     end
 
     def decode_request(raw_saml_request, signature, sig_algorithm, relay_state)
@@ -60,6 +57,9 @@ module SamlIdp
       audience_uri = opts[:audience_uri] || saml_request.issuer || saml_acs_url[/^(.*?\/\/.*?\/)/, 1]
       opt_issuer_uri = opts[:issuer_uri] || issuer_uri
       my_authn_context_classref = opts[:authn_context_classref] || authn_context_classref
+      public_cert = opts[:public_cert] || SamlIdp.config.x509_certificate
+      private_key = opts[:private_key] || SamlIdp.config.secret_key
+      pv_key_password = opts[:pv_key_password] || SamlIdp.config.password
       acs_url = opts[:acs_url] || saml_acs_url
       expiry = opts[:expiry] || 60*60
       session_expiry = opts[:session_expiry]
@@ -73,33 +73,39 @@ module SamlIdp
       compress_opts = opts[:compress] || false
 
       SamlResponse.new(
-        reference_id,
-        response_id,
-        opt_issuer_uri,
-        principal,
-        audience_uri,
-        saml_request_id,
-        acs_url,
-        (opts[:algorithm] || algorithm || default_algorithm),
-        my_authn_context_classref,
-        expiry,
-        encryption_opts,
-        session_expiry,
-        name_id_formats_opts,
-        asserted_attributes_opts,
-        signed_message_opts,
-        signed_assertion_opts,
-        compress_opts
+        reference_id: reference_id,
+        response_id: response_id,
+        issuer_uri: opt_issuer_uri,
+        principal: principal,
+        audience_uri: audience_uri,
+        saml_request_id: saml_request_id,
+        saml_acs_url: acs_url,
+        algorithm: (opts[:algorithm] || algorithm || default_algorithm),
+        authn_context_classref: my_authn_context_classref,
+        public_cert: public_cert,
+        private_key: private_key,
+        pv_key_password: pv_key_password,
+        expiry: expiry,
+        encryption_opts: encryption_opts,
+        session_expiry: session_expiry,
+        name_id_formats_opts: name_id_formats_opts,
+        asserted_attributes_opts: asserted_attributes_opts,
+        signed_message_opts: signed_message_opts,
+        signed_assertion_opts: signed_assertion_opts,
+        compression_opts: compress_opts
       ).build
     end
 
     def encode_logout_response(_principal, opts = {})
       SamlIdp::LogoutResponseBuilder.new(
-        get_saml_response_id,
-        (opts[:issuer_uri] || issuer_uri),
-        saml_logout_url,
-        saml_request_id,
-        (opts[:algorithm] || algorithm || default_algorithm)
+        response_id: get_saml_response_id,
+        issuer_uri: (opts[:issuer_uri] || issuer_uri),
+        saml_slo_url: saml_logout_url,
+        saml_request_id: saml_request_id,
+        algorithm: (opts[:algorithm] || algorithm || default_algorithm),
+        public_cert: opts[:public_cert] || SamlIdp.config.x509_certificate,
+        private_key: opts[:private_key] || SamlIdp.config.secret_key,
+        pv_key_password: opts[:pv_key_password] || SamlIdp.config.password
       ).signed
     end
 
