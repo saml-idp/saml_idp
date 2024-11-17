@@ -66,6 +66,16 @@ describe SamlIdp::Controller do
       end
     end
 
+    context '#encode_authn_response' do
+      it 'uses default values when opts are not provided' do
+        saml_response = encode_authn_response(principal, { audience_uri: 'http://example.com/issuer', issuer_uri: 'http://example.com', acs_url: 'https://foo.example.com/saml/consume', signed_assertion: false })
+
+        response = OneLogin::RubySaml::Response.new(saml_response)
+        response.settings = saml_settings
+        expect(response.document.to_s).to_not include("<ds:Signature>")
+      end
+    end
+
     context "solicited Response" do
       before(:each) do
         params[:SAMLRequest] = make_saml_request
