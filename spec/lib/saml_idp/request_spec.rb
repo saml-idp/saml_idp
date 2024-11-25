@@ -477,6 +477,16 @@ module SamlIdp
               expect(subject.sha256_validation_matching_cert).to eq cert
             end
 
+            describe 'when the request is not embedded' do
+              let(:security_overrides) {{ embed_sign: false }}
+              let(:params) { encoded_request.symbolize_keys! }
+              subject { described_class.from_deflated_request(params[:SAMLRequest], get_params: params) }
+
+              it 'returns the cert' do
+                expect(subject.sha256_validation_matching_cert).to eq cert
+              end
+            end
+
             context 'when the signature algorithm is not right' do
               let(:security_overrides) do
                 {

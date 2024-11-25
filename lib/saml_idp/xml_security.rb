@@ -79,10 +79,12 @@ module SamlIdp
           raise ValidationError.new('Request certificate not valid or registered', :request_cert_not_registered)
         end
 
-        validate_doc(request_cert, false, options)
+        validate_doc(Base64.encode64(idp_certificate.to_pem), false, options)
       end
 
       def request_cert
+        return false if cert_element.blank?
+
         if cert_element.text.blank?
           raise ValidationError.new(
             'Certificate element present in response (ds:X509Certificate) but evaluating to nil',

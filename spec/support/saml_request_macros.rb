@@ -10,7 +10,11 @@ module SamlRequestMacros
       )
     )
 
-    CGI.unescape(auth_url.split('=').last)
+    if security_overrides[:embed_sign] == false
+      Rack::Utils.parse_nested_query(URI(auth_url).query)
+    else
+      CGI.unescape(auth_url.split('=').last)
+    end
   end
 
   def custom_logout_request(overrides: {}, security_overrides: {})
