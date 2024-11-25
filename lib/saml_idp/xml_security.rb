@@ -53,16 +53,13 @@ module SamlIdp
         log 'Validate the fingerprint'
         base64_cert = find_base64_cert(options)
         cert_text = Base64.decode64(base64_cert)
-        cert =
-          begin
-            OpenSSL::X509::Certificate.new(cert_text)
-          rescue OpenSSL::X509::CertificateError
-            return false if soft
-            raise ValidationError.new(
-              'Invalid certificate',
-              :invalid_certificate_in_request
-            )
-          end
+
+        cert, error = valid_cert(cert_text)
+        if error.present?
+          return false if soft
+
+          raise error
+        end
 
         # check cert matches registered idp cert
         fingerprint = fingerprint_cert(cert, options)
@@ -75,6 +72,32 @@ module SamlIdp
         end
 
         validate_doc(base64_cert, soft, options)
+      end
+
+      def validate_with_sha256(idp_certificate, options = {})
+        if request_cert && Base64.decode64(request_cert) != idp_certificate.to_der
+          raise ValidationError.new('Request certificate not valid or registered', :request_cert_not_registered)
+        end
+
+        validate_doc(request_cert, false, options)
+      end
+
+      def request_cert
+        if cert_element.text.blank?
+          raise ValidationError.new(
+            'Certificate element present in response (ds:X509Certificate) but evaluating to nil',
+            :no_certificate_in_request
+          )
+        end
+
+        cert_element.text
+      end
+
+      # @return [Array(OpenSSL::X509::Certificate, false), Array(nil, Error)] tuple of (cert, error)
+      def valid_cert(cert_text)
+        return OpenSSL::X509::Certificate.new(cert_text), false
+      rescue OpenSSL::X509::CertificateError
+        return nil, ValidationError.new('Invalid certificate', :invalid_certificate_in_request)
       end
 
       def validate_doc(base64_cert, soft = true, options = {})
@@ -111,7 +134,6 @@ module SamlIdp
       end
 
       def find_base64_cert(options)
-        cert_element = document.at_xpath('//ds:X509Certificate | //X509Certificate', DS_NS)
         if cert_element
           return cert_element.text if cert_element.text.present?
 
@@ -236,7 +258,8 @@ module SamlIdp
         cert = OpenSSL::X509::Certificate.new(cert_text)
         signature_algorithm = algorithm(sig_alg)
 
-        if signature_algorithm != SamlIdp.config.algorithm
+        # remove if !soft when we are sure this wont break partners
+        if !soft && signature_algorithm != SamlIdp.config.algorithm
           return false if soft
 
           raise ValidationError.new(
@@ -296,6 +319,10 @@ module SamlIdp
         document.at_xpath(
           "//ec:InclusiveNamespaces", { 'ec' =>  C14N }
         )&.attr('PrefixList')&.split(' ') || []
+      end
+
+      def cert_element
+        @cert_element ||= document.at_xpath('//ds:X509Certificate | //X509Certificate', DS_NS)
       end
 
       def log(msg, level: :debug)

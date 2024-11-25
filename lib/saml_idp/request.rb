@@ -157,6 +157,15 @@ module SamlIdp
       end
     end
 
+    def sha256_validation_matching_cert
+      return nil unless signed?
+
+      Array(service_provider.certs).find do |cert|
+        document.valid_sig_with_sha256?(cert, options)
+      rescue SamlIdp::XMLSecurity::SignedDocument::ValidationError
+      end
+    end
+
     def cert_errors
       return nil unless signed?
 

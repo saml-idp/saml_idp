@@ -92,6 +92,10 @@ module Saml
         { cert: options[:cert].serial.to_s, error_code: e.error_code }
       end
 
+      def valid_sig_with_sha256?(cert, options = {})
+        signed_document.validate_with_sha256(cert, options)
+      end
+
       def to_xml
         super(
           save_with: Nokogiri::XML::Node::SaveOptions::AS_XML | Nokogiri::XML::Node::SaveOptions::NO_DECLARATION

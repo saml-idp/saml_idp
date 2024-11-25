@@ -449,6 +449,80 @@ module SamlIdp
       end
     end
 
+    describe '#sha256_validation_matching_cert' do
+      context 'when document is not signed' do
+        it 'returns nil' do
+          expect(subject.matching_cert).to be_nil
+        end
+      end
+
+      context 'when document is signed' do
+        let(:signed) { true }
+        let(:service_provider) { subject.service_provider }
+        let(:cert) { saml_settings.get_sp_cert }
+
+        describe 'the service provider has no registered certs' do
+          before { subject.service_provider.certs = [] }
+
+          it 'returns nil' do
+            expect(subject.sha256_validation_matching_cert).to be_nil
+          end
+        end
+
+        describe 'the service provider has one registered cert' do
+          before { subject.service_provider.certs = [cert] }
+
+          describe 'the cert matches the assertion cert' do
+            it 'returns the cert' do
+              expect(subject.sha256_validation_matching_cert).to eq cert
+            end
+
+            context 'when the signature algorithm is not right' do
+              let(:security_overrides) do
+                {
+                  signature_method: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha1"
+                }
+              end
+
+              it 'returns nil' do
+                expect(subject.sha256_validation_matching_cert).to eq nil
+              end
+            end
+          end
+
+          describe 'the cert does not match the assertion cert' do
+            let(:cert) { OpenSSL::X509::Certificate.new(custom_idp_x509_cert) }
+
+            it 'returns nil' do
+              expect(subject.sha256_validation_matching_cert).to be_nil
+            end
+          end
+        end
+
+        describe 'multiple certs' do
+          let(:not_matching_cert) { OpenSSL::X509::Certificate.new(custom_idp_x509_cert) }
+
+          before { subject.service_provider.certs = [not_matching_cert, invalid_cert, cert] }
+
+          it 'returns the matching cert' do
+            expect(subject.sha256_validation_matching_cert).to eq cert
+          end
+
+          context 'when the signature algorithm is not right' do
+            let(:security_overrides) do
+              {
+                signature_method: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha1"
+              }
+            end
+
+            it 'returns nil' do
+              expect(subject.sha256_validation_matching_cert).to eq nil
+            end
+          end
+        end
+      end
+    end
+
     describe '#cert_errors' do
       describe 'document is not signed' do
         let(:signed) { false }
