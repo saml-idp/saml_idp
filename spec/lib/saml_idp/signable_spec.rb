@@ -1,7 +1,9 @@
 # encoding: utf-8
 require 'spec_helper'
+
 class MockSignable
   include SamlIdp::Signable
+  include SecurityHelpers
 
   def raw
     builder = Builder::XmlMarkup.new
@@ -20,6 +22,18 @@ class MockSignable
 
   def algorithm
     OpenSSL::Digest::SHA1
+  end
+
+  def private_key
+    sp_encrypted_pv_key[:sp_encrypted_pv_key]
+  end
+
+  def pv_key_password
+    sp_encrypted_pv_key[:pv_key_password]
+  end
+
+  def public_cert
+    sp_encrypted_pv_key[:sp_public_cert]
   end
 end
 
@@ -72,6 +86,5 @@ module SamlIdp
     it "has a valid signed" do
       expect(subject.signed).to match all_regex
     end
-
   end
 end

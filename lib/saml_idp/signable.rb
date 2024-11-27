@@ -5,6 +5,7 @@
 #   * algorithm
 require 'saml_idp/signed_info_builder'
 require 'saml_idp/signature_builder'
+
 module SamlIdp
   module Signable
     def self.included(base)
@@ -24,6 +25,8 @@ module SamlIdp
       el << signature if sign?
     end
 
+    private
+
     def generated_reference_id
       if reference_id
         fin = yield reference_id if block_given?
@@ -34,12 +37,10 @@ module SamlIdp
       end
       block_given? ? fin : ref
     end
-    private :generated_reference_id
 
     def reference_id_generator
       SamlIdp.config.reference_id_generator
     end
-    private :reference_id_generator
 
     def with_signature
       original = @sign
@@ -48,7 +49,6 @@ module SamlIdp
         @sign = original
       end
     end
-    private :with_signature
 
     def without_signature
       original = @sign
@@ -57,49 +57,52 @@ module SamlIdp
         @sign = original
       end
     end
-    private :without_signature
 
     def sign?
       !!@sign
     end
-    private :sign?
 
     def signature
-      SignatureBuilder.new(signed_info_builder).raw
+      SignatureBuilder.new(signed_info_builder, get_public_cert).raw
     end
-    private :signature
 
     def signed_info_builder
-      SignedInfoBuilder.new(get_reference_id, get_digest, get_algorithm)
+      SignedInfoBuilder.new(get_reference_id, get_digest, get_algorithm, get_private_key, pv_key_password)
     end
-    private :signed_info_builder
 
     def get_reference_id
       send(self.class.reference_id_method)
     end
-    private :get_reference_id
 
     def get_digest
       without_signature do
         send(self.class.digest_method)
       end
     end
-    private :get_digest
 
     def get_algorithm
       send(self.class.algorithm_method)
     end
-    private :get_algorithm
 
     def get_raw
       send(self.class.raw_method)
     end
-    private :get_raw
+
+    def get_public_cert
+      send(self.class.public_cert_method)
+    end
+
+    def get_private_key
+      send(self.class.private_key_method)
+    end
+
+    def pv_key_password
+      send(self.class.pv_key_password_method)
+    end
 
     def noko_raw
       Nokogiri::XML::Document.parse(get_raw)
     end
-    private :noko_raw
 
     def digest
       # Make it check for inclusive at some point (https://github.com/onelogin/ruby-saml/blob/master/lib/xml_security.rb#L159)
@@ -111,7 +114,6 @@ module SamlIdp
       hash = digest_algorithm.digest(canon_hashed_element)
       Base64.strict_encode64(hash).gsub(/\n/, '')
     end
-    private :digest
 
     module ClassMethods
       def self.module_method(name, default = nil)
@@ -125,6 +127,9 @@ module SamlIdp
       module_method :digest
       module_method :algorithm
       module_method :reference_id
+      module_method :public_cert
+      module_method :private_key
+      module_method :pv_key_password
     end
   end
 end
