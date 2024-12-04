@@ -3,6 +3,16 @@ module SamlIdp
   class Encryptor
     attr_accessor :encryption_key, :block_encryption, :key_transport, :cert
 
+    # Encryption algorithms enumerated in:
+    # https://github.com/digidentity/xmlenc/blob/937ca2f/lib/xmlenc/encrypted_data.rb#L3-L10
+    ENCRYPTION_ALGORITHMS_NS = {
+      'aes128-cbc' => 'http://www.w3.org/2001/04/xmlenc#aes128-cbc',
+      'aes256-cbc' => 'http://www.w3.org/2001/04/xmlenc#aes256-cbc',
+      'aes128-gcm' => 'http://www.w3.org/2009/xmlenc11#aes128-gcm',
+      'aes192-gcm' => 'http://www.w3.org/2009/xmlenc11#aes192-gcm',
+      'aes256-gcm' => 'http://www.w3.org/2009/xmlenc11#aes256-gcm',
+    }
+
     def initialize(opts)
       self.block_encryption = opts[:block_encryption]
       self.key_transport = opts[:key_transport]
@@ -35,7 +45,7 @@ module SamlIdp
     private :openssl_cert
 
     def block_encryption_ns
-      "http://www.w3.org/2001/04/xmlenc##{block_encryption}"
+      ENCRYPTION_ALGORITHMS_NS[block_encryption]
     end
     private :block_encryption_ns
 

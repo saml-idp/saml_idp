@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'saml_idp/encryptor'
 
 describe SamlIdp::Controller do
   include SamlIdp::Controller
@@ -56,13 +57,6 @@ describe SamlIdp::Controller do
     end
 
     let(:principal) { double email_address: 'foo@example.com' }
-    let(:encryption_opts) do
-      {
-        cert: SamlIdp::Default::X509_CERTIFICATE,
-        block_encryption: 'aes256-cbc',
-        key_transport: 'rsa-oaep-mgf1p',
-      }
-    end
 
     it 'creates a SAML Response' do
       saml_response = encode_response(principal)
@@ -116,17 +110,25 @@ describe SamlIdp::Controller do
         expect(response.is_valid?).to be_truthy
       end
 
-      it 'encrypts SAML Response assertion' do
-        self.algorithm = algorithm_name
-        saml_response = encode_response(principal, encryption: encryption_opts)
-        resp_settings = saml_settings
-        resp_settings.private_key = SamlIdp::Default::SECRET_KEY
-        response = OneLogin::RubySaml::Response.new(saml_response, settings: resp_settings)
-        expect(response.document.to_s).not_to match('foo@example.com')
-        expect(response.decrypted_document.to_s).to match('foo@example.com')
-        expect(response.name_id).to eq('foo@example.com')
-        expect(response.issuers.first).to eq('http://example.com')
-        expect(response.is_valid?).to be_truthy
+      SamlIdp::Encryptor::ENCRYPTION_ALGORITHMS_NS.keys.each do |encryption_algorithm|
+        it "encrypts SAML Response assertion using #{encryption_algorithm}" do
+          self.algorithm = algorithm_name
+          encryption_opts = {
+            cert: SamlIdp::Default::X509_CERTIFICATE,
+            block_encryption: encryption_algorithm,
+            key_transport: 'rsa-oaep-mgf1p',
+          }
+
+          saml_response = encode_response(principal, encryption: encryption_opts)
+          resp_settings = saml_settings
+          resp_settings.private_key = SamlIdp::Default::SECRET_KEY
+          response = OneLogin::RubySaml::Response.new(saml_response, settings: resp_settings)
+          expect(response.document.to_s).not_to match('foo@example.com')
+          expect(response.decrypted_document.to_s).to match('foo@example.com')
+          expect(response.name_id).to eq('foo@example.com')
+          expect(response.issuers.first).to eq('http://example.com')
+          expect(response.is_valid?).to be_truthy
+        end
       end
     end
   end

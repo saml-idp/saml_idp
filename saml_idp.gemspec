@@ -42,6 +42,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'simplecov', '~> 0.22.0'
   s.add_development_dependency 'sqlite3'
   s.add_development_dependency('timecop')
-  s.add_development_dependency('xmlenc', '>= 0.7.1')
+  s.add_development_dependency('xmlenc', '>= 0.8.0')
   s.metadata['rubygems_mfa_required'] = 'true'
 end
