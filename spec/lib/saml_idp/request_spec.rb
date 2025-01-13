@@ -81,7 +81,7 @@ module SamlIdp
           expect(subject.valid_signature?).to be true
         end
 
-        it "correctly indicates that it is signed" do
+        it 'correctly indicates that it is signed' do
           expect(subject.signed?).to be true
         end
       end
@@ -169,7 +169,6 @@ module SamlIdp
         end
       end
 
-
       describe 'unspecified name id format' do
         let(:local_overrides) { { name_identifier_format: nil } }
 
@@ -184,7 +183,7 @@ module SamlIdp
 
       subject do
         described_class.from_deflated_request(
-          encoded_request["SAMLRequest"],
+          encoded_request['SAMLRequest'],
           get_params: encoded_request
         )
       end
@@ -298,6 +297,7 @@ module SamlIdp
           let(:request_saml) do
             "<saml:Issuer xmlns:saml='urn:oasis:names:tc:SAML:2.0:assertion'>localhost:3000</saml:Issuer><samlp:RequestedAuthnContext Comparison='exact'></samlp:RequestedAuthnContext>"
           end
+
           subject { described_class.new request_saml }
 
           it 'is not valid' do
@@ -320,7 +320,7 @@ module SamlIdp
             "<samlp:LogoutRequest Destination='http://localhost:3000/saml/logout' xmlns='urn:oasis:names:tc:SAML:2.0:protocol'><Issuer xmlns='urn:oasis:names:tc:SAML:2.0:assertion'>http://example.com</Issuer></samlp:LogoutRequest>"
           end
 
-          subject { described_class.new auth_request + logout_request + "</samlp:AuthnRequest>"}
+          subject { described_class.new auth_request + logout_request + '</samlp:AuthnRequest>' }
 
           it 'is not valid' do
             expect(subject.valid?).to eq false
@@ -351,7 +351,7 @@ module SamlIdp
 
             subject do
               described_class.from_deflated_request(
-                encoded_request["SAMLRequest"],
+                encoded_request['SAMLRequest'],
                 get_params: encoded_request
               )
             end
@@ -376,7 +376,7 @@ module SamlIdp
 
           subject do
             described_class.from_deflated_request(
-              encoded_request["SAMLRequest"],
+              encoded_request['SAMLRequest'],
               get_params: encoded_request
             )
           end
@@ -429,7 +429,7 @@ module SamlIdp
           end
 
           describe 'the cert does not match the assertion cert' do
-            let(:cert) { OpenSSL::X509::Certificate.new(custom_idp_x509_cert) }
+            let(:cert) { custom_cert }
 
             it 'returns nil' do
               expect(subject.matching_cert).to be_nil
@@ -438,96 +438,12 @@ module SamlIdp
         end
 
         describe 'multiple certs' do
-          let(:not_matching_cert) { OpenSSL::X509::Certificate.new(custom_idp_x509_cert) }
+          let(:not_matching_cert) { custom_cert }
 
           before { subject.service_provider.certs = [not_matching_cert, invalid_cert, cert] }
 
           it 'returns the matching cert' do
             expect(subject.matching_cert).to eq cert
-          end
-        end
-      end
-    end
-
-    describe '#sha256_validation_matching_cert' do
-      context 'when document is not signed' do
-        it 'returns nil' do
-          expect(subject.matching_cert).to be_nil
-        end
-      end
-
-      context 'when document is signed' do
-        let(:signed) { true }
-        let(:service_provider) { subject.service_provider }
-        let(:cert) { saml_settings.get_sp_cert }
-
-        describe 'the service provider has no registered certs' do
-          before { subject.service_provider.certs = [] }
-
-          it 'returns nil' do
-            expect(subject.sha256_validation_matching_cert).to be_nil
-          end
-        end
-
-        describe 'the service provider has one registered cert' do
-          before { subject.service_provider.certs = [cert] }
-
-          describe 'the cert matches the assertion cert' do
-            it 'returns the cert' do
-              expect(subject.sha256_validation_matching_cert).to eq cert
-            end
-
-            describe 'when the request is not embedded' do
-              let(:security_overrides) {{ embed_sign: false }}
-              let(:params) { encoded_request.symbolize_keys! }
-              subject { described_class.from_deflated_request(params[:SAMLRequest], get_params: params) }
-
-              it 'returns the cert' do
-                expect(subject.sha256_validation_matching_cert).to eq cert
-              end
-            end
-
-            context 'when the signature algorithm is not right' do
-              let(:security_overrides) do
-                {
-                  signature_method: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha1"
-                }
-              end
-
-              it 'returns nil' do
-                expect(subject.sha256_validation_matching_cert).to eq nil
-              end
-            end
-          end
-
-          describe 'the cert does not match the assertion cert' do
-            let(:cert) { OpenSSL::X509::Certificate.new(custom_idp_x509_cert) }
-
-            it 'returns nil' do
-              expect(subject.sha256_validation_matching_cert).to be_nil
-            end
-          end
-        end
-
-        describe 'multiple certs' do
-          let(:not_matching_cert) { OpenSSL::X509::Certificate.new(custom_idp_x509_cert) }
-
-          before { subject.service_provider.certs = [not_matching_cert, invalid_cert, cert] }
-
-          it 'returns the matching cert' do
-            expect(subject.sha256_validation_matching_cert).to eq cert
-          end
-
-          context 'when the signature algorithm is not right' do
-            let(:security_overrides) do
-              {
-                signature_method: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha1"
-              }
-            end
-
-            it 'returns nil' do
-              expect(subject.sha256_validation_matching_cert).to eq nil
-            end
           end
         end
       end
@@ -551,13 +467,14 @@ module SamlIdp
           before { subject.service_provider.certs = [] }
 
           it 'returns a no registered cert error' do
-            expect(subject.cert_errors).to eq [{cert: nil, error_code: :no_registered_certs}]
+            expect(subject.cert_errors).to eq [{ cert: nil, error_code: :no_registered_certs }]
           end
         end
 
         describe 'the service provider has one registered cert' do
           before { subject.service_provider.certs = [cert] }
-          let(:errors) { [{ cert: cert.serial.to_s, error_code: error_code }] }
+
+          let(:errors) { [{ cert: cert.serial.to_s, error_code: }] }
 
           describe 'the cert matches the assertion cert' do
             it 'returns nil' do
@@ -568,11 +485,7 @@ module SamlIdp
           describe 'the embedded certificate is bad' do
             let(:signed) { true }
             let(:local_overrides) { { certificate: invalid_cert.to_pem } }
-            let(:error_code) { :invalid_certificate_in_request }
-
-            before do
-              allow(OpenSSL::X509::Certificate).to receive(:new).and_raise OpenSSL::X509::CertificateError
-            end
+            let(:error_code) { :request_cert_not_registered }
 
             it 'returns an invalid certificate error' do
               expect(subject.cert_errors).to eq errors
@@ -581,7 +494,7 @@ module SamlIdp
 
           describe 'the cert element exists but is empty' do
             let(:error_code) { :no_certificate_in_request }
-            let(:errors) { [{ cert: nil, error_code: error_code }] }
+            let(:errors) { [{ cert: nil, error_code: }] }
             let(:blank_cert_element_req) do
               <<-XML.gsub(/^[\s]+|[\s]+\n/, '')
                 <?xml version="1.0"?>
@@ -627,8 +540,8 @@ module SamlIdp
 
           describe 'the cert does not match the assertion cert' do
             describe 'returns a fingerprint mismatch error' do
-              let(:cert) { OpenSSL::X509::Certificate.new(custom_idp_x509_cert) }
-              let(:error_code) { :fingerprint_mismatch }
+              let(:cert) { custom_cert }
+              let(:error_code) { :request_cert_not_registered }
 
               it 'returns nil' do
                 expect(subject.cert_errors).to eq errors
@@ -638,9 +551,10 @@ module SamlIdp
         end
 
         describe 'sp has multiple certs' do
-          let(:not_matching_cert) { OpenSSL::X509::Certificate.new(custom_idp_x509_cert) }
+          let(:not_matching_cert) { custom_cert }
 
           before { subject.service_provider.certs = [not_matching_cert, invalid_cert, cert] }
+
           describe 'there is a matching cert' do
             it 'returns nil' do
               expect(subject.cert_errors).to be_nil
@@ -652,12 +566,11 @@ module SamlIdp
 
             it 'returns multiple errors' do
               expected_errors = [
-                { cert: not_matching_cert.serial.to_s, error_code: :fingerprint_mismatch },
-                { cert: invalid_cert.serial.to_s, error_code: :fingerprint_mismatch },
+                { cert: not_matching_cert.serial.to_s, error_code: :request_cert_not_registered },
+                { cert: invalid_cert.serial.to_s, error_code: :request_cert_not_registered },
               ]
               expect(subject.cert_errors).to eq expected_errors
             end
-
           end
         end
       end

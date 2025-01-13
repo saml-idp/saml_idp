@@ -150,19 +150,7 @@ module SamlIdp
       return nil unless signed?
 
       Array(service_provider.certs).find do |cert|
-        document.valid_signature?(
-          fingerprint(cert),
-          options.merge(cert:)
-        )
-      end
-    end
-
-    def sha256_validation_matching_cert
-      return nil unless signed?
-
-      Array(service_provider.certs).find do |cert|
-        document.valid_sig_with_sha256?(cert, options)
-      rescue SamlIdp::XMLSecurity::SignedDocument::ValidationError
+        document.valid_signature?(cert, options)
       end
     end
 
@@ -178,15 +166,8 @@ module SamlIdp
       return [{ cert: nil, error_code: :no_registered_certs }] if service_provider.certs.blank?
 
       Array(service_provider.certs).map do |cert|
-        document.gather_errors(
-          fingerprint(cert),
-          options.merge(cert:)
-        )
+        document.gather_errors(cert, options)
       end
-    end
-
-    def fingerprint(cert)
-      OpenSSL::Digest::SHA256.new(cert.to_der).hexdigest
     end
 
     def signed?

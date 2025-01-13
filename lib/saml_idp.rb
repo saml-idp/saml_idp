@@ -73,9 +73,9 @@ module Saml
       end
       private :options_have_signature
 
-      def valid_signature?(fingerprint, options = {})
+      def valid_signature?(cert, options = {})
         (signed? || options_have_signature(options)) &&
-          signed_document.validate(fingerprint, :soft, options)
+          signed_document.validate(cert, options)
       end
 
       def signed_document
@@ -86,10 +86,10 @@ module Saml
         Namespaces::SIGNATURE
       end
 
-      def gather_errors(fingerprint, options = {})
-        signed_document.validate(fingerprint, false, options)
+      def gather_errors(cert, options = {})
+        signed_document.validate(cert, options, soft: false)
       rescue SamlIdp::XMLSecurity::SignedDocument::ValidationError => e
-        { cert: options[:cert].serial.to_s, error_code: e.error_code }
+        { cert: cert.serial.to_s, error_code: e.error_code }
       end
 
       def valid_sig_with_sha256?(cert, options = {})

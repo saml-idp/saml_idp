@@ -41,7 +41,7 @@ module SamlIdp
 
       C14N = 'http://www.w3.org/2001/10/xml-exc-c14n#'
       DSIG = 'http://www.w3.org/2000/09/xmldsig#'
-      DS_NS = { "ds" => DSIG }
+      DS_NS = { 'ds' => DSIG }
 
       attr_accessor :document
 
@@ -49,37 +49,15 @@ module SamlIdp
         @document = Nokogiri.XML(response)
       end
 
-      def validate(idp_cert_fingerprint, soft = true, options = {})
-        log 'Validate the fingerprint'
-        base64_cert = find_base64_cert(options)
-        cert_text = Base64.decode64(base64_cert)
-
-        cert, error = valid_cert(cert_text)
-        if error.present?
+      def validate(idp_certificate, options = {}, soft: true)
+        if request_cert && Base64.decode64(request_cert) != idp_certificate.to_der
           return false if soft
 
-          raise error
+          raise ValidationError.new('Request certificate not valid or registered',
+                                    :request_cert_not_registered)
         end
 
-        # check cert matches registered idp cert
-        fingerprint = fingerprint_cert(cert, options)
-        sha1_fingerprint = fingerprint_cert_sha1(cert)
-        plain_idp_cert_fingerprint = idp_cert_fingerprint.gsub(/[^a-zA-Z0-9]/, '').downcase
-
-        if fingerprint != plain_idp_cert_fingerprint && sha1_fingerprint != plain_idp_cert_fingerprint
-          return soft ? false : (raise ValidationError.new('Fingerprint mismatch',
-                                                           :fingerprint_mismatch))
-        end
-
-        validate_doc(base64_cert, soft, options)
-      end
-
-      def validate_with_sha256(idp_certificate, options = {})
-        if request_cert && Base64.decode64(request_cert) != idp_certificate.to_der
-          raise ValidationError.new('Request certificate not valid or registered', :request_cert_not_registered)
-        end
-
-        validate_doc(Base64.encode64(idp_certificate.to_pem), false, options)
+        validate_doc(Base64.encode64(idp_certificate.to_pem), soft, options)
       end
 
       def request_cert
@@ -93,13 +71,6 @@ module SamlIdp
         end
 
         cert_element.text
-      end
-
-      # @return [Array(OpenSSL::X509::Certificate, false), Array(nil, Error)] tuple of (cert, error)
-      def valid_cert(cert_text)
-        return OpenSSL::X509::Certificate.new(cert_text), false
-      rescue OpenSSL::X509::CertificateError
-        return nil, ValidationError.new('Invalid certificate', :invalid_certificate_in_request)
       end
 
       def validate_doc(base64_cert, soft = true, options = {})
@@ -133,30 +104,6 @@ module SamlIdp
 
       def fingerprint_cert_sha1(cert)
         OpenSSL::Digest::SHA1.hexdigest(cert.to_der)
-      end
-
-      def find_base64_cert(options)
-        if cert_element
-          return cert_element.text if cert_element.text.present?
-
-          raise ValidationError.new(
-            'Certificate element present in response (ds:X509Certificate) but evaluating to nil', :no_certificate_in_request
-          )
-        elsif options[:cert]
-          if options[:cert].is_a?(String)
-            options[:cert]
-          elsif options[:cert].is_a?(OpenSSL::X509::Certificate)
-            Base64.encode64(options[:cert].to_pem)
-          else
-            raise ValidationError.new(
-              'options[:cert] must be Base64-encoded String or OpenSSL::X509::Certificate', :not_base64_or_cert
-            )
-          end
-        else
-          raise ValidationError.new(
-            'Certificate element missing in response (ds:X509Certificate) and not provided in options[:cert]', :cert_missing
-          )
-        end
       end
 
       def request?
@@ -233,11 +180,11 @@ module SamlIdp
             '//ds:DigestValue | //DigestValue', DS_NS
           ).text)
 
-          unless digests_match?(hash, digest_value)
-            return soft ? false : (raise ValidationError.new(
-              'Digest mismatch', :digest_mismatch
-            ))
-          end
+          next if digests_match?(hash, digest_value)
+
+          return false if soft
+
+          raise ValidationError.new('Digest mismatch', :digest_mismatch)
         end
 
         base64_signature = sig_element.at_xpath(
@@ -260,8 +207,7 @@ module SamlIdp
         cert = OpenSSL::X509::Certificate.new(cert_text)
         signature_algorithm = algorithm(sig_alg)
 
-        # remove if !soft when we are sure this wont break partners
-        if !soft && signature_algorithm != SamlIdp.config.algorithm
+        if signature_algorithm != SamlIdp.config.algorithm
           return false if soft
 
           raise ValidationError.new(
@@ -271,8 +217,9 @@ module SamlIdp
         end
 
         unless cert.public_key.verify(signature_algorithm.new, signature, canon_string)
-          return soft ? false : (raise ValidationError.new('Key validation error',
-                                                           :key_validation_error))
+          return false if soft
+
+          raise ValidationError.new('Key validation error', :key_validation_error)
         end
 
         true
@@ -319,7 +266,7 @@ module SamlIdp
 
       def extract_inclusive_namespaces
         document.at_xpath(
-          "//ec:InclusiveNamespaces", { 'ec' =>  C14N }
+          '//ec:InclusiveNamespaces', { 'ec' => C14N }
         )&.attr('PrefixList')&.split(' ') || []
       end
 

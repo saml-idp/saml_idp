@@ -6,6 +6,7 @@ module SamlIdp
   class ServiceProvider
     include Attributeable
     attribute :identifier
+    # certs is a list of OpenSSl::X509::Certificate objects
     attribute :certs
     attribute :metadata_url
     attribute :validate_signature

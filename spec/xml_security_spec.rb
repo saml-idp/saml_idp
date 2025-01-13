@@ -61,155 +61,10 @@ module SamlIdp
     end
 
     describe '#validate' do
-      describe 'errors' do
-        before do
-          allow(subject.document).to receive(:at_xpath).and_call_original
-        end
-
-        context 'when certificate is invalid' do
-          let(:cert_element) { double Nokogiri::XML::Element }
-          let(:wrong_cert) { "not-a-certificate" }
-
-          before do
-            allow(subject.document).to receive(:at_xpath).
-              with('//ds:X509Certificate | //X509Certificate', ds_namespace).
-              and_return(cert_element)
-
-            allow(cert_element).to receive(:text).and_return(wrong_cert)
-          end
-
-          it 'raises invalid certificate error' do
-            expect { subject.validate('fingerprint', false) }.to(
-              raise_error(SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                          'Invalid certificate')
-            )
-          end
-        end
-
-        context 'when x509Certicate is missing entirely' do
-          before do
-            allow(subject.document).to receive(:at_xpath).
-              with('//ds:X509Certificate | //X509Certificate', ds_namespace).
-              and_return(nil)
-          end
-
-          it 'raises validation error' do
-            expect { subject.validate('fingerprint', false) }.to(
-              raise_error(
-                SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                'Certificate element missing in response (ds:X509Certificate) and not provided in options[:cert]'
-              )
-            )
-          end
-        end
-
-        context 'when X509 element exists but is empty ' do
-          let(:cert_element) { double Nokogiri::XML::Element }
-
-          before do
-            allow(subject.document).to receive(:at_xpath).
-              with('//ds:X509Certificate | //X509Certificate', ds_namespace).
-              and_return(cert_element)
-
-            allow(cert_element).to receive(:text).and_return('')
-          end
-
-          it 'returns nil' do
-            expect { subject.validate('a fingerprint', false) }.to(
-              raise_error(
-                SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                'Certificate element present in response (ds:X509Certificate) but evaluating to nil'
-              )
-            )
-          end
-        end
-      end
-
-      describe '#digest_method_algorithm' do
-        subject { XMLSecurity::SignedDocument.new(xml_string) }
-
-        let(:xml_string) { fixture('valid_no_ns.xml', path: 'requests') }
-        let(:sig_element) do
-          subject.document.at_xpath('//ds:Signature | //Signature', ds_namespace)
-        end
-
-        let(:ref) do
-          sig_element.at_xpath('//ds:Reference | //Reference', ds_namespace)
-        end
-
-        context 'when document does not have ds namespace for Signature elements' do
-          it 'returns the value in the DigestMethod node' do
-            expect(subject.send(:digest_method_algorithm, ref)).to eq OpenSSL::Digest::SHA256
-          end
-        end
-
-        context 'document does have ds namespace for Signature elements' do
-          let(:xml_string) do
-            SamlIdp::Request.from_deflated_request(custom_saml_request).raw_xml
-          end
-
-          it 'returns the value in the DigestMethod node' do
-            expect(subject.send(:digest_method_algorithm, ref)).to eq OpenSSL::Digest::SHA256
-          end
-        end
-      end
-
-      describe 'Algorithms' do
-        let(:signature_method) { "http://www.w3.org/2001/04/xmldsig-more#rsa-sha#{algorithm}" }
-        let(:digest_method) { "http://www.w3.org/2001/04/xmldsig-more#rsa-sha#{algorithm}" }
-
-        let(:auth_request) do
-          custom_saml_request(
-            security_overrides: {
-              signature_method:,
-              digest_method:,
-            }
-          )
-        end
-
-        context 'when using SHA1 as a signing algorithm' do
-          let(:algorithm) { '1' }
-
-          it 'validates using SHA1' do
-            fingerprint = OpenSSL::Digest::SHA1.new(base64_cert.to_der).hexdigest
-            expect(subject.validate(fingerprint)).to be true
-          end
-        end
-
-        context 'when using SHA256 as a signing algorithm' do
-          let(:algorithm) { '256' }
-
-          it 'validates using SHA256' do
-            fingerprint = OpenSSL::Digest::SHA256.new(base64_cert.to_der).hexdigest
-            expect(subject.validate(fingerprint)).to be true
-          end
-        end
-
-        context 'when using SHA384 as a signing algorithm' do
-          let(:algorithm) { '384' }
-
-          it 'validates using SHA384' do
-            fingerprint = OpenSSL::Digest::SHA384.new(base64_cert.to_der).hexdigest
-            expect(subject.validate(fingerprint)).to be true
-          end
-        end
-
-        context 'when using SHA512 as a signing algorithm' do
-          let(:algorithm) { '512' }
-
-          it 'validates using SHA512' do
-            fingerprint = OpenSSL::Digest::SHA512.new(base64_cert.to_der).hexdigest
-            expect(subject.validate(fingerprint)).to be true
-          end
-        end
-      end
-    end
-
-    describe '#validate_with_sha256' do
       context 'with an embedded request' do
+        let(:cert_element) { double Nokogiri::XML::Element }
 
         context 'when the request certificate does not match an idp certificate' do
-          let(:cert_element) { double Nokogiri::XML::Element }
           let(:wrong_cert) { remove_cert_boundaries(custom_idp_x509_cert) }
 
           before do
@@ -220,18 +75,25 @@ module SamlIdp
             allow(cert_element).to receive(:text).and_return(wrong_cert)
           end
 
-          it 'raises an error' do
-            expect { subject.validate_with_sha256(base64_cert) }.to(
-              raise_error(
-                SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                'Request certificate not valid or registered'
+          context 'when it is failing softly' do
+            it 'returns false' do
+              expect(subject.validate(base64_cert)).to be false
+            end
+          end
+
+          context 'when it is throwing errors' do
+            it 'raises an error' do
+              expect { subject.validate(base64_cert, soft: false) }.to(
+                raise_error(
+                  SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                  'Request certificate not valid or registered'
+                )
               )
-            )
+            end
           end
         end
 
         context 'when the request certificate is invalid' do
-          let(:cert_element) { double Nokogiri::XML::Element }
           let(:wrong_cert) { 'invalid_cert' }
 
           before do
@@ -242,13 +104,48 @@ module SamlIdp
             allow(cert_element).to receive(:text).and_return(wrong_cert)
           end
 
-          it 'raises an error' do
-            expect { subject.validate_with_sha256(base64_cert) }.to(
-              raise_error(
-                SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                'Request certificate not valid or registered'
+          context 'when it is failing softly' do
+            it 'returns false' do
+              expect(subject.validate(base64_cert)).to be false
+            end
+          end
+
+          context 'when it is raising errors' do
+            it 'raises an error' do
+              expect { subject.validate(base64_cert, soft: false) }.to(
+                raise_error(
+                  SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                  'Request certificate not valid or registered'
+                )
               )
-            )
+            end
+          end
+
+          context 'when x509Certicate node exists but is blank' do
+            before do
+              allow(subject.document).to receive(:at_xpath).
+                with('//ds:X509Certificate | //X509Certificate', ds_namespace).
+                and_return(cert_element)
+
+              allow(cert_element).to receive(:text).and_return(wrong_cert)
+            end
+
+            context 'when it is failing softly' do
+              it 'returns false' do
+                expect(subject.validate(base64_cert)).to be false
+              end
+            end
+
+            context 'when it is raising errors' do
+              it 'raises validation error' do
+                expect { subject.validate(base64_cert, soft: false) }.to(
+                  raise_error(
+                    SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                    'Request certificate not valid or registered'
+                  )
+                )
+              end
+            end
           end
         end
 
@@ -268,14 +165,21 @@ module SamlIdp
           context 'when using SHA1 as a signing algorithm' do
             let(:algorithm) { '1' }
 
-            it 'raises an error' do
-              fingerprint = OpenSSL::Digest::SHA1.new(base64_cert.to_der).hexdigest
-              expect { subject.validate_with_sha256(base64_cert) }.to(
-                raise_error(
-                  SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                  'Signature Algorithm needs to be SHA256'
+            context 'when failing softly' do
+              it 'returns false' do
+                expect(subject.validate(base64_cert)).to be false
+              end
+            end
+
+            context 'when raising errors' do
+              it 'raises an error' do
+                expect { subject.validate(base64_cert, soft: false) }.to(
+                  raise_error(
+                    SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                    'Signature Algorithm needs to be SHA256'
+                  )
                 )
-              )
+              end
             end
           end
 
@@ -283,33 +187,49 @@ module SamlIdp
             let(:algorithm) { '256' }
 
             it 'validate using SHA256' do
-              expect(subject.validate_with_sha256(base64_cert)).to be true
+              expect(subject.validate(base64_cert)).to be true
             end
           end
 
           context 'when using SHA384 as a signing algorithm' do
             let(:algorithm) { '384' }
 
-            it 'raises an error' do
-              expect { subject.validate_with_sha256(base64_cert) }.to(
-                raise_error(
-                  SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                  'Signature Algorithm needs to be SHA256'
+            context 'when failing softly' do
+              it 'returns false' do
+                expect(subject.validate(base64_cert)).to be false
+              end
+            end
+
+            context 'when raising errors' do
+              it 'raises an error' do
+                expect { subject.validate(base64_cert, soft: false) }.to(
+                  raise_error(
+                    SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                    'Signature Algorithm needs to be SHA256'
+                  )
                 )
-              )
+              end
             end
           end
 
           context 'when using SHA512 as a signing algorithm' do
             let(:algorithm) { '512' }
 
-            it 'raises an error' do
-              expect { subject.validate_with_sha256(base64_cert) }.to(
-                raise_error(
-                  SamlIdp::XMLSecurity::SignedDocument::ValidationError,
-                  'Signature Algorithm needs to be SHA256'
+            context 'when failing softly' do
+              it 'returns false' do
+                expect(subject.validate(base64_cert)).to be false
+              end
+            end
+
+            context 'when raising errors' do
+              it 'raises an error' do
+                expect { subject.validate(base64_cert, soft: false) }.to(
+                  raise_error(
+                    SamlIdp::XMLSecurity::SignedDocument::ValidationError,
+                    'Signature Algorithm needs to be SHA256'
+                  )
                 )
-              )
+              end
             end
           end
         end

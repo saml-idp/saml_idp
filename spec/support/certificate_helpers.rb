@@ -10,9 +10,16 @@ module CertificateHelpers
   end
 
   def custom_idp_x509_cert_fingerprint
-    cert = OpenSSL::X509::Certificate.new(custom_idp_x509_cert)
-    digest = OpenSSL::Digest::SHA1.new(cert.to_der)
+    digest = OpenSSL::Digest::SHA1.new(custom_cert.to_der)
     digest.hexdigest.upcase.scan(/.{2}/).join(':')
+  end
+
+  def custom_cert
+    OpenSSL::X509::Certificate.new(custom_idp_x509_cert)
+  end
+
+  def default_cert
+    OpenSSL::X509::Certificate.new(Base64.decode64(saml_settings.certificate))
   end
 
   def encrypted_secret_key
