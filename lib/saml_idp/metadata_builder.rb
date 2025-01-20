@@ -152,7 +152,7 @@ module SamlIdp
     private :raw_algorithm
 
     def x509_certificate
-      certificate = SamlIdp.config.x509_certificate.is_a?(Proc) ? SamlIdp.config.x509_certificate.call : SamlIdp.config.x509_certificate
+      certificate = configurator.x509_certificate.is_a?(Proc) ? configurator.x509_certificate.call : configurator.x509_certificate
       certificate
       .to_s
       .gsub(/-----BEGIN CERTIFICATE-----/,"")
@@ -163,7 +163,7 @@ module SamlIdp
     alias_method :public_cert, :x509_certificate
 
     def private_key
-      SamlIdp.config.secret_key
+      configurator.secret_key
     end
 
     def pv_key_password
