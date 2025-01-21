@@ -94,9 +94,9 @@ module SamlIdp
       xpath(
         "//md:SPSSODescriptor/md:SingleLogoutService",
         md: metadata_namespace
-      ).reduce({}) do |hash, el|
-        hash[el["Binding"].to_s.split(":").last] = el["Location"]
-        hash
+      ).reduce([]) do |array, el|
+        props = el["Binding"].to_s.match /urn:oasis:names:tc:SAML:(?<version>\S+):bindings:(?<name>\S+)/
+        array << { binding: props[:name], location: el["Location"], default: !!el["isDefault"], response_location: el["ResponseLocation"] }
       end
     end
     hashable :single_logout_services

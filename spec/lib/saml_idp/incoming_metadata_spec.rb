@@ -30,6 +30,24 @@ module SamlIdp
 </md:EntityDescriptor>
   eos
 
+  metadata_with_slo = <<-eos
+<?xml version="1.0"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+                     validUntil="2022-07-18T04:35:53Z"
+                     cacheDuration="PT604800S"
+                     entityID="http://sp.example.com/saml">
+    <md:SPSSODescriptor AuthnRequestsSigned="false" WantAssertionsSigned="false" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+                                Location="https://test/logout" />
+        <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>
+        <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                                     Location="http://sp.example.com/saml/acs"
+                                     index="1" />
+        
+    </md:SPSSODescriptor>
+</md:EntityDescriptor>
+  eos
+
   metadata_5 = <<-eos
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="test" entityID="https://test-saml.com/saml">
   <md:SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
@@ -97,6 +115,17 @@ module SamlIdp
     it 'should properly set sign_authn_request to false when AuthnRequestsSigned is not included' do
       metadata = SamlIdp::IncomingMetadata.new(metadata_4)
       expect(metadata.sign_authn_request).to eq(false)
+    end
+
+    it 'should parse single logout url as array' do
+      metadata = SamlIdp::IncomingMetadata.new(metadata_with_slo)
+      expect(metadata.single_logout_services).to be_a(Array)
+      expect(metadata.single_logout_services.size).to eq(1)
+      expect(metadata.single_logout_services).to include(
+        hash_including(binding: "HTTP-Redirect"),
+        hash_including(location: "https://test/logout"),
+        hash_including(default: false)
+      )
     end
 
     it 'should properly set unspecified_certificate when present' do
