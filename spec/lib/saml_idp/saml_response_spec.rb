@@ -192,6 +192,25 @@ module SamlIdp
       expect(saml_resp.is_valid?).to eq(true)
     end
 
+    it "will pass reference_id as SessionIndex" do
+      expect { subject.build }.not_to raise_error
+      signed_encoded_xml = subject.build
+      resp_settings = saml_settings(saml_acs_url)
+      resp_settings.private_key = Default::SECRET_KEY
+      resp_settings.issuer = audience_uri
+      saml_resp = OneLogin::RubySaml::Response.new(signed_encoded_xml, settings: resp_settings)
+
+      expect(
+        Nokogiri::XML(saml_resp.response).at_xpath(
+          "//saml:AuthnStatement/@SessionIndex",
+          {
+            "samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
+            "saml" => "urn:oasis:names:tc:SAML:2.0:assertion"
+          }
+        ).value
+      ).to eq("_#{reference_id}")
+    end
+
     it "sets session expiration" do
       saml_resp = OneLogin::RubySaml::Response.new(subject.build)
       expect(saml_resp.session_expires_at).to eq Time.local(1990, "jan", 2).iso8601
