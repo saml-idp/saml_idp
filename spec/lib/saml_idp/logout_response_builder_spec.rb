@@ -19,11 +19,13 @@ module SamlIdp
 
     subject do
       described_class.new(
-        response_id,
-        issuer_uri,
-        saml_slo_url,
-        request_id,
-        algorithm
+        response_id: response_id,
+        issuer_uri: issuer_uri,
+        saml_slo_url: saml_slo_url,
+        saml_request_id: request_id,
+        algorithm: algorithm,
+        public_cert: SamlIdp::Default::X509_CERTIFICATE,
+        private_key: SamlIdp::Default::SECRET_KEY
       )
     end
 

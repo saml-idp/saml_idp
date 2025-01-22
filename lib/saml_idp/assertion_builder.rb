@@ -18,23 +18,29 @@ module SamlIdp
     attr_accessor :session_expiry
     attr_accessor :name_id_formats_opts
     attr_accessor :asserted_attributes_opts
+    attr_accessor :public_cert
+    attr_accessor :private_key
+    attr_accessor :pv_key_password
 
     delegate :config, to: :SamlIdp
 
     def initialize(
-        reference_id,
-        issuer_uri,
-        principal,
-        audience_uri,
-        saml_request_id,
-        saml_acs_url,
-        raw_algorithm,
-        authn_context_classref,
-        expiry=60*60,
-        encryption_opts=nil,
-        session_expiry=nil,
-        name_id_formats_opts = nil,
-        asserted_attributes_opts = nil
+        reference_id:,
+        issuer_uri:,
+        principal:,
+        audience_uri:,
+        saml_request_id:,
+        saml_acs_url:,
+        raw_algorithm:,
+        authn_context_classref:,
+        public_cert:,
+        private_key:,
+        pv_key_password:,
+        expiry: 60*60,
+        encryption_opts: nil,
+        session_expiry: nil,
+        name_id_formats_opts: nil,
+        asserted_attributes_opts: nil
     )
       self.reference_id = reference_id
       self.issuer_uri = issuer_uri
@@ -49,6 +55,17 @@ module SamlIdp
       self.session_expiry = session_expiry.nil? ? config.session_expiry : session_expiry
       self.name_id_formats_opts = name_id_formats_opts
       self.asserted_attributes_opts = asserted_attributes_opts
+      self.public_cert = public_cert
+      self.private_key = private_key
+      self.pv_key_password = pv_key_password
+    end
+
+    def encrypt(opts = {})
+      raise "Must set encryption_opts to encrypt" unless encryption_opts
+      raw_xml = opts[:sign] ? signed : raw
+      require 'saml_idp/encryptor'
+      encryptor = Encryptor.new encryption_opts
+      encryptor.encrypt(raw_xml)
     end
 
     def fresh
@@ -105,15 +122,8 @@ module SamlIdp
         end
     end
     alias_method :raw, :fresh
-    private :fresh
 
-    def encrypt(opts = {})
-      raise "Must set encryption_opts to encrypt" unless encryption_opts
-      raw_xml = opts[:sign] ? signed : raw
-      require 'saml_idp/encryptor'
-      encryptor = Encryptor.new encryption_opts
-      encryptor.encrypt(raw_xml)
-    end
+    private
 
     def asserted_attributes
       if asserted_attributes_opts.present? && !asserted_attributes_opts.empty?
@@ -124,7 +134,6 @@ module SamlIdp
         config.attributes
       end
     end
-    private :asserted_attributes
 
     def get_values_for(friendly_name, getter)
       result = nil
@@ -141,12 +150,10 @@ module SamlIdp
       end
       Array(result)
     end
-    private :get_values_for
 
     def name_id
       name_id_getter.call principal
     end
-    private :name_id
 
     def name_id_getter
       getter = name_id_format[:getter]
@@ -156,56 +163,45 @@ module SamlIdp
         ->(principal) { principal.public_send getter.to_s }
       end
     end
-    private :name_id_getter
 
     def name_id_format
       @name_id_format ||= NameIdFormatter.new(name_id_formats).chosen
     end
-    private :name_id_format
 
     def name_id_formats
       @name_id_formats ||= (name_id_formats_opts || config.name_id.formats)
     end
-    private :name_id_formats
 
     def reference_string
       "_#{reference_id}"
     end
-    private :reference_string
 
     def now
       @now ||= Time.now.utc
     end
-    private :now
 
     def now_iso
       iso { now }
     end
-    private :now_iso
 
     def not_before
       iso { now - 5 }
     end
-    private :not_before
 
     def not_on_or_after_condition
       iso { now + expiry }
     end
-    private :not_on_or_after_condition
 
     def not_on_or_after_subject
       iso { now + 3 * 60 }
     end
-    private :not_on_or_after_subject
 
     def session_not_on_or_after
       iso { now + session_expiry }
     end
-    private :session_not_on_or_after
 
     def iso
       yield.iso8601
     end
-    private :iso
   end
 end
