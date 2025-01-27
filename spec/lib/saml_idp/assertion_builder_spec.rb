@@ -1,4 +1,6 @@
 require 'spec_helper'
+require 'debug'
+
 module SamlIdp
   describe AssertionBuilder do
     let(:reference_id) { "abc" }
@@ -22,16 +24,21 @@ module SamlIdp
     let(:session_expiry) { nil }
     let(:name_id_formats_opt) { nil }
     let(:asserted_attributes_opt) { nil }
+    let(:principal) { Struct.new(:email, :asserted_attributes).new('foo@example.com', { emailAddress: { getter: :email } })}
+
     subject { described_class.new(
-      reference_id,
-      issuer_uri,
-      name_id,
-      audience_uri,
-      saml_request_id,
-      saml_acs_url,
-      algorithm,
-      authn_context_classref,
-      expiry
+      reference_id: reference_id,
+      issuer_uri: issuer_uri,
+      principal: name_id,
+      audience_uri: audience_uri,
+      saml_request_id: saml_request_id,
+      saml_acs_url: saml_acs_url,
+      raw_algorithm: algorithm,
+      authn_context_classref: authn_context_classref,
+      public_cert: sp_encrypted_pv_key[:sp_public_cert],
+      private_key: sp_encrypted_pv_key[:sp_encrypted_pv_key],
+      pv_key_password: sp_encrypted_pv_key[:pv_key_password],
+      expiry: expiry
     ) }
 
     context "No Request ID" do
@@ -70,18 +77,19 @@ module SamlIdp
 
     describe "with principal.asserted_attributes" do
       it "delegates attributes to principal" do
-        Principal = Struct.new(:email, :asserted_attributes)
-        principal = Principal.new('foo@example.com', { emailAddress: { getter: :email } })
         builder = described_class.new(
-          reference_id,
-          issuer_uri,
-          principal,
-          audience_uri,
-          saml_request_id,
-          saml_acs_url,
-          algorithm,
-          authn_context_classref,
-          expiry
+          reference_id: reference_id,
+          issuer_uri: issuer_uri,
+          principal: principal,
+          audience_uri: audience_uri,
+          saml_request_id: saml_request_id,
+          saml_acs_url: saml_acs_url,
+          raw_algorithm: algorithm,
+          authn_context_classref: authn_context_classref,
+          public_cert: sp_encrypted_pv_key[:sp_public_cert],
+          private_key: sp_encrypted_pv_key[:sp_encrypted_pv_key],
+          pv_key_password: sp_encrypted_pv_key[:pv_key_password],
+          expiry: expiry
         )
         Timecop.travel(Time.zone.local(2010, 6, 1, 13, 0, 0)) do
           expect(builder.raw).to eq("<Assertion xmlns=\"urn:oasis:names:tc:SAML:2.0:assertion\" ID=\"_abc\" IssueInstant=\"2010-06-01T13:00:00Z\" Version=\"2.0\"><Issuer>http://sportngin.com</Issuer><Subject><NameID Format=\"urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress\">foo@example.com</NameID><SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\"><SubjectConfirmationData InResponseTo=\"123\" NotOnOrAfter=\"2010-06-01T13:03:00Z\" Recipient=\"http://saml.acs.url\"></SubjectConfirmationData></SubjectConfirmation></Subject><Conditions NotBefore=\"2010-06-01T12:59:55Z\" NotOnOrAfter=\"2010-06-01T16:00:00Z\"><AudienceRestriction><Audience>http://example.com</Audience></AudienceRestriction></Conditions><AuthnStatement AuthnInstant=\"2010-06-01T13:00:00Z\" SessionIndex=\"_abc\"><AuthnContext><AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</AuthnContextClassRef></AuthnContext></AuthnStatement><AttributeStatement><Attribute Name=\"emailAddress\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:uri\" FriendlyName=\"emailAddress\"><AttributeValue>foo@example.com</AttributeValue></Attribute></AttributeStatement></Assertion>")
@@ -91,16 +99,19 @@ module SamlIdp
 
     it "builds encrypted XML" do
       builder = described_class.new(
-        reference_id,
-        issuer_uri,
-        name_id,
-        audience_uri,
-        saml_request_id,
-        saml_acs_url,
-        algorithm,
-        authn_context_classref,
-        expiry,
-        encryption_opts
+        reference_id: reference_id,
+        issuer_uri: issuer_uri,
+        principal: name_id,
+        audience_uri: audience_uri,
+        saml_request_id: saml_request_id,
+        saml_acs_url: saml_acs_url,
+        raw_algorithm: algorithm,
+        authn_context_classref: authn_context_classref,
+        public_cert: sp_encrypted_pv_key[:sp_public_cert],
+        private_key: sp_encrypted_pv_key[:sp_encrypted_pv_key],
+        pv_key_password: sp_encrypted_pv_key[:pv_key_password],
+        expiry: expiry,
+        encryption_opts: encryption_opts
       )
       encrypted_xml = builder.encrypt
       expect(encrypted_xml).to_not match(audience_uri)
@@ -118,19 +129,22 @@ module SamlIdp
         UserWithUniqueId = Struct.new(:unique_identifier, :email, :asserted_attributes)
         principal = UserWithUniqueId.new('unique_identifier_123456', 'foo@example.com',  { emailAddress: { getter: :email } })
         builder = described_class.new(
-            reference_id,
-            issuer_uri,
-            principal,
-            audience_uri,
-            saml_request_id,
-            saml_acs_url,
-            algorithm,
-            authn_context_classref,
-            expiry,
-            encryption_opts,
-            session_expiry,
-            name_id_formats_opt,
-            asserted_attributes_opt
+            reference_id: reference_id,
+            issuer_uri: issuer_uri,
+            principal: principal,
+            audience_uri: audience_uri,
+            saml_request_id: saml_request_id,
+            saml_acs_url: saml_acs_url,
+            raw_algorithm: algorithm,
+            authn_context_classref: authn_context_classref,
+            public_cert: sp_encrypted_pv_key[:sp_public_cert],
+            private_key: sp_encrypted_pv_key[:sp_encrypted_pv_key],
+            pv_key_password: sp_encrypted_pv_key[:pv_key_password],
+            expiry: expiry,
+            encryption_opts: encryption_opts,
+            session_expiry: session_expiry,
+            name_id_formats_opts: name_id_formats_opt,
+            asserted_attributes_opts: asserted_attributes_opt
         )
         Timecop.travel(Time.zone.local(2010, 6, 1, 13, 0, 0)) do
           expect(builder.raw).to eq("<Assertion xmlns=\"urn:oasis:names:tc:SAML:2.0:assertion\" ID=\"_abc\" IssueInstant=\"2010-06-01T13:00:00Z\" Version=\"2.0\"><Issuer>http://sportngin.com</Issuer><Subject><NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:persistent\">unique_identifier_123456</NameID><SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\"><SubjectConfirmationData InResponseTo=\"123\" NotOnOrAfter=\"2010-06-01T13:03:00Z\" Recipient=\"http://saml.acs.url\"></SubjectConfirmationData></SubjectConfirmation></Subject><Conditions NotBefore=\"2010-06-01T12:59:55Z\" NotOnOrAfter=\"2010-06-01T16:00:00Z\"><AudienceRestriction><Audience>http://example.com</Audience></AudienceRestriction></Conditions><AuthnStatement AuthnInstant=\"2010-06-01T13:00:00Z\" SessionIndex=\"_abc\"><AuthnContext><AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</AuthnContextClassRef></AuthnContext></AuthnStatement><AttributeStatement><Attribute Name=\"emailAddress\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:uri\" FriendlyName=\"emailAddress\"><AttributeValue>foo@example.com</AttributeValue></Attribute></AttributeStatement></Assertion>")
@@ -156,19 +170,22 @@ module SamlIdp
         UserWithName = Struct.new(:email, :first_name, :last_name)
         principal = UserWithName.new('foo@example.com', 'George', 'Washington')
         builder = described_class.new(
-            reference_id,
-            issuer_uri,
-            principal,
-            audience_uri,
-            saml_request_id,
-            saml_acs_url,
-            algorithm,
-            authn_context_classref,
-            expiry,
-            encryption_opts,
-            session_expiry,
-            name_id_formats_opt,
-            asserted_attributes_opt
+            reference_id: reference_id,
+            issuer_uri: issuer_uri,
+            principal: principal,
+            audience_uri: audience_uri,
+            saml_request_id: saml_request_id,
+            saml_acs_url: saml_acs_url,
+            raw_algorithm: algorithm,
+            authn_context_classref: authn_context_classref,
+            public_cert: sp_encrypted_pv_key[:sp_public_cert],
+            private_key: sp_encrypted_pv_key[:sp_encrypted_pv_key],
+            pv_key_password: sp_encrypted_pv_key[:pv_key_password],
+            expiry: expiry,
+            encryption_opts: encryption_opts,
+            session_expiry: session_expiry,
+            name_id_formats_opts: name_id_formats_opt,
+            asserted_attributes_opts: asserted_attributes_opt
         )
         Timecop.travel(Time.zone.local(2010, 6, 1, 13, 0, 0)) do
           expect(builder.raw).to eq("<Assertion xmlns=\"urn:oasis:names:tc:SAML:2.0:assertion\" ID=\"_abc\" IssueInstant=\"2010-06-01T13:00:00Z\" Version=\"2.0\"><Issuer>http://sportngin.com</Issuer><Subject><NameID Format=\"urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress\">foo@example.com</NameID><SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\"><SubjectConfirmationData InResponseTo=\"123\" NotOnOrAfter=\"2010-06-01T13:03:00Z\" Recipient=\"http://saml.acs.url\"></SubjectConfirmationData></SubjectConfirmation></Subject><Conditions NotBefore=\"2010-06-01T12:59:55Z\" NotOnOrAfter=\"2010-06-01T16:00:00Z\"><AudienceRestriction><Audience>http://example.com</Audience></AudienceRestriction></Conditions><AuthnStatement AuthnInstant=\"2010-06-01T13:00:00Z\" SessionIndex=\"_abc\"><AuthnContext><AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</AuthnContextClassRef></AuthnContext></AuthnStatement><AttributeStatement><Attribute Name=\"GivenName\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:uri\" FriendlyName=\"GivenName\"><AttributeValue>George</AttributeValue></Attribute><Attribute Name=\"SurName\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:uri\" FriendlyName=\"SurName\"><AttributeValue>Washington</AttributeValue></Attribute></AttributeStatement></Assertion>")
@@ -185,16 +202,19 @@ module SamlIdp
 
       it "sets default session_expiry from config" do
         builder = described_class.new(
-          reference_id,
-          issuer_uri,
-          name_id,
-          audience_uri,
-          saml_request_id,
-          saml_acs_url,
-          algorithm,
-          authn_context_classref,
-          expiry,
-          encryption_opts
+          reference_id: reference_id,
+          issuer_uri: issuer_uri,
+          principal: name_id,
+          audience_uri: audience_uri,
+          saml_request_id: saml_request_id,
+          saml_acs_url: saml_acs_url,
+          raw_algorithm: algorithm,
+          authn_context_classref: authn_context_classref,
+          public_cert: sp_encrypted_pv_key[:sp_public_cert],
+          private_key: sp_encrypted_pv_key[:sp_encrypted_pv_key],
+          pv_key_password: sp_encrypted_pv_key[:pv_key_password],
+          expiry: expiry,
+          encryption_opts: encryption_opts
         )
         expect(builder.session_expiry).to eq(8)
       end
@@ -212,19 +232,22 @@ module SamlIdp
         UserWithUniqueId = Struct.new(:unique_identifier, :email, :asserted_attributes)
         principal = UserWithUniqueId.new('unique_identifier_123456', 'foo@example.com',  { emailAddress: { getter: :email } })
         builder = described_class.new(
-            reference_id,
-            issuer_uri,
-            principal,
-            audience_uri,
-            saml_request_id,
-            saml_acs_url,
-            algorithm,
-            authn_context_classref,
-            expiry,
-            encryption_opts,
-            session_expiry,
-            name_id_formats_opt,
-            asserted_attributes_opt
+            reference_id: reference_id,
+            issuer_uri: issuer_uri,
+            principal: principal,
+            audience_uri: audience_uri,
+            saml_request_id: saml_request_id,
+            saml_acs_url: saml_acs_url,
+            raw_algorithm: algorithm,
+            authn_context_classref: authn_context_classref,
+            public_cert: sp_encrypted_pv_key[:sp_public_cert],
+            private_key: sp_encrypted_pv_key[:sp_encrypted_pv_key],
+            pv_key_password: sp_encrypted_pv_key[:pv_key_password],
+            expiry: expiry,
+            encryption_opts: encryption_opts,
+            session_expiry: session_expiry,
+            name_id_formats_opts: name_id_formats_opt,
+            asserted_attributes_opts: asserted_attributes_opt
         )
         Timecop.travel(Time.zone.local(2010, 6, 1, 13, 0, 0)) do
           expect(builder.raw).to eq("<Assertion xmlns=\"urn:oasis:names:tc:SAML:2.0:assertion\" ID=\"_abc\" IssueInstant=\"2010-06-01T13:00:00Z\" Version=\"2.0\"><Issuer>http://sportngin.com</Issuer><Subject><NameID Format=\"urn:oasis:names:tc:SAML:2.0:nameid-format:persistent\">unique_identifier_123456</NameID><SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\"><SubjectConfirmationData InResponseTo=\"123\" NotOnOrAfter=\"2010-06-01T13:03:00Z\" Recipient=\"http://saml.acs.url\"></SubjectConfirmationData></SubjectConfirmation></Subject><Conditions NotBefore=\"2010-06-01T12:59:55Z\" NotOnOrAfter=\"2010-06-01T16:00:00Z\"><AudienceRestriction><Audience>http://example.com</Audience></AudienceRestriction></Conditions><AuthnStatement AuthnInstant=\"2010-06-01T13:00:00Z\" SessionIndex=\"_abc\"><AuthnContext><AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</AuthnContextClassRef></AuthnContext></AuthnStatement><AttributeStatement><Attribute Name=\"emailAddress\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:uri\" FriendlyName=\"emailAddress\"><AttributeValue>foo@example.com</AttributeValue></Attribute></AttributeStatement></Assertion>")
@@ -250,19 +273,22 @@ module SamlIdp
         UserWithName = Struct.new(:email, :first_name, :last_name)
         principal = UserWithName.new('foo@example.com', 'George', 'Washington')
         builder = described_class.new(
-            reference_id,
-            issuer_uri,
-            principal,
-            audience_uri,
-            saml_request_id,
-            saml_acs_url,
-            algorithm,
-            authn_context_classref,
-            expiry,
-            encryption_opts,
-            session_expiry,
-            name_id_formats_opt,
-            asserted_attributes_opt
+            reference_id: reference_id,
+            issuer_uri: issuer_uri,
+            principal: principal,
+            audience_uri: audience_uri,
+            saml_request_id: saml_request_id,
+            saml_acs_url: saml_acs_url,
+            raw_algorithm: algorithm,
+            authn_context_classref: authn_context_classref,
+            public_cert: sp_encrypted_pv_key[:sp_public_cert],
+            private_key: sp_encrypted_pv_key[:sp_encrypted_pv_key],
+            pv_key_password: sp_encrypted_pv_key[:pv_key_password],
+            expiry: expiry,
+            encryption_opts: encryption_opts,
+            session_expiry: session_expiry,
+            name_id_formats_opts: name_id_formats_opt,
+            asserted_attributes_opts: asserted_attributes_opt
         )
         Timecop.travel(Time.zone.local(2010, 6, 1, 13, 0, 0)) do
           expect(builder.raw).to eq("<Assertion xmlns=\"urn:oasis:names:tc:SAML:2.0:assertion\" ID=\"_abc\" IssueInstant=\"2010-06-01T13:00:00Z\" Version=\"2.0\"><Issuer>http://sportngin.com</Issuer><Subject><NameID Format=\"urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress\">foo@example.com</NameID><SubjectConfirmation Method=\"urn:oasis:names:tc:SAML:2.0:cm:bearer\"><SubjectConfirmationData InResponseTo=\"123\" NotOnOrAfter=\"2010-06-01T13:03:00Z\" Recipient=\"http://saml.acs.url\"></SubjectConfirmationData></SubjectConfirmation></Subject><Conditions NotBefore=\"2010-06-01T12:59:55Z\" NotOnOrAfter=\"2010-06-01T16:00:00Z\"><AudienceRestriction><Audience>http://example.com</Audience></AudienceRestriction></Conditions><AuthnStatement AuthnInstant=\"2010-06-01T13:00:00Z\" SessionIndex=\"_abc\"><AuthnContext><AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</AuthnContextClassRef></AuthnContext></AuthnStatement><AttributeStatement><Attribute Name=\"GivenName\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:uri\" FriendlyName=\"GivenName\"><AttributeValue>George</AttributeValue></Attribute><Attribute Name=\"SurName\" NameFormat=\"urn:oasis:names:tc:SAML:2.0:attrname-format:uri\" FriendlyName=\"SurName\"><AttributeValue>Washington</AttributeValue></Attribute></AttributeStatement></Assertion>")

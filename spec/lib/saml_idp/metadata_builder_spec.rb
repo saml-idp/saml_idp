@@ -71,5 +71,36 @@ module SamlIdp
       subject.configurator.single_logout_service_redirect_location = 'https://example.com/saml/logout'
       expect(subject.fresh).to match('<SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://example.com/saml/logout"/>')
     end
+
+    context 'with custom configurator' do
+      let(:certificate) {'a certificate'}
+      let(:configurator) do SamlIdp::Configurator.new.tap do |c|
+        c.secret_key = 'a private key'
+        c.x509_certificate = certificate
+        end
+      end
+      subject { described_class.new(configurator) }
+
+      describe '.private_key' do
+        it 'returns the given private_key' do
+          expect(subject.private_key).to eq(configurator.secret_key)
+        end
+      end
+
+      describe '.x509_certificate' do
+        context 'with a given certificate string' do
+          it 'returns the given certificate' do
+            expect(subject.x509_certificate).to eq('a certificate')
+          end
+        end
+
+        context 'with a given certificate proc' do
+          let(:certificate) {Proc.new { "a certificate from proc"}}
+          it 'returns the given certificate' do
+            expect(subject.x509_certificate).to eq('a certificate from proc')
+          end
+        end
+      end
+    end
   end
 end

@@ -68,4 +68,12 @@ module SecurityHelpers
   def sp_x509_cert
     @sp_x509_cert ||= File.read(File.join(File.dirname(__FILE__), 'certificates', 'sp_x509_cert.crt'))
   end
+
+  def sp_encrypted_pv_key
+    @sp_encrypted_pv_key ||= { 
+      sp_encrypted_pv_key: File.read(File.join(File.dirname(__FILE__), 'certificates', 'sp_encrypted_pv_key.pem')),
+      sp_public_cert: File.read(File.join(File.dirname(__FILE__), 'certificates', 'sp_public_cert.pem')),
+      pv_key_password: 'dccf0b7614b554fbe16b0f31'
+    }
+  end
 end
