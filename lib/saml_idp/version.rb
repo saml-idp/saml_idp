@@ -1,3 +1,3 @@
 module SamlIdp
-  VERSION = '0.23.6-18f'.freeze
+  VERSION = '0.23.7-18f'.freeze
 end
