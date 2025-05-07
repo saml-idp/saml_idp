@@ -148,7 +148,7 @@ module SamlIdp
     def valid_signature?
       # Force signatures for logout requests because there is no other protection against a cross-site DoS.
       if logout_request? || authn_request? && validate_auth_request_signature?
-        document.valid_signature?(service_provider.cert, service_provider.fingerprint)
+        service_provider.valid_signature?(document)
       else
         true
       end
@@ -260,11 +260,7 @@ module SamlIdp
     private :service_provider_finder
 
     def validate_auth_request_signature?
-      # Validate signature when metadata specify AuthnRequest should be signed
-      metadata = service_provider.current_metadata
-      sign_authn_request = metadata.respond_to?(:sign_authn_request?) && metadata.sign_authn_request?
-      sign_authn_request = service_provider.sign_authn_request unless service_provider.sign_authn_request.nil? 
-      sign_authn_request
+      service_provider.sign_authn_request?
     end
     private :validate_auth_request_signature?
   end

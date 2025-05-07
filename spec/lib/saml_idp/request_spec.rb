@@ -49,20 +49,21 @@ RSpec.describe SamlIdp::Request, type: :model do
 
   describe "#valid?" do
     let(:sp_issuer) { "test_issuer" }
-    let(:valid_service_provider) do 
+    let(:valid_service_provider) do
       instance_double(
         "SamlIdp::ServiceProvider",
         valid?: true,
         acs_url: 'https://foo.example.com/saml/consume',
         current_metadata: instance_double("Metadata", sign_authn_request?: true),
         assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
-        sign_authn_request: true,
+        sign_authn_request?: true,
         acceptable_response_hosts: ["foo.example.com"],
+        valid_signature?: true,
         cert: sp_x509_cert,
         fingerprint: SamlIdp::Fingerprint.certificate_digest(sp_x509_cert, :sha256),
       )
     end
-    
+
     before do
       allow_any_instance_of(SamlIdp::Request).to receive(:service_provider).and_return(valid_service_provider)
       allow_any_instance_of(SamlIdp::Request).to receive(:issuer).and_return(sp_issuer)
@@ -122,14 +123,14 @@ RSpec.describe SamlIdp::Request, type: :model do
     end
 
     context "when empty certificate for authn request validation" do
-      let(:valid_service_provider) do 
+      let(:valid_service_provider) do
         instance_double(
           "SamlIdp::ServiceProvider",
           valid?: true,
           acs_url: 'https://foo.example.com/saml/consume',
           current_metadata: instance_double("Metadata", sign_authn_request?: true),
           assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
-          sign_authn_request: true,
+          sign_authn_request?: true,
           acceptable_response_hosts: ["foo.example.com"],
           cert: nil,
           fingerprint: nil,
@@ -144,14 +145,14 @@ RSpec.describe SamlIdp::Request, type: :model do
     end
 
     context "when empty certificate for logout validation" do
-      let(:valid_service_provider) do 
+      let(:valid_service_provider) do
         instance_double(
           "SamlIdp::ServiceProvider",
           valid?: true,
           acs_url: 'https://foo.example.com/saml/consume',
           current_metadata: instance_double("Metadata", sign_authn_request?: true),
           assertion_consumer_logout_service_url: 'https://foo.example.com/saml/logout',
-          sign_authn_request: true,
+          sign_authn_request?: true,
           acceptable_response_hosts: ["foo.example.com"],
           cert: nil,
           fingerprint: nil,
