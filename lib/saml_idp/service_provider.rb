@@ -28,7 +28,7 @@ module SamlIdp
     end
 
     def sign_authn_request?
-      attributes.fetch(:sign_authn_request) { |_| current_metadata&.sign_authn_request? }
+      attributes.fetch(:sign_authn_request) { |_| !!current_metadata&.sign_authn_request? }
     end
 
     def valid_signature?(doc, certificate = cert)
@@ -37,7 +37,7 @@ module SamlIdp
 
     def refresh_metadata
       fresh = fresh_incoming_metadata
-      cert = attributes[:cert] || fresh.signing_certificate
+      cert = attributes.fetch(:cert, fresh.signing_certificate)
       if !validate_metadata_signature? || valid_signature?(fresh.document, cert)
         metadata_persister[identifier, fresh]
         @current_metadata = nil
