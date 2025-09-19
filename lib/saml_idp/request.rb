@@ -119,7 +119,7 @@ module SamlIdp
 
       unless service_provider?
         log "Unable to find service provider for issuer #{issuer}"
-        errors.push(:issuer_missing_or_invald)
+        errors.push(:issuer_missing_or_invalid)
       end
 
       if authn_request? && logout_request?

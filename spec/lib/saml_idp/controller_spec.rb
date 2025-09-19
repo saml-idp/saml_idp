@@ -134,10 +134,11 @@ describe SamlIdp::Controller do
   end
 
   context 'invalid SAML Request' do
-    it 'returns headers only with a forbidden status' do
+    it 'returns a bad_request status with specific errors in the payload' do
       params[:SAMLRequest] = custom_saml_request(overrides: {issuer: ''})
 
-      expect(self).to receive(:head).with(:forbidden)
+      expect(self).to receive(:render).
+        with(json: { errors: [:issuer_missing_or_invalid, :invalid_signature] }, status: :bad_request)
 
       validate_saml_request
     end
@@ -146,13 +147,15 @@ describe SamlIdp::Controller do
   context 'invalid XML in SAML Request' do
     # This was encountered IRL on 2021-02-09
     before do
-      allow_any_instance_of(subject).to receive(:valid_saml_request?).and_raise(Nokogiri::XML::SyntaxError)
+      allow_any_instance_of(subject).to receive(:valid_saml_request?).
+        and_raise(Nokogiri::XML::SyntaxError.new("missing quotes"))
     end
 
-    it 'returns headers only with a bad_request status' do
+    it 'returns a bad_request status with specific errors in the payload' do
       params[:SAMLRequest] = custom_saml_request
 
-      expect(self).to receive(:head).with(:bad_request)
+      expect(self).to receive(:render).
+        with(json: { errors: ["Invalid XML syntax: missing quotes"] }, status: :bad_request)
 
       validate_saml_request
     end
