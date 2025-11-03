@@ -28,43 +28,50 @@ module SamlIdp
     let(:unsigned_response_opts) { false }
     let(:signed_assertion_opts) { true }
     let(:compress_opts) { false }
-    let(:subject_encrypted) { described_class.new(reference_id,
-                                  response_id,
-                                  issuer_uri,
-                                  name_id,
-                                  audience_uri,
-                                  saml_request_id,
-                                  saml_acs_url,
-                                  algorithm,
-                                  authn_context_classref,
-                                  expiry,
-                                  encryption_opts,
-                                  session_expiry,
-                                  nil,
-                                  nil,
-                                  unsigned_response_opts,
-                                  signed_assertion_opts,
-                                  compress_opts
+    let(:subject_encrypted) { described_class.new(
+                                  reference_id: reference_id,
+                                  response_id: response_id,
+                                  issuer_uri: issuer_uri,
+                                  principal: name_id,
+                                  audience_uri: audience_uri,
+                                  saml_request_id: saml_request_id,
+                                  saml_acs_url: saml_acs_url,
+                                  algorithm: algorithm,
+                                  authn_context_classref: authn_context_classref,
+                                  public_cert: x509_certificate,
+                                  private_key: secret_key,
+                                  pv_key_password: nil,
+                                  expiry: expiry,
+                                  encryption_opts: encryption_opts,
+                                  session_expiry: session_expiry,
+                                  name_id_formats_opts: nil,
+                                  asserted_attributes_opts: nil,
+                                  signed_message_opts: unsigned_response_opts,
+                                  signed_assertion_opts: signed_assertion_opts,
+                                  compression_opts: compress_opts
                                  )
     }
 
-    subject { described_class.new(reference_id,
-                                  response_id,
-                                  issuer_uri,
-                                  name_id,
-                                  audience_uri,
-                                  saml_request_id,
-                                  saml_acs_url,
-                                  algorithm,
-                                  authn_context_classref,
-                                  expiry,
-                                  nil,
-                                  session_expiry,
-                                  nil,
-                                  nil,
-                                  signed_response_opts,
-                                  signed_assertion_opts,
-                                  compress_opts
+    subject { described_class.new(reference_id: reference_id,
+                                  response_id: response_id,
+                                  issuer_uri: issuer_uri,
+                                  principal: name_id,
+                                  audience_uri: audience_uri,
+                                  saml_request_id: saml_request_id,
+                                  saml_acs_url: saml_acs_url,
+                                  algorithm: algorithm,
+                                  authn_context_classref: authn_context_classref,
+                                  public_cert: x509_certificate,
+                                  private_key: secret_key,
+                                  pv_key_password: nil,
+                                  expiry: expiry,
+                                  encryption_opts: nil,
+                                  session_expiry: session_expiry,
+                                  name_id_formats_opts: nil,
+                                  asserted_attributes_opts: nil,
+                                  signed_message_opts: signed_response_opts,
+                                  signed_assertion_opts: signed_assertion_opts,
+                                  compression_opts: compress_opts
                                  )
     }
 
@@ -190,6 +197,25 @@ module SamlIdp
       )).to be_present
       expect(saml_resp.send(:validate_signature)).to eq(true)
       expect(saml_resp.is_valid?).to eq(true)
+    end
+
+    it "will pass reference_id as SessionIndex" do
+      expect { subject.build }.not_to raise_error
+      signed_encoded_xml = subject.build
+      resp_settings = saml_settings(saml_acs_url)
+      resp_settings.private_key = Default::SECRET_KEY
+      resp_settings.issuer = audience_uri
+      saml_resp = OneLogin::RubySaml::Response.new(signed_encoded_xml, settings: resp_settings)
+
+      expect(
+        Nokogiri::XML(saml_resp.response).at_xpath(
+          "//saml:AuthnStatement/@SessionIndex",
+          {
+            "samlp" => "urn:oasis:names:tc:SAML:2.0:protocol",
+            "saml" => "urn:oasis:names:tc:SAML:2.0:assertion"
+          }
+        ).value
+      ).to eq("_#{reference_id}")
     end
 
     it "sets session expiration" do

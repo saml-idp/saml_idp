@@ -18,10 +18,9 @@ module SamlRequestMacros
     Base64.strict_encode64(request_builder.signed)
   end
 
-  def make_saml_sp_slo_request(param_type: true, embed_sign: false)
+  def make_saml_sp_slo_request(param_type: true, security_options: {})
     logout_request = OneLogin::RubySaml::Logoutrequest.new
-    saml_sp_setting = saml_settings("https://foo.example.com/saml/consume")
-    add_securty_options(saml_sp_setting, embed_sign: embed_sign)
+    saml_sp_setting = saml_settings("https://foo.example.com/saml/consume", true, security_options: security_options)
     if param_type
       logout_request.create_params(saml_sp_setting, 'RelayState' => 'https://foo.example.com/home')
     else
@@ -34,7 +33,7 @@ module SamlRequestMacros
     sp_metadata.generate(saml_settings(saml_acs_url, enable_secure_options), true)
   end
 
-  def saml_settings(saml_acs_url = "https://foo.example.com/saml/consume", enable_secure_options = false)
+  def saml_settings(saml_acs_url = "https://foo.example.com/saml/consume", enable_secure_options = false, security_options: {})
     settings = OneLogin::RubySaml::Settings.new
     settings.assertion_consumer_service_url = saml_acs_url
     settings.issuer = "http://example.com/issuer"
@@ -43,28 +42,22 @@ module SamlRequestMacros
     settings.assertion_consumer_logout_service_url = 'https://foo.example.com/saml/logout'
     settings.idp_cert_fingerprint = SamlIdp::Default::FINGERPRINT
     settings.name_identifier_format = SamlIdp::Default::NAME_ID_FORMAT
-    add_securty_options(settings) if enable_secure_options
+    add_securty_options(settings, default_sp_security_options.merge!(security_options)) if enable_secure_options
     settings
   end
 
-  def add_securty_options(settings, authn_requests_signed: true, 
-                                    embed_sign: true, 
-                                    logout_requests_signed: true, 
-                                    logout_responses_signed: true,
-                                    digest_method: XMLSecurity::Document::SHA256,
-                                    signature_method: XMLSecurity::Document::RSA_SHA256,
-                                    assertions_signed: true)
+  def add_securty_options(settings, options = default_sp_security_options)
     # Security section
     settings.idp_cert = SamlIdp::Default::X509_CERTIFICATE
     # Signed embedded singature
-    settings.security[:authn_requests_signed] = authn_requests_signed
-    settings.security[:embed_sign] = embed_sign
-    settings.security[:logout_requests_signed] = logout_requests_signed
-    settings.security[:logout_responses_signed] = logout_responses_signed
-    settings.security[:metadata_signed] = digest_method
-    settings.security[:digest_method] = digest_method
-    settings.security[:signature_method] = signature_method
-    settings.security[:want_assertions_signed] = assertions_signed
+    settings.security[:authn_requests_signed] = options[:authn_requests_signed]
+    settings.security[:embed_sign] = options[:embed_sign]
+    settings.security[:logout_requests_signed] = options[:logout_requests_signed]
+    settings.security[:logout_responses_signed] = options[:logout_responses_signed]
+    settings.security[:metadata_signed] = options[:digest_method]
+    settings.security[:digest_method] = options[:digest_method]
+    settings.security[:signature_method] = options[:signature_method]
+    settings.security[:want_assertions_signed] = options[:assertions_signed]
     settings.private_key = sp_pv_key
     settings.certificate = sp_x509_cert
   end
@@ -119,5 +112,28 @@ module SamlRequestMacros
     outbuf = ""
     doc.write(outbuf, 1)
     puts outbuf
+  end
+
+  def decode_saml_request(saml_request)
+    decoded_request = Base64.decode64(saml_request)
+    begin
+      # Try to decompress, since SAMLRequest might be compressed
+      Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(decoded_request)
+    rescue Zlib::DataError
+      # If it's not compressed, just return the decoded request
+      decoded_request
+    end
+  end
+
+  def default_sp_security_options
+    {
+      authn_requests_signed: true, 
+      embed_sign: true, 
+      logout_requests_signed: true, 
+      logout_responses_signed: true,
+      digest_method: XMLSecurity::Document::SHA256,
+      signature_method: XMLSecurity::Document::RSA_SHA256,
+      assertions_signed: true
+    }
   end
 end
