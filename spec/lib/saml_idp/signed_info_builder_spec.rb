@@ -1,4 +1,5 @@
 require 'spec_helper'
+
 module SamlIdp
   describe SignedInfoBuilder do
     let(:reference_id) { "abc" }
@@ -7,7 +8,9 @@ module SamlIdp
     subject { described_class.new(
       reference_id,
       digest,
-      algorithm
+      algorithm,
+      sp_encrypted_pv_key[:sp_encrypted_pv_key],
+      sp_encrypted_pv_key[:pv_key_password]
     ) }
 
     before do
@@ -19,7 +22,7 @@ module SamlIdp
     end
 
     it "builds a legit digest of the XML file" do
-      expect(subject.signed).to eq("hKLeWLRgatHcV6N5Fc8aKveqNp6Y/J4m2WSYp0awGFtsCTa/2nab32wI3du+3kuuIy59EDKeUhHVxEfyhoHUo6xTZuO2N7XcTpSonuZ/CB3WjozC2Q/9elss3z1rOC3154v5pW4puirLPRoG+Pwi8SmptxNRHczr6NvmfYmmGfo=")
+      expect(subject.signed).to eq("YP2e6cTEfRj1vI1/gaaSApLAMxPBQzyuBvbvulbS99x17LCLDSKvqA6MyU4WLavmVba5qiF88e97f0XKLsse7gEGOfnF/6jaRV3fePXk6+LFaeYUHZ11u7PkZ1/ucO459ASsuPN/9P9xCY2t+jtVKvIrcSZQbomymfsWGt9P/oY83elKU712aAwqcfvINsa1N+RefZRwdAW4ATBwwcDjE3VTR6mKOyGMsPJ4HQcPrNiEmuwd1QaPH0H1LLzxtewGQGmIL2UqNE/QMe/kKiSTFZ0loBKuSEc9WBw5XuH31QxbzpLJjqM/C1qy4aykPqDUuJtQ4csx78GgfFS4uiqowg==")
     end
   end
 end
