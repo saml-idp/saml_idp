@@ -24,6 +24,7 @@ module SamlIdp
     attr_accessor :signed_message_opts
     attr_accessor :signed_assertion_opts
     attr_accessor :compression_opts
+    attr_accessor :assertion_extension
 
     def initialize(
       reference_id:,
@@ -45,7 +46,8 @@ module SamlIdp
       asserted_attributes_opts: nil,
       signed_message_opts: false,
       signed_assertion_opts: true,
-      compression_opts: false
+      compression_opts: false,
+      assertion_extension: nil
     )
 
       self.reference_id = reference_id
@@ -70,6 +72,7 @@ module SamlIdp
       self.name_id_formats_opts = name_id_formats_opts
       self.asserted_attributes_opts = asserted_attributes_opts
       self.compression_opts = compression_opts
+      self.assertion_extension = assertion_extension
     end
 
     def build
@@ -128,7 +131,8 @@ module SamlIdp
           encryption_opts: encryption_opts,
           session_expiry: session_expiry,
           name_id_formats_opts: name_id_formats_opts,
-          asserted_attributes_opts: asserted_attributes_opts
+          asserted_attributes_opts: asserted_attributes_opts,
+          assertion_extension: assertion_extension
         )
     end
   end
