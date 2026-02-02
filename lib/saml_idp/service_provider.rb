@@ -7,11 +7,8 @@ module SamlIdp
   class ServiceProvider
     include Attributeable
     attribute :identifier
-    attribute :cert
     attribute :fingerprint
     attribute :metadata_url
-    attribute :validate_signature
-    attribute :sign_authn_request
     attribute :acs_url
     attribute :assertion_consumer_logout_service_url
     attribute :response_hosts
@@ -22,17 +19,26 @@ module SamlIdp
       attributes.present?
     end
 
-    def valid_signature?(doc, require_signature = false)
-      if require_signature || attributes[:validate_signature]
-        doc.valid_signature?(fingerprint)
-      else
-        true
-      end
+    def cert
+      attributes.fetch(:cert) { |_| current_metadata&.signing_certificate }
+    end
+
+    def validate_metadata_signature?
+      !!attributes[:validate_signature]
+    end
+
+    def sign_authn_request?
+      attributes.fetch(:sign_authn_request) { |_| !!current_metadata&.sign_authn_request? }
+    end
+
+    def valid_signature?(doc, certificate = cert)
+      doc.valid_signature?(certificate, fingerprint)
     end
 
     def refresh_metadata
       fresh = fresh_incoming_metadata
-      if valid_signature?(fresh.document)
+      cert = attributes.fetch(:cert, fresh.signing_certificate)
+      if !validate_metadata_signature? || valid_signature?(fresh.document, cert)
         metadata_persister[identifier, fresh]
         @current_metadata = nil
         fresh
