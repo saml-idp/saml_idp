@@ -1,6 +1,7 @@
 require 'builder'
 require 'saml_idp/algorithmable'
 require 'saml_idp/signable'
+require 'saml_idp/assertion_extension'
 module SamlIdp
   class AssertionBuilder
     include Algorithmable
@@ -21,6 +22,7 @@ module SamlIdp
     attr_accessor :public_cert
     attr_accessor :private_key
     attr_accessor :pv_key_password
+    attr_accessor :assertion_extension
 
     delegate :config, to: :SamlIdp
 
@@ -40,7 +42,8 @@ module SamlIdp
         encryption_opts: nil,
         session_expiry: nil,
         name_id_formats_opts: nil,
-        asserted_attributes_opts: nil
+        asserted_attributes_opts: nil,
+        assertion_extension: nil
     )
       self.reference_id = reference_id
       self.issuer_uri = issuer_uri
@@ -58,6 +61,7 @@ module SamlIdp
       self.public_cert = public_cert
       self.private_key = private_key
       self.pv_key_password = pv_key_password
+      self.assertion_extension = assertion_extension
     end
 
     def encrypt(opts = {})
@@ -83,8 +87,11 @@ module SamlIdp
               confirmation_hash[:InResponseTo] = saml_request_id unless saml_request_id.nil?
               confirmation_hash[:NotOnOrAfter] = not_on_or_after_subject
               confirmation_hash[:Recipient] = saml_acs_url
-
-              confirmation.SubjectConfirmationData "", confirmation_hash
+              if assertion_extension.present? && assertion_extension.extension_point == AssertionExtension::SUBJECT_CONFIRMATION_DATA_EXTENSION_POINT
+                assertion_extension.build confirmation
+              else
+                confirmation.SubjectConfirmationData "", confirmation_hash
+              end
             end
           end
           assertion.Conditions NotBefore: not_before, NotOnOrAfter: not_on_or_after_condition do |conditions|
@@ -102,6 +109,9 @@ module SamlIdp
           assertion.AuthnStatement authn_statement_props do |statement|
             statement.AuthnContext do |context|
               context.AuthnContextClassRef authn_context_classref
+              if assertion_extension.present? && assertion_extension.extension_point == AssertionExtension::AUTHN_CONTEXT_DECL_EXTENSION_POINT
+                assertion_extension.build context
+              end
             end
           end
           if asserted_attributes

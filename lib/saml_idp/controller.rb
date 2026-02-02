@@ -71,6 +71,7 @@ module SamlIdp
       asserted_attributes_opts = opts[:attributes] || nil
       signed_assertion_opts = opts[:signed_assertion].nil? ? true : opts[:signed_assertion]
       compress_opts = opts[:compress] || false
+      assertion_extension = opts[:assertion_extension] || nil
 
       SamlResponse.new(
         reference_id: reference_id,
@@ -92,7 +93,8 @@ module SamlIdp
         asserted_attributes_opts: asserted_attributes_opts,
         signed_message_opts: signed_message_opts,
         signed_assertion_opts: signed_assertion_opts,
-        compression_opts: compress_opts
+        compression_opts: compress_opts,
+        assertion_extension: assertion_extension
       ).build
     end
 
