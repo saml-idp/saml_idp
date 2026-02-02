@@ -20,7 +20,7 @@ module SamlIdp
     end
 
     it "has a valid name_format" do
-      expect(subject.name_format).to eq(Saml::XML::Namespaces::Formats::Attr::URI)
+      expect(subject.name_format).to eq(SamlIdp::XML::Namespaces::Formats::Attr::URI)
     end
 
     it "has a valid values" do

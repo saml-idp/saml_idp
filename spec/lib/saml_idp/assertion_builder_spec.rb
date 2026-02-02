@@ -11,7 +11,7 @@ module SamlIdp
     let(:saml_acs_url) { "http://saml.acs.url" }
     let(:algorithm) { :sha256 }
     let(:authn_context_classref) {
-      Saml::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
+      SamlIdp::XML::Namespaces::AuthnContext::ClassRef::PASSWORD
     }
     let(:expiry) { 3*60*60 }
     let (:encryption_opts) do
