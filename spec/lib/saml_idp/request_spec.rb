@@ -11,7 +11,7 @@ RSpec.describe SamlIdp::Request, type: :model do
       it "inflates and decodes the request" do
         request = SamlIdp::Request.from_deflated_request(valid_saml_request)
 
-        expect { Saml::XML::Document.parse(request.raw_xml) }.not_to raise_error
+        expect { SamlIdp::XML::Document.parse(request.raw_xml) }.not_to raise_error
       end
     end
 

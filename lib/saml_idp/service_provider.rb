@@ -24,7 +24,7 @@ module SamlIdp
 
     def valid_signature?(doc, require_signature = false)
       if require_signature || attributes[:validate_signature]
-        doc.valid_signature?(fingerprint)
+        doc.valid_signature?(cert, fingerprint)
       else
         true
       end
